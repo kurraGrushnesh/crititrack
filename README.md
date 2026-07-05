@@ -1,4 +1,4 @@
-# 🧠 Celeb-Sentiment-Tracker
+# 🧠 Criticism on Celebrietes using AI
 
 **AI-Powered Celebrity Intelligence Platform** — A cross-platform Flutter app that provides real-time celebrity biography, media feed, and sentiment analysis powered by Groq AI, NewsAPI, YouTube, and Instagram.
 
