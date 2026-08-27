@@ -20,11 +20,15 @@ firebase functions:secrets:set YOUTUBE_API_KEY
 
 ## Local development
 
+Secret params (`defineSecret`) read from `functions/.secret.local` when the
+emulator runs — one `KEY=value` per line. Without it the emulator probes
+Secret Manager and logs a harmless 403 until the API is enabled.
+
 ```bash
 cd functions
-cp .env.example .env.local   # fill in real keys
+cp .env.example .secret.local   # fill in real keys
 npm install
-npm run serve                # firebase emulators:start --only functions
+npm run serve                   # firebase emulators:start --only functions
 ```
 
 The emulator prints the local URL, e.g.

@@ -1,7 +1,8 @@
 node_modules/
 *.local
 
-# Local secret values for the emulator — never commit
+# Local secret / env values for the emulator — never commit
 .env
 .env.*
+.secret.local
 !.env.example
