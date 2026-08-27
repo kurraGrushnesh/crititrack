@@ -101,7 +101,15 @@ void main() {
         'explanation': 'Things are looking good.',
         'dominantEmotion': 'joy',
         'trendData': [
-          {'date': 'Mon', 'score': 70.0, 'positiveCount': 10, 'negativeCount': 3, 'neutralCount': 5, 'totalMentions': 18, 'dominantEmotion': 'joy'},
+          {
+            'date': 'Mon',
+            'score': 70.0,
+            'positiveCount': 10,
+            'negativeCount': 3,
+            'neutralCount': 5,
+            'totalMentions': 18,
+            'dominantEmotion': 'joy',
+          },
         ],
       });
 
@@ -155,9 +163,7 @@ void main() {
         favorited: [],
       );
 
-      final updated = history.copyWith(
-        queries: ['new search', 'test'],
-      );
+      final updated = history.copyWith(queries: ['new search', 'test']);
 
       expect(updated.queries.length, 2);
       expect(updated.queries.first, 'new search');

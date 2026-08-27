@@ -1,4 +1,3 @@
-
 library;
 
 import 'package:flutter/material.dart';
@@ -7,11 +6,7 @@ import 'package:celeb_sentiment_tracker/core/domain/models/celebrity.dart';
 import 'package:celeb_sentiment_tracker/core/theme/app_theme.dart';
 
 class BiographyCard extends StatefulWidget {
-  const BiographyCard({
-    super.key,
-    required this.biography,
-    required this.name,
-  });
+  const BiographyCard({super.key, required this.biography, required this.name});
 
   final Biography biography;
   final String name;
@@ -88,8 +83,11 @@ class _BiographyCardState extends State<BiographyCard>
                     color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.person_rounded,
-                      color: Colors.white, size: 28),
+                  child: const Icon(
+                    Icons.person_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -106,7 +104,9 @@ class _BiographyCardState extends State<BiographyCard>
                       const SizedBox(height: 4),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 3),
+                          horizontal: 10,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: AppTheme.radiusSm,
@@ -130,10 +130,7 @@ class _BiographyCardState extends State<BiographyCard>
           // ── Summary ─────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-            child: Text(
-              bio.summary,
-              style: theme.textTheme.bodyLarge,
-            ),
+            child: Text(bio.summary, style: theme.textTheme.bodyLarge),
           ),
 
           // ── Background (expand/collapse) ────────────────────────
@@ -168,8 +165,11 @@ class _BiographyCardState extends State<BiographyCard>
                     ),
                     RotationTransition(
                       turns: Tween(begin: 0.0, end: 0.5).animate(_expandAnim),
-                      child: const Icon(Icons.keyboard_arrow_down_rounded,
-                          size: 18, color: AppTheme.primary),
+                      child: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 18,
+                        color: AppTheme.primary,
+                      ),
                     ),
                   ],
                 ),
@@ -181,8 +181,7 @@ class _BiographyCardState extends State<BiographyCard>
           if (bio.notableWorks.isNotEmpty) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-              child: Text('Notable Works',
-                  style: theme.textTheme.labelLarge),
+              child: Text('Notable Works', style: theme.textTheme.labelLarge),
             ),
             const SizedBox(height: 8),
             SizedBox(
@@ -192,25 +191,28 @@ class _BiographyCardState extends State<BiographyCard>
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 itemCount: bio.notableWorks.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (_, i) => Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primary.withValues(alpha: 0.1),
-                    borderRadius: AppTheme.radiusSm,
-                    border: Border.all(
-                      color: AppTheme.primary.withValues(alpha: 0.3),
+                itemBuilder:
+                    (_, i) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withValues(alpha: 0.1),
+                        borderRadius: AppTheme.radiusSm,
+                        border: Border.all(
+                          color: AppTheme.primary.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Text(
+                        bio.notableWorks[i],
+                        style: TextStyle(
+                          color: AppTheme.primaryLight,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    bio.notableWorks[i],
-                    style: TextStyle(
-                      color: AppTheme.primaryLight,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
               ),
             ),
           ],
@@ -221,8 +223,10 @@ class _BiographyCardState extends State<BiographyCard>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: GestureDetector(
-                onTap: () => setState(
-                    () => _controversiesExpanded = !_controversiesExpanded),
+                onTap:
+                    () => setState(
+                      () => _controversiesExpanded = !_controversiesExpanded,
+                    ),
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -237,8 +241,11 @@ class _BiographyCardState extends State<BiographyCard>
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.warning_amber_rounded,
-                              size: 16, color: AppTheme.warning),
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            size: 16,
+                            color: AppTheme.warning,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Controversies (${bio.controversies.length})',
@@ -260,27 +267,32 @@ class _BiographyCardState extends State<BiographyCard>
                       ),
                       if (_controversiesExpanded) ...[
                         const SizedBox(height: 8),
-                        ...bio.controversies.map((c) => Padding(
-                              padding: const EdgeInsets.only(bottom: 4),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('• ',
-                                      style: TextStyle(
-                                          color: AppTheme.warning,
-                                          fontSize: 12)),
-                                  Expanded(
-                                    child: Text(
-                                      c,
-                                      style: const TextStyle(
-                                        color: AppTheme.textSecondary,
-                                        fontSize: 12,
-                                      ),
+                        ...bio.controversies.map(
+                          (c) => Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '• ',
+                                  style: TextStyle(
+                                    color: AppTheme.warning,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    c,
+                                    style: const TextStyle(
+                                      color: AppTheme.textSecondary,
+                                      fontSize: 12,
                                     ),
                                   ),
-                                ],
-                              ),
-                            )),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ],
                   ),

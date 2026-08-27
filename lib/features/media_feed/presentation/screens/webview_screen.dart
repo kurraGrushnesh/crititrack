@@ -13,11 +13,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:celeb_sentiment_tracker/core/theme/app_theme.dart';
 
 class WebViewScreen extends StatefulWidget {
-  const WebViewScreen({
-    super.key,
-    required this.url,
-    required this.title,
-  });
+  const WebViewScreen({super.key, required this.url, required this.title});
 
   final String url;
   final String title;
@@ -35,20 +31,23 @@ class _WebViewScreenState extends State<WebViewScreen> {
   void initState() {
     super.initState();
     if (!kIsWeb && widget.url.isNotEmpty) {
-      _controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setNavigationDelegate(NavigationDelegate(
-          onProgress: (progress) {
-            setState(() => _progress = progress / 100.0);
-          },
-          onPageStarted: (_) {
-            setState(() => _isLoading = true);
-          },
-          onPageFinished: (_) {
-            setState(() => _isLoading = false);
-          },
-        ))
-        ..loadRequest(Uri.parse(widget.url));
+      _controller =
+          WebViewController()
+            ..setJavaScriptMode(JavaScriptMode.unrestricted)
+            ..setNavigationDelegate(
+              NavigationDelegate(
+                onProgress: (progress) {
+                  setState(() => _progress = progress / 100.0);
+                },
+                onPageStarted: (_) {
+                  setState(() => _isLoading = true);
+                },
+                onPageFinished: (_) {
+                  setState(() => _isLoading = false);
+                },
+              ),
+            )
+            ..loadRequest(Uri.parse(widget.url));
     } else {
       _controller = null;
     }
@@ -60,25 +59,22 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.title,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+        title: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis),
         leading: IconButton(
           icon: const Icon(Icons.close_rounded),
           onPressed: () => GoRouter.of(context).pop(),
         ),
-        bottom: _isLoading
-            ? PreferredSize(
-                preferredSize: const Size.fromHeight(2),
-                child: LinearProgressIndicator(
-                  value: _progress,
-                  backgroundColor: AppTheme.surfaceElevated,
-                  valueColor: const AlwaysStoppedAnimation(AppTheme.primary),
-                ),
-              )
-            : null,
+        bottom:
+            _isLoading
+                ? PreferredSize(
+                  preferredSize: const Size.fromHeight(2),
+                  child: LinearProgressIndicator(
+                    value: _progress,
+                    backgroundColor: AppTheme.surfaceElevated,
+                    valueColor: const AlwaysStoppedAnimation(AppTheme.primary),
+                  ),
+                )
+                : null,
       ),
       body: _buildBody(theme),
     );
@@ -93,11 +89,13 @@ class _WebViewScreenState extends State<WebViewScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.open_in_browser_rounded,
-                  size: 48, color: AppTheme.primary),
+              const Icon(
+                Icons.open_in_browser_rounded,
+                size: 48,
+                color: AppTheme.primary,
+              ),
               const SizedBox(height: 16),
-              Text('Open in Browser',
-                  style: theme.textTheme.titleLarge),
+              Text('Open in Browser', style: theme.textTheme.titleLarge),
               const SizedBox(height: 8),
               SelectableText(
                 widget.url,

@@ -13,15 +13,11 @@ import 'package:celeb_sentiment_tracker/core/error/result.dart';
 class CelebrityRepository {
   /// Fetches celebrity data by the user's exact entered [name].
   Future<Result<Celebrity>> getCelebrity(String name) async {
-    return const Error(ServerFailure(
-      message: 'Repository not initialized.',
-    ));
+    return const Error(ServerFailure(message: 'Repository not initialized.'));
   }
 
   /// Forces a fresh API fetch, bypassing any cache.
   Future<Result<Celebrity>> forceRefresh(String name) async {
-    return const Error(ServerFailure(
-      message: 'Repository not initialized.',
-    ));
+    return const Error(ServerFailure(message: 'Repository not initialized.'));
   }
 }

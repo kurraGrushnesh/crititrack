@@ -28,8 +28,10 @@ String toSlug(String name) {
 String fromSlug(String slug) {
   return slug
       .split('-')
-      .map((word) =>
-          word.isEmpty ? '' : '${word[0].toUpperCase()}${word.substring(1)}')
+      .map(
+        (word) =>
+            word.isEmpty ? '' : '${word[0].toUpperCase()}${word.substring(1)}',
+      )
       .join(' ');
 }
 

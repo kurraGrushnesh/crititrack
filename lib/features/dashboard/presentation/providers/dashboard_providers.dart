@@ -20,8 +20,10 @@ final celebrityRepositoryProvider = Provider<CelebrityRepository>((ref) {
 
 /// Celebrity data keyed by slug. Triggers real API calls on first watch.
 /// Calling `ref.invalidate(dashboardProvider('slug'))` triggers a re-fetch.
-final dashboardProvider =
-    FutureProvider.family<Celebrity, String>((ref, slug) async {
+final dashboardProvider = FutureProvider.family<Celebrity, String>((
+  ref,
+  slug,
+) async {
   final repo = ref.watch(celebrityRepositoryProvider);
   final displayName = fromSlug(slug);
 
@@ -34,8 +36,10 @@ final dashboardProvider =
 });
 
 /// Force-refresh action — always bypasses cache, calls APIs fresh.
-final refreshDashboardProvider =
-    FutureProvider.family<Celebrity, String>((ref, slug) async {
+final refreshDashboardProvider = FutureProvider.family<Celebrity, String>((
+  ref,
+  slug,
+) async {
   final repo = ref.watch(celebrityRepositoryProvider);
   final displayName = fromSlug(slug);
 

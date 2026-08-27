@@ -21,13 +21,11 @@ import '../../../../core/error/failures.dart';
 import '../../../../core/error/result.dart';
 
 class YouTubeApiService {
-  YouTubeApiService({http.Client? client})
-      : _client = client ?? http.Client();
+  YouTubeApiService({http.Client? client}) : _client = client ?? http.Client();
 
   final http.Client _client;
 
-  static const String _baseUrl =
-      'https://www.googleapis.com/youtube/v3/search';
+  static const String _baseUrl = 'https://www.googleapis.com/youtube/v3/search';
 
   /// Fetches the top YouTube videos about [celebrity].
   ///
@@ -35,13 +33,15 @@ class YouTubeApiService {
   /// channel title. Each item's URL opens the video in a WebView.
   Future<Result<List<MediaItem>>> fetchVideos(String celebrity) async {
     try {
-      final uri = Uri.parse(_baseUrl).replace(queryParameters: {
-        'part': 'snippet',
-        'q': celebrity,
-        'type': 'video',
-        'maxResults': AppConstants.youtubeMaxResults.toString(),
-        'key': ApiKeys.youtubeApiKey,
-      });
+      final uri = Uri.parse(_baseUrl).replace(
+        queryParameters: {
+          'part': 'snippet',
+          'q': celebrity,
+          'type': 'video',
+          'maxResults': AppConstants.youtubeMaxResults.toString(),
+          'key': ApiKeys.youtubeApiKey,
+        },
+      );
 
       final response = await _client.get(uri);
 
@@ -49,10 +49,12 @@ class YouTubeApiService {
     } on http.ClientException {
       return const Error(NetworkFailure());
     } catch (e, st) {
-      return Error(ParseFailure(
-        message: 'YouTube API request failed: ${e.toString()}',
-        stackTrace: st,
-      ));
+      return Error(
+        ParseFailure(
+          message: 'YouTube API request failed: ${e.toString()}',
+          stackTrace: st,
+        ),
+      );
     }
   }
 
@@ -67,49 +69,57 @@ class YouTubeApiService {
             return const Success([]);
           }
 
-          final mediaItems = items.map((item) {
-            final i = item as Map<String, dynamic>;
-            final id = i['id'] as Map<String, dynamic>?;
-            final snippet = i['snippet'] as Map<String, dynamic>?;
-            final videoId = id?['videoId'] as String? ?? '';
+          final mediaItems =
+              items.map((item) {
+                final i = item as Map<String, dynamic>;
+                final id = i['id'] as Map<String, dynamic>?;
+                final snippet = i['snippet'] as Map<String, dynamic>?;
+                final videoId = id?['videoId'] as String? ?? '';
 
-            return MediaItem(
-              id: videoId,
-              type: MediaType.youtube,
-              title: snippet?['title'] as String? ?? 'Untitled Video',
-              url: 'https://www.youtube.com/watch?v=$videoId',
-              thumbnailUrl:
-                  'https://img.youtube.com/vi/$videoId/hqdefault.jpg',
-              source: 'YouTube',
-              publishedAt: snippet?['publishedAt'] != null
-                  ? DateTime.tryParse(snippet!['publishedAt'] as String)
-                  : null,
-              description: snippet?['description'] as String?,
-              videoId: videoId,
-              channelTitle: snippet?['channelTitle'] as String?,
-            );
-          }).toList();
+                return MediaItem(
+                  id: videoId,
+                  type: MediaType.youtube,
+                  title: snippet?['title'] as String? ?? 'Untitled Video',
+                  url: 'https://www.youtube.com/watch?v=$videoId',
+                  thumbnailUrl:
+                      'https://img.youtube.com/vi/$videoId/hqdefault.jpg',
+                  source: 'YouTube',
+                  publishedAt:
+                      snippet?['publishedAt'] != null
+                          ? DateTime.tryParse(snippet!['publishedAt'] as String)
+                          : null,
+                  description: snippet?['description'] as String?,
+                  videoId: videoId,
+                  channelTitle: snippet?['channelTitle'] as String?,
+                );
+              }).toList();
 
           return Success(mediaItems);
         } catch (e, st) {
-          return Error(ParseFailure(
-            message: 'Failed to parse YouTube response: ${e.toString()}',
-            stackTrace: st,
-          ));
+          return Error(
+            ParseFailure(
+              message: 'Failed to parse YouTube response: ${e.toString()}',
+              stackTrace: st,
+            ),
+          );
         }
       case 401:
       case 403:
-        return const Error(ApiKeyFailure(
-          serviceName: 'YouTube',
-          message:
-              'Invalid YouTube API key. Ensure the YouTube Data API v3 is enabled in Google Cloud Console.',
-        ));
+        return const Error(
+          ApiKeyFailure(
+            serviceName: 'YouTube',
+            message:
+                'Invalid YouTube API key. Ensure the YouTube Data API v3 is enabled in Google Cloud Console.',
+          ),
+        );
       case 429:
         return const Error(RateLimitFailure());
       default:
-        return Error(ServerFailure(
-          message: 'YouTube API returned HTTP ${response.statusCode}',
-        ));
+        return Error(
+          ServerFailure(
+            message: 'YouTube API returned HTTP ${response.statusCode}',
+          ),
+        );
     }
   }
 

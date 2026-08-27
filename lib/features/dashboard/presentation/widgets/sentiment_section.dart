@@ -4,6 +4,13 @@
 /// Contains three StatCard metrics, a TabBarView with PieChart,
 /// LineChart, and BarChart (fl_chart), and an AI explanation text
 /// rendered with character-by-character typewriter animation.
+///
+/// Enhanced with:
+/// - Phase 1: Spike markers on trend line chart + tap-to-inspect
+/// - Phase 2: Evidence panel (via EvidencePanel widget)
+/// - Phase 4: Dashed forecast segment on line chart
+/// - Phase 5: Source breakdown chips (via SourceBreakdown widget)
+/// - NFR-6: "Algorithmically generated" indicators
 library;
 
 import 'dart:async';
@@ -12,13 +19,23 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import 'package:celeb_sentiment_tracker/core/constants/app_constants.dart';
+import 'package:celeb_sentiment_tracker/core/domain/models/media_item.dart';
 import 'package:celeb_sentiment_tracker/core/domain/models/sentiment_data.dart';
 import 'package:celeb_sentiment_tracker/core/theme/app_theme.dart';
 import 'package:celeb_sentiment_tracker/core/utils/helpers.dart';
+import 'package:celeb_sentiment_tracker/features/dashboard/presentation/widgets/evidence_panel.dart';
+import 'package:celeb_sentiment_tracker/features/dashboard/presentation/widgets/source_breakdown.dart';
 
 class SentimentSection extends StatefulWidget {
-  const SentimentSection({super.key, required this.sentimentData});
+  const SentimentSection({
+    super.key,
+    required this.sentimentData,
+    this.mediaItems = const [],
+  });
   final SentimentData sentimentData;
+
+  /// Media items for displaying on spike-tap. Grouped by day internally.
+  final List<MediaItem> mediaItems;
 
   @override
   State<SentimentSection> createState() => _SentimentSectionState();
@@ -82,11 +99,13 @@ class _SentimentSectionState extends State<SentimentSection>
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
             child: Row(
               children: [
-                const Icon(Icons.insights_rounded,
-                    size: 20, color: AppTheme.accent),
+                const Icon(
+                  Icons.insights_rounded,
+                  size: 20,
+                  color: AppTheme.accent,
+                ),
                 const SizedBox(width: 8),
-                Text('Sentiment Analysis',
-                    style: theme.textTheme.titleMedium),
+                Text('Sentiment Analysis', style: theme.textTheme.titleMedium),
               ],
             ),
           ),
@@ -126,7 +145,10 @@ class _SentimentSectionState extends State<SentimentSection>
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+
+          // ── Source Breakdown (Phase 5) ──────────────────────────
+          SourceBreakdown(sentimentData: data),
 
           // ── Chart TabBar ────────────────────────────────────────
           TabBar(
@@ -154,19 +176,53 @@ class _SentimentSectionState extends State<SentimentSection>
             ),
           ),
 
+          // ── NFR-6: Algorithmically generated indicator ─────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.auto_fix_high_rounded,
+                  size: 10,
+                  color: AppTheme.warning.withValues(alpha: 0.7),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Scores and charts are algorithmically generated',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppTheme.textMuted,
+                    fontSize: 9,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Evidence Panel (Phase 2) ───────────────────────────
+          if (data.evidence.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            EvidencePanel(evidence: data.evidence),
+          ],
+
           // ── AI Explanation ──────────────────────────────────────
           if (data.explanation.isNotEmpty) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
               child: Row(
                 children: [
-                  Icon(Icons.auto_awesome_rounded,
-                      size: 16, color: AppTheme.primary),
+                  Icon(
+                    Icons.auto_awesome_rounded,
+                    size: 16,
+                    color: AppTheme.primary,
+                  ),
                   const SizedBox(width: 6),
-                  Text('AI Analysis',
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: AppTheme.primary,
-                      )),
+                  Text(
+                    'AI Analysis',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: AppTheme.primary,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -174,9 +230,7 @@ class _SentimentSectionState extends State<SentimentSection>
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
               child: Text(
                 _displayedExplanation,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  height: 1.6,
-                ),
+                style: theme.textTheme.bodyMedium?.copyWith(height: 1.6),
               ),
             ),
           ],
@@ -239,14 +293,23 @@ class _SentimentSectionState extends State<SentimentSection>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _legendItem('Positive', AppTheme.sentimentPositive,
-                  '${(data.positiveRatio * 100).toStringAsFixed(1)}%'),
+              _legendItem(
+                'Positive',
+                AppTheme.sentimentPositive,
+                '${(data.positiveRatio * 100).toStringAsFixed(1)}%',
+              ),
               const SizedBox(height: 8),
-              _legendItem('Negative', AppTheme.sentimentNegative,
-                  '${(data.negativeRatio * 100).toStringAsFixed(1)}%'),
+              _legendItem(
+                'Negative',
+                AppTheme.sentimentNegative,
+                '${(data.negativeRatio * 100).toStringAsFixed(1)}%',
+              ),
               const SizedBox(height: 8),
-              _legendItem('Neutral', AppTheme.sentimentNeutral,
-                  '${(data.neutralRatio * 100).toStringAsFixed(1)}%'),
+              _legendItem(
+                'Neutral',
+                AppTheme.sentimentNeutral,
+                '${(data.neutralRatio * 100).toStringAsFixed(1)}%',
+              ),
             ],
           ),
         ],
@@ -288,31 +351,60 @@ class _SentimentSectionState extends State<SentimentSection>
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 8),
-        Text(label,
-            style: const TextStyle(
-                color: AppTheme.textSecondary, fontSize: 12)),
+        Text(
+          label,
+          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+        ),
         const SizedBox(width: 8),
-        Text(value,
-            style: const TextStyle(
-                color: AppTheme.textPrimary,
-                fontSize: 12,
-                fontWeight: FontWeight.w600)),
+        Text(
+          value,
+          style: const TextStyle(
+            color: AppTheme.textPrimary,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ],
     );
   }
 
-  // ── Line Chart ─────────────────────────────────────────────────
+  // ── Line Chart (with spikes + forecast) ────────────────────────
 
   Widget _buildLineChart(SentimentData data) {
     if (data.trendData.isEmpty) {
       return const Center(child: Text('No trend data available'));
     }
 
-    final spots = data.trendData
-        .asMap()
-        .entries
-        .map((e) => FlSpot(e.key.toDouble(), e.value.score))
-        .toList();
+    // Actual data spots
+    final spots =
+        data.trendData
+            .asMap()
+            .entries
+            .map((e) => FlSpot(e.key.toDouble(), e.value.score))
+            .toList();
+
+    // Phase 4: Forecast spots (dashed segment)
+    final forecastSpots = <FlSpot>[];
+    if (data.forecast.isNotEmpty) {
+      // Start from the last actual data point
+      final lastIdx = data.trendData.length - 1;
+      forecastSpots.add(FlSpot(lastIdx.toDouble(), data.trendData.last.score));
+      for (int i = 0; i < data.forecast.length; i++) {
+        forecastSpots.add(
+          FlSpot((lastIdx + 1 + i).toDouble(), data.forecast[i]),
+        );
+      }
+    }
+
+    final totalPoints = data.trendData.length + data.forecast.length;
+
+    // Phase 1: Collect spike indices
+    final spikeIndices = <int>{};
+    for (int i = 0; i < data.trendData.length; i++) {
+      if (data.trendData[i].isSpike) {
+        spikeIndices.add(i);
+      }
+    }
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 24, 16),
@@ -322,10 +414,11 @@ class _SentimentSectionState extends State<SentimentSection>
             show: true,
             drawVerticalLine: false,
             horizontalInterval: 20,
-            getDrawingHorizontalLine: (value) => FlLine(
-              color: AppTheme.border.withValues(alpha: 0.3),
-              strokeWidth: 1,
-            ),
+            getDrawingHorizontalLine:
+                (value) => FlLine(
+                  color: AppTheme.border.withValues(alpha: 0.3),
+                  strokeWidth: 1,
+                ),
           ),
           titlesData: FlTitlesData(
             rightTitles: const AxisTitles(),
@@ -335,11 +428,14 @@ class _SentimentSectionState extends State<SentimentSection>
                 showTitles: true,
                 reservedSize: 35,
                 interval: 20,
-                getTitlesWidget: (v, _) => Text(
-                  '${v.toInt()}',
-                  style: const TextStyle(
-                      color: AppTheme.textMuted, fontSize: 10),
-                ),
+                getTitlesWidget:
+                    (v, _) => Text(
+                      '${v.toInt()}',
+                      style: const TextStyle(
+                        color: AppTheme.textMuted,
+                        fontSize: 10,
+                      ),
+                    ),
               ),
             ),
             bottomTitles: AxisTitles(
@@ -348,15 +444,33 @@ class _SentimentSectionState extends State<SentimentSection>
                 reservedSize: 28,
                 getTitlesWidget: (v, _) {
                   final idx = v.toInt();
-                  if (idx < 0 || idx >= data.trendData.length) {
+                  if (idx < 0 || idx >= totalPoints) {
                     return const SizedBox.shrink();
                   }
+                  // Actual data labels
+                  if (idx < data.trendData.length) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        data.trendData[idx].date,
+                        style: const TextStyle(
+                          color: AppTheme.textMuted,
+                          fontSize: 10,
+                        ),
+                      ),
+                    );
+                  }
+                  // Forecast labels
+                  final fIdx = idx - data.trendData.length;
                   return Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
-                      data.trendData[idx].date,
-                      style: const TextStyle(
-                          color: AppTheme.textMuted, fontSize: 10),
+                      'F${fIdx + 1}',
+                      style: TextStyle(
+                        color: AppTheme.accent.withValues(alpha: 0.7),
+                        fontSize: 10,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   );
                 },
@@ -371,11 +485,20 @@ class _SentimentSectionState extends State<SentimentSection>
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map((spot) {
                   final idx = spot.x.toInt();
-                  final day = idx < data.trendData.length
-                      ? data.trendData[idx].date
-                      : '';
+                  String label;
+                  if (idx < data.trendData.length) {
+                    final day = data.trendData[idx].date;
+                    final spikeTag =
+                        data.trendData[idx].isSpike ? ' ⚡ SPIKE' : '';
+                    label = '$day\n${spot.y.toStringAsFixed(0)}$spikeTag';
+                  } else {
+                    final fIdx = idx - data.trendData.length;
+                    label =
+                        'Forecast +${fIdx + 1}\n'
+                        '${spot.y.toStringAsFixed(0)}';
+                  }
                   return LineTooltipItem(
-                    '$day\n${spot.y.toStringAsFixed(0)}',
+                    label,
                     const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
@@ -387,6 +510,7 @@ class _SentimentSectionState extends State<SentimentSection>
             ),
           ),
           lineBarsData: [
+            // Actual data line
             LineChartBarData(
               spots: spots,
               isCurved: true,
@@ -406,15 +530,72 @@ class _SentimentSectionState extends State<SentimentSection>
               ),
               dotData: FlDotData(
                 show: true,
-                getDotPainter: (spot, _, __, ___) => FlDotCirclePainter(
-                  radius: 4,
-                  color: AppTheme.primary,
-                  strokeWidth: 2,
-                  strokeColor: Colors.white,
-                ),
+                getDotPainter: (spot, _, __, ___) {
+                  final idx = spot.x.toInt();
+                  // Phase 1: Spike dots get a red glow
+                  if (spikeIndices.contains(idx)) {
+                    return FlDotCirclePainter(
+                      radius: 6,
+                      color: AppTheme.error,
+                      strokeWidth: 3,
+                      strokeColor: AppTheme.error.withValues(alpha: 0.3),
+                    );
+                  }
+                  return FlDotCirclePainter(
+                    radius: 4,
+                    color: AppTheme.primary,
+                    strokeWidth: 2,
+                    strokeColor: Colors.white,
+                  );
+                },
               ),
             ),
+            // Phase 4: Forecast dashed line
+            if (forecastSpots.isNotEmpty)
+              LineChartBarData(
+                spots: forecastSpots,
+                isCurved: true,
+                color: AppTheme.accent,
+                barWidth: 2,
+                isStrokeCapRound: true,
+                dashArray: [6, 4],
+                belowBarData: BarAreaData(show: false),
+                dotData: FlDotData(
+                  show: true,
+                  getDotPainter:
+                      (_, __, ___, ____) => FlDotCirclePainter(
+                        radius: 3,
+                        color: AppTheme.accent,
+                        strokeWidth: 1,
+                        strokeColor: AppTheme.accent.withValues(alpha: 0.4),
+                      ),
+                ),
+              ),
           ],
+          // Extra room on the right for forecast points
+          extraLinesData:
+              forecastSpots.isNotEmpty
+                  ? ExtraLinesData(
+                    verticalLines: [
+                      VerticalLine(
+                        x: (data.trendData.length - 1).toDouble(),
+                        color: AppTheme.textMuted.withValues(alpha: 0.3),
+                        strokeWidth: 1,
+                        dashArray: [4, 4],
+                        label: VerticalLineLabel(
+                          show: true,
+                          alignment: Alignment.topRight,
+                          style: TextStyle(
+                            fontSize: 8,
+                            color: AppTheme.accent.withValues(alpha: 0.7),
+                            fontStyle: FontStyle.italic,
+                          ),
+                          labelResolver: (_) => 'Baseline forecast →',
+                        ),
+                      ),
+                    ],
+                  )
+                  : null,
         ),
       ),
     );
@@ -435,10 +616,11 @@ class _SentimentSectionState extends State<SentimentSection>
             show: true,
             drawVerticalLine: false,
             horizontalInterval: 20,
-            getDrawingHorizontalLine: (value) => FlLine(
-              color: AppTheme.border.withValues(alpha: 0.3),
-              strokeWidth: 1,
-            ),
+            getDrawingHorizontalLine:
+                (value) => FlLine(
+                  color: AppTheme.border.withValues(alpha: 0.3),
+                  strokeWidth: 1,
+                ),
           ),
           titlesData: FlTitlesData(
             rightTitles: const AxisTitles(),
@@ -448,11 +630,14 @@ class _SentimentSectionState extends State<SentimentSection>
                 showTitles: true,
                 reservedSize: 35,
                 interval: 20,
-                getTitlesWidget: (v, _) => Text(
-                  '${v.toInt()}',
-                  style: const TextStyle(
-                      color: AppTheme.textMuted, fontSize: 10),
-                ),
+                getTitlesWidget:
+                    (v, _) => Text(
+                      '${v.toInt()}',
+                      style: const TextStyle(
+                        color: AppTheme.textMuted,
+                        fontSize: 10,
+                      ),
+                    ),
               ),
             ),
             bottomTitles: AxisTitles(
@@ -469,7 +654,9 @@ class _SentimentSectionState extends State<SentimentSection>
                     child: Text(
                       data.trendData[idx].date,
                       style: const TextStyle(
-                          color: AppTheme.textMuted, fontSize: 10),
+                        color: AppTheme.textMuted,
+                        fontSize: 10,
+                      ),
                     ),
                   );
                 },
@@ -477,31 +664,33 @@ class _SentimentSectionState extends State<SentimentSection>
             ),
           ),
           borderData: FlBorderData(show: false),
-          barGroups: data.trendData.asMap().entries.map((e) {
-            final snapshot = e.value;
-            return BarChartGroupData(
-              x: e.key,
-              barRods: [
-                BarChartRodData(
-                  toY: snapshot.totalMentions.toDouble(),
-                  width: 18,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(4),
-                    topRight: Radius.circular(4),
-                  ),
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      _emotionColor(snapshot.dominantEmotion)
-                          .withValues(alpha: 0.6),
-                      _emotionColor(snapshot.dominantEmotion),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          }).toList(),
+          barGroups:
+              data.trendData.asMap().entries.map((e) {
+                final snapshot = e.value;
+                return BarChartGroupData(
+                  x: e.key,
+                  barRods: [
+                    BarChartRodData(
+                      toY: snapshot.totalMentions.toDouble(),
+                      width: 18,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(4),
+                        topRight: Radius.circular(4),
+                      ),
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          _emotionColor(
+                            snapshot.dominantEmotion,
+                          ).withValues(alpha: 0.6),
+                          _emotionColor(snapshot.dominantEmotion),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
           barTouchData: BarTouchData(
             touchTooltipData: BarTouchTooltipData(
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
@@ -523,10 +712,10 @@ class _SentimentSectionState extends State<SentimentSection>
   }
 
   Color _emotionColor(String emotion) => switch (emotion.toLowerCase()) {
-        'joy' || 'admiration' || 'excitement' => AppTheme.sentimentPositive,
-        'anger' || 'controversy' => AppTheme.sentimentNegative,
-        _ => AppTheme.sentimentNeutral,
-      };
+    'joy' || 'admiration' || 'excitement' => AppTheme.sentimentPositive,
+    'anger' || 'controversy' => AppTheme.sentimentNegative,
+    _ => AppTheme.sentimentNeutral,
+  };
 }
 
 // ── Stat Card Widget ─────────────────────────────────────────────
@@ -559,9 +748,7 @@ class _StatCard extends StatelessWidget {
           Icon(icon, size: 22, color: color),
           const SizedBox(height: 6),
           Text(
-            value.length > 8
-                ? '${value.substring(0, 8)}…'
-                : value,
+            value.length > 8 ? '${value.substring(0, 8)}…' : value,
             style: theme.textTheme.titleSmall?.copyWith(
               color: color,
               fontWeight: FontWeight.w700,

@@ -89,6 +89,7 @@ void main() {
         NotFoundFailure() => 'not_found',
         RateLimitFailure() => 'rate_limit',
         ParseFailure() => 'parse',
+        ModelNotFoundFailure() => 'model_not_found',
         ServerFailure() => 'server',
         FirebaseFailure() => 'firebase',
       };

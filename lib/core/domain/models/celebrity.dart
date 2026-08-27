@@ -44,8 +44,7 @@ class Celebrity extends Equatable {
   final int cacheVersion;
 
   /// Whether the cached data is still within the 24-hour TTL.
-  bool get isFresh =>
-      DateTime.now().difference(fetchedAt).inHours < 24;
+  bool get isFresh => DateTime.now().difference(fetchedAt).inHours < 24;
 
   @override
   List<Object?> get props => [slug, name, fetchedAt, cacheVersion];
@@ -84,6 +83,16 @@ class Celebrity extends Equatable {
       'sentimentExplanation': sentimentData.explanation,
       'fetchedAt': fetchedAt.toIso8601String(),
       'cacheVersion': cacheVersion,
+      // Phase 2: Evidence fragments
+      'evidence': sentimentData.evidence.map((e) => e.toMap()).toList(),
+      // Phase 4: Forecast
+      'forecast': sentimentData.forecast,
+      // Phase 5: Per-source scores
+      if (sentimentData.scoreNews != null) 'scoreNews': sentimentData.scoreNews,
+      if (sentimentData.scoreYoutube != null)
+        'scoreYoutube': sentimentData.scoreYoutube,
+      if (sentimentData.scoreInstagram != null)
+        'scoreInstagram': sentimentData.scoreInstagram,
     };
   }
 
@@ -109,9 +118,28 @@ class Celebrity extends Equatable {
         explanation: data['sentimentExplanation'] as String? ?? '',
         trendData: sentimentSnapshots,
         dominantEmotion: data['dominantEmotion'] as String? ?? 'neutral',
+        // Phase 2: Evidence
+        evidence:
+            (data['evidence'] as List<dynamic>?)
+                ?.map(
+                  (e) => SentimentEvidence.fromMap(e as Map<String, dynamic>),
+                )
+                .toList() ??
+            [],
+        // Phase 4: Forecast
+        forecast:
+            (data['forecast'] as List<dynamic>?)
+                ?.map((e) => (e as num).toDouble())
+                .toList() ??
+            [],
+        // Phase 5: Per-source scores
+        scoreNews: (data['scoreNews'] as num?)?.toDouble(),
+        scoreYoutube: (data['scoreYoutube'] as num?)?.toDouble(),
+        scoreInstagram: (data['scoreInstagram'] as num?)?.toDouble(),
       ),
       mediaItems: mediaItems,
-      fetchedAt: DateTime.tryParse(data['fetchedAt'] as String? ?? '') ??
+      fetchedAt:
+          DateTime.tryParse(data['fetchedAt'] as String? ?? '') ??
           DateTime.now(),
       cacheVersion: data['cacheVersion'] as int? ?? 1,
     );
@@ -138,12 +166,12 @@ class Biography extends Equatable {
   List<Object?> get props => [profession, summary];
 
   Map<String, dynamic> toMap() => {
-        'profession': profession,
-        'summary': summary,
-        'background': background,
-        'notableWorks': notableWorks,
-        'controversies': controversies,
-      };
+    'profession': profession,
+    'summary': summary,
+    'background': background,
+    'notableWorks': notableWorks,
+    'controversies': controversies,
+  };
 
   factory Biography.fromMap(Map<String, dynamic> map) {
     return Biography(

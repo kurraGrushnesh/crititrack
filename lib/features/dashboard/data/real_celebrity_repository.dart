@@ -19,13 +19,14 @@ import 'package:celeb_sentiment_tracker/core/error/failures.dart';
 
 /// Extends [CelebrityRepository] with real Firebase-backed data.
 class RealCelebrityRepository extends CelebrityRepository {
-  RealCelebrityRepository() : _cacheRepository = CacheRepository(
-    firestore: FirebaseFirestore.instance,
-    openAiService: OpenAiService(),
-    newsApiService: NewsApiService(),
-    youTubeApiService: YouTubeApiService(),
-    instagramApiService: InstagramApiService(),
-  );
+  RealCelebrityRepository()
+    : _cacheRepository = CacheRepository(
+        firestore: FirebaseFirestore.instance,
+        openAiService: OpenAiService(),
+        newsApiService: NewsApiService(),
+        youTubeApiService: YouTubeApiService(),
+        instagramApiService: InstagramApiService(),
+      );
 
   final CacheRepository _cacheRepository;
 

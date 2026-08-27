@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:celeb_sentiment_tracker/features/dashboard/data/celebrity_repository.dart';
 
-
 void main() {
   group('CelebrityRepository (base)', () {
     test('base getCelebrity returns ServerFailure', () async {

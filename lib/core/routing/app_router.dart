@@ -16,6 +16,7 @@ import '../../features/search/presentation/screens/home_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/media_feed/presentation/screens/webview_screen.dart';
 import '../../features/dashboard/presentation/screens/error_screen.dart';
+import '../../features/sentiment/presentation/screens/compare_screen.dart';
 
 /// Named route constants to avoid magic strings.
 abstract final class AppRoutes {
@@ -58,18 +59,24 @@ final GoRouter appRouter = GoRouter(
       ],
     ),
     GoRoute(
+      path: '/compare',
+      name: 'compare',
+      builder: (context, state) => const CompareScreen(),
+    ),
+    GoRoute(
       path: '/error',
       name: 'error',
       builder: (context, state) {
-        final message = state.uri.queryParameters['message'] ??
-            'Something went wrong.';
+        final message =
+            state.uri.queryParameters['message'] ?? 'Something went wrong.';
         final type = state.uri.queryParameters['type'] ?? 'generic';
         return ErrorScreen(message: message, errorType: type);
       },
     ),
   ],
-  errorBuilder: (context, state) => ErrorScreen(
-    message: 'Page not found: ${state.uri.path}',
-    errorType: 'notFound',
-  ),
+  errorBuilder:
+      (context, state) => ErrorScreen(
+        message: 'Page not found: ${state.uri.path}',
+        errorType: 'notFound',
+      ),
 );

@@ -73,14 +73,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.insights_rounded,
-                      color: Colors.white, size: 40),
+                  child: const Icon(
+                    Icons.insights_rounded,
+                    color: Colors.white,
+                    size: 40,
+                  ),
                 ),
                 const SizedBox(height: 24),
 
                 // ── Title ─────────────────────────────────────────
-                Text('Celeb Sentiment Tracker',
-                    style: theme.textTheme.headlineMedium),
+                Text(
+                  'Celeb Sentiment Tracker',
+                  style: theme.textTheme.headlineMedium,
+                ),
                 const SizedBox(height: 8),
                 Text(
                   'AI-powered celebrity intelligence',
@@ -116,8 +121,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       hintStyle: theme.textTheme.bodyLarge?.copyWith(
                         color: AppTheme.textMuted,
                       ),
-                      prefixIcon: const Icon(Icons.search_rounded,
-                          color: AppTheme.textMuted),
+                      prefixIcon: const Icon(
+                        Icons.search_rounded,
+                        color: AppTheme.textMuted,
+                      ),
                       suffixIcon: AnimatedBuilder(
                         animation: _controller,
                         builder: (_, __) {
@@ -125,8 +132,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             return const SizedBox.shrink();
                           }
                           return IconButton(
-                            icon: const Icon(Icons.clear_rounded,
-                                color: AppTheme.textMuted),
+                            icon: const Icon(
+                              Icons.clear_rounded,
+                              color: AppTheme.textMuted,
+                            ),
                             onPressed: () {
                               _controller.clear();
                               _focusNode.requestFocus();
@@ -136,7 +145,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 16),
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
                     ),
                   ),
                 ),
@@ -164,17 +175,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     alignment: Alignment.centerLeft,
                     child: Row(
                       children: [
-                        const Icon(Icons.history_rounded,
-                            size: 16, color: AppTheme.textMuted),
+                        const Icon(
+                          Icons.history_rounded,
+                          size: 16,
+                          color: AppTheme.textMuted,
+                        ),
                         const SizedBox(width: 8),
-                        Text('Recent searches',
-                            style: theme.textTheme.labelLarge),
+                        Text(
+                          'Recent searches',
+                          style: theme.textTheme.labelLarge,
+                        ),
                         const Spacer(),
                         TextButton(
                           onPressed: () {
-                            ref
-                                .read(searchRepositoryProvider)
-                                .clearSearches();
+                            ref.read(searchRepositoryProvider).clearSearches();
                             ref.invalidate(recentSearchesProvider);
                           },
                           child: const Text('Clear'),
@@ -189,17 +203,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     child: Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: recents.map((query) {
-                        return ActionChip(
-                          label: Text(query),
-                          avatar: const Icon(Icons.person_search_rounded,
-                              size: 16),
-                          onPressed: () {
-                            _controller.text = query;
-                            _search();
-                          },
-                        );
-                      }).toList(),
+                      children:
+                          recents.map((query) {
+                            return ActionChip(
+                              label: Text(query),
+                              avatar: const Icon(
+                                Icons.person_search_rounded,
+                                size: 16,
+                              ),
+                              onPressed: () {
+                                _controller.text = query;
+                                _search();
+                              },
+                            );
+                          }).toList(),
                     ),
                   ),
                 ],
@@ -226,9 +243,6 @@ class AnimatedBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: animation,
-      builder: builder,
-    );
+    return ListenableBuilder(listenable: animation, builder: builder);
   }
 }

@@ -64,16 +64,18 @@ class ErrorScreen extends StatelessWidget {
   }
 
   IconData _iconForType(String type) => switch (type) {
-        'notFound' => Icons.person_search_rounded,
-        'apiKey' => Icons.vpn_key_off_rounded,
-        'network' => Icons.wifi_off_rounded,
-        _ => Icons.error_outline_rounded,
-      };
+    'notFound' => Icons.person_search_rounded,
+    'apiKey' => Icons.vpn_key_off_rounded,
+    'modelNotFound' => Icons.model_training_rounded,
+    'network' => Icons.wifi_off_rounded,
+    _ => Icons.error_outline_rounded,
+  };
 
   String _titleForType(String type) => switch (type) {
-        'notFound' => 'Celebrity Not Found',
-        'apiKey' => 'API Key Error',
-        'network' => 'No Connection',
-        _ => 'Something Went Wrong',
-      };
+    'notFound' => 'Celebrity Not Found',
+    'apiKey' => 'API Key Error',
+    'modelNotFound' => 'AI Model Unavailable',
+    'network' => 'No Connection',
+    _ => 'Something Went Wrong',
+  };
 }

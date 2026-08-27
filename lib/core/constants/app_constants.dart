@@ -40,6 +40,24 @@ abstract final class AppConstants {
   static const double mobileBreakpoint = 600.0;
   static const double tabletBreakpoint = 900.0;
 
+  // ── Anomaly Detection ──────────────────────────────────────────────
+  /// Number of trailing days used for the rolling window.
+  static const int anomalyWindowSize = 7;
+
+  /// Z-score threshold above which a day is flagged as a spike.
+  static const double anomalyThreshold = 1.5;
+
+  // ── Forecasting ───────────────────────────────────────────────────
+  /// Number of trailing days used as input for the linear-trend fit.
+  static const int forecastWindowSize = 7;
+
+  /// Number of days to forecast forward.
+  static const int forecastHorizon = 3;
+
+  // ── Source Decomposition ──────────────────────────────────────────
+  /// Default equal weights when volume-based weighting is unavailable.
+  static const double defaultSourceWeight = 1.0 / 3.0;
+
   // ── Firestore Collections ─────────────────────────────────────────
   static const String celebritiesCollection = 'celebrities';
   static const String mediaItemsSubcollection = 'media_items';

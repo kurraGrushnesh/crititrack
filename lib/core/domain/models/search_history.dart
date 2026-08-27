@@ -29,10 +29,10 @@ class SearchHistory extends Equatable {
   List<Object?> get props => [userId, queries, favorited];
 
   Map<String, dynamic> toFirestore() => {
-        'queries': queries,
-        'favorited': favorited,
-        'lastSearched': lastSearched?.toIso8601String(),
-      };
+    'queries': queries,
+    'favorited': favorited,
+    'lastSearched': lastSearched?.toIso8601String(),
+  };
 
   factory SearchHistory.fromFirestore(
     String userId,
@@ -42,9 +42,10 @@ class SearchHistory extends Equatable {
       userId: userId,
       queries: List<String>.from(data['queries'] ?? []),
       favorited: List<String>.from(data['favorited'] ?? []),
-      lastSearched: data['lastSearched'] != null
-          ? DateTime.tryParse(data['lastSearched'] as String)
-          : null,
+      lastSearched:
+          data['lastSearched'] != null
+              ? DateTime.tryParse(data['lastSearched'] as String)
+              : null,
     );
   }
 

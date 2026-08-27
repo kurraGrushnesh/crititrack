@@ -25,13 +25,15 @@ class NewsApiService {
   /// celebrities.
   Future<Result<List<MediaItem>>> fetchNews(String celebrity) async {
     try {
-      final uri = Uri.parse(_baseUrl).replace(queryParameters: {
-        'q': celebrity,
-        'language': 'en',
-        'sortBy': 'publishedAt',
-        'pageSize': AppConstants.newsPageSize.toString(),
-        'apiKey': ApiKeys.newsApiKey,
-      });
+      final uri = Uri.parse(_baseUrl).replace(
+        queryParameters: {
+          'q': celebrity,
+          'language': 'en',
+          'sortBy': 'publishedAt',
+          'pageSize': AppConstants.newsPageSize.toString(),
+          'apiKey': ApiKeys.newsApiKey,
+        },
+      );
 
       final response = await _client.get(uri);
 
@@ -39,10 +41,12 @@ class NewsApiService {
     } on http.ClientException {
       return const Error(NetworkFailure());
     } catch (e, st) {
-      return Error(ParseFailure(
-        message: 'NewsAPI request failed: ${e.toString()}',
-        stackTrace: st,
-      ));
+      return Error(
+        ParseFailure(
+          message: 'NewsAPI request failed: ${e.toString()}',
+          stackTrace: st,
+        ),
+      );
     }
   }
 
@@ -57,43 +61,51 @@ class NewsApiService {
             return const Success([]);
           }
 
-          final items = articles.map((article) {
-            final a = article as Map<String, dynamic>;
-            final source = a['source'] as Map<String, dynamic>?;
-            final url = a['url'] as String? ?? '';
+          final items =
+              articles.map((article) {
+                final a = article as Map<String, dynamic>;
+                final source = a['source'] as Map<String, dynamic>?;
+                final url = a['url'] as String? ?? '';
 
-            return MediaItem(
-              id: url.hashCode.toString(),
-              type: MediaType.news,
-              title: a['title'] as String? ?? 'Untitled',
-              url: url,
-              thumbnailUrl: a['urlToImage'] as String?,
-              source: source?['name'] as String? ?? 'Unknown',
-              publishedAt: a['publishedAt'] != null
-                  ? DateTime.tryParse(a['publishedAt'] as String)
-                  : null,
-              description: a['description'] as String?,
-            );
-          }).toList();
+                return MediaItem(
+                  id: url.hashCode.toString(),
+                  type: MediaType.news,
+                  title: a['title'] as String? ?? 'Untitled',
+                  url: url,
+                  thumbnailUrl: a['urlToImage'] as String?,
+                  source: source?['name'] as String? ?? 'Unknown',
+                  publishedAt:
+                      a['publishedAt'] != null
+                          ? DateTime.tryParse(a['publishedAt'] as String)
+                          : null,
+                  description: a['description'] as String?,
+                );
+              }).toList();
 
           return Success(items);
         } catch (e, st) {
-          return Error(ParseFailure(
-            message: 'Failed to parse NewsAPI response: ${e.toString()}',
-            stackTrace: st,
-          ));
+          return Error(
+            ParseFailure(
+              message: 'Failed to parse NewsAPI response: ${e.toString()}',
+              stackTrace: st,
+            ),
+          );
         }
       case 401:
-        return const Error(ApiKeyFailure(
-          serviceName: 'NewsAPI',
-          message: 'Invalid NewsAPI key. Check your api_keys.dart.',
-        ));
+        return const Error(
+          ApiKeyFailure(
+            serviceName: 'NewsAPI',
+            message: 'Invalid NewsAPI key. Check your api_keys.dart.',
+          ),
+        );
       case 429:
         return const Error(RateLimitFailure());
       default:
-        return Error(ServerFailure(
-          message: 'NewsAPI returned HTTP ${response.statusCode}',
-        ));
+        return Error(
+          ServerFailure(
+            message: 'NewsAPI returned HTTP ${response.statusCode}',
+          ),
+        );
     }
   }
 

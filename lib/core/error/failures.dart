@@ -69,6 +69,16 @@ final class ParseFailure extends Failure {
   });
 }
 
+/// The requested AI model does not exist or has been deprecated (HTTP 404).
+final class ModelNotFoundFailure extends Failure {
+  const ModelNotFoundFailure({
+    super.message =
+        'The AI model configuration needs updating. '
+            'Please contact the developer or check the Groq console.',
+    super.stackTrace,
+  });
+}
+
 /// A generic server-side error (HTTP 5xx).
 final class ServerFailure extends Failure {
   const ServerFailure({
@@ -79,8 +89,5 @@ final class ServerFailure extends Failure {
 
 /// Firebase-specific failures (auth, Firestore writes, etc.).
 final class FirebaseFailure extends Failure {
-  const FirebaseFailure({
-    required super.message,
-    super.stackTrace,
-  });
+  const FirebaseFailure({required super.message, super.stackTrace});
 }

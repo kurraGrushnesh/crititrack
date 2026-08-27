@@ -10,13 +10,13 @@ import 'package:flutter/material.dart';
 
 abstract final class AppTheme {
   // ── Brand Palette (HSL-derived) ───────────────────────────────────
-  static const Color primary = Color(0xFF6C5CE7);       // Vivid violet
-  static const Color primaryLight = Color(0xFFA29BFE);   // Soft lavender
-  static const Color secondary = Color(0xFF00CEC9);      // Electric teal
-  static const Color accent = Color(0xFFFD79A8);         // Hot pink
-  static const Color warning = Color(0xFFFDCB6E);        // Amber gold
-  static const Color error = Color(0xFFE17055);          // Warm red
-  static const Color success = Color(0xFF00B894);        // Mint green
+  static const Color primary = Color(0xFF6C5CE7); // Vivid violet
+  static const Color primaryLight = Color(0xFFA29BFE); // Soft lavender
+  static const Color secondary = Color(0xFF00CEC9); // Electric teal
+  static const Color accent = Color(0xFFFD79A8); // Hot pink
+  static const Color warning = Color(0xFFFDCB6E); // Amber gold
+  static const Color error = Color(0xFFE17055); // Warm red
+  static const Color success = Color(0xFF00B894); // Mint green
 
   // ── Sentiment Colors ──────────────────────────────────────────────
   static const Color sentimentPositive = Color(0xFF00B894);
@@ -62,29 +62,27 @@ abstract final class AppTheme {
 
   // ── Shadows ───────────────────────────────────────────────────────
   static List<BoxShadow> get cardShadow => [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.3),
-          blurRadius: 20,
-          offset: const Offset(0, 8),
-        ),
-      ];
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.3),
+      blurRadius: 20,
+      offset: const Offset(0, 8),
+    ),
+  ];
 
   static List<BoxShadow> get glowShadow => [
-        BoxShadow(
-          color: primary.withValues(alpha: 0.3),
-          blurRadius: 30,
-          spreadRadius: -5,
-        ),
-      ];
+    BoxShadow(
+      color: primary.withValues(alpha: 0.3),
+      blurRadius: 30,
+      spreadRadius: -5,
+    ),
+  ];
 
   // ── Glass Decoration ──────────────────────────────────────────────
   static BoxDecoration get glassDecoration => BoxDecoration(
-        color: surfaceGlass,
-        borderRadius: radiusLg,
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.08),
-        ),
-      );
+    color: surfaceGlass,
+    borderRadius: radiusLg,
+    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+  );
 
   // ── ThemeData ─────────────────────────────────────────────────────
   static ThemeData get darkTheme {
@@ -235,10 +233,7 @@ abstract final class AppTheme {
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: radiusMd),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          textStyle: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-          ),
+          textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
         ),
       ),
       bottomSheetTheme: BottomSheetThemeData(
@@ -247,10 +242,7 @@ abstract final class AppTheme {
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
       ),
-      dividerTheme: const DividerThemeData(
-        color: border,
-        thickness: 1,
-      ),
+      dividerTheme: const DividerThemeData(color: border, thickness: 1),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: surfaceElevated,
         contentTextStyle: const TextStyle(color: textPrimary),

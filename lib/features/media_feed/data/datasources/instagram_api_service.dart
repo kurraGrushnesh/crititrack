@@ -11,14 +11,13 @@ import '../../../../core/error/result.dart';
 
 class InstagramApiService {
   InstagramApiService({http.Client? client})
-      : _client = client ?? http.Client();
+    : _client = client ?? http.Client();
 
   final http.Client _client;
 
   static const String _hashtagSearchUrl =
       'https://graph.instagram.com/v18.0/ig_hashtag_search';
-  static const String _topMediaUrl =
-      'https://graph.instagram.com/v18.0';
+  static const String _topMediaUrl = 'https://graph.instagram.com/v18.0';
 
   /// Fetches public Instagram posts tagged with [celebrity]'s name.
   ///
@@ -51,10 +50,12 @@ class InstagramApiService {
       }
 
       if (hashtagResponse.statusCode != 200) {
-        return Error(ServerFailure(
-          message:
-              'Instagram hashtag search returned HTTP ${hashtagResponse.statusCode}',
-        ));
+        return Error(
+          ServerFailure(
+            message:
+                'Instagram hashtag search returned HTTP ${hashtagResponse.statusCode}',
+          ),
+        );
       }
 
       final hashtagJson =
@@ -69,11 +70,11 @@ class InstagramApiService {
           (hashtagData[0] as Map<String, dynamic>)['id'] as String;
 
       // Step 2: Get top media for this hashtag
-      final mediaUri =
-          Uri.parse('$_topMediaUrl/$hashtagId/top_media').replace(
+      final mediaUri = Uri.parse('$_topMediaUrl/$hashtagId/top_media').replace(
         queryParameters: {
           'user_id': ApiKeys.instagramAppId,
-          'fields': 'id,media_type,media_url,thumbnail_url,permalink,timestamp,caption',
+          'fields':
+              'id,media_type,media_url,thumbnail_url,permalink,timestamp,caption',
           'limit': '5',
           'access_token': ApiKeys.instagramAccessToken,
         },
@@ -87,10 +88,12 @@ class InstagramApiService {
     } catch (e, st) {
       // Instagram API failures should never crash the app —
       // the feed simply won't show Instagram posts
-      return Error(ParseFailure(
-        message: 'Instagram API request failed: ${e.toString()}',
-        stackTrace: st,
-      ));
+      return Error(
+        ParseFailure(
+          message: 'Instagram API request failed: ${e.toString()}',
+          stackTrace: st,
+        ),
+      );
     }
   }
 
@@ -105,32 +108,39 @@ class InstagramApiService {
             return const Success([]);
           }
 
-          final items = data.map((post) {
-            final p = post as Map<String, dynamic>;
-            final permalink = p['permalink'] as String? ?? '';
+          final items =
+              data.map((post) {
+                final p = post as Map<String, dynamic>;
+                final permalink = p['permalink'] as String? ?? '';
 
-            return MediaItem(
-              id: p['id'] as String? ?? '',
-              type: MediaType.instagram,
-              title: _truncateCaption(p['caption'] as String? ?? 'Instagram Post'),
-              url: permalink,
-              thumbnailUrl:
-                  p['thumbnail_url'] as String? ?? p['media_url'] as String?,
-              source: 'Instagram',
-              publishedAt: p['timestamp'] != null
-                  ? DateTime.tryParse(p['timestamp'] as String)
-                  : null,
-              mediaUrl: p['media_url'] as String?,
-              permalink: permalink,
-            );
-          }).toList();
+                return MediaItem(
+                  id: p['id'] as String? ?? '',
+                  type: MediaType.instagram,
+                  title: _truncateCaption(
+                    p['caption'] as String? ?? 'Instagram Post',
+                  ),
+                  url: permalink,
+                  thumbnailUrl:
+                      p['thumbnail_url'] as String? ??
+                      p['media_url'] as String?,
+                  source: 'Instagram',
+                  publishedAt:
+                      p['timestamp'] != null
+                          ? DateTime.tryParse(p['timestamp'] as String)
+                          : null,
+                  mediaUrl: p['media_url'] as String?,
+                  permalink: permalink,
+                );
+              }).toList();
 
           return Success(items);
         } catch (e, st) {
-          return Error(ParseFailure(
-            message: 'Failed to parse Instagram response: ${e.toString()}',
-            stackTrace: st,
-          ));
+          return Error(
+            ParseFailure(
+              message: 'Failed to parse Instagram response: ${e.toString()}',
+              stackTrace: st,
+            ),
+          );
         }
       case 401:
         // Expired token — return empty, UI shows reconnection card
@@ -138,9 +148,11 @@ class InstagramApiService {
       case 429:
         return const Error(RateLimitFailure());
       default:
-        return Error(ServerFailure(
-          message: 'Instagram API returned HTTP ${response.statusCode}',
-        ));
+        return Error(
+          ServerFailure(
+            message: 'Instagram API returned HTTP ${response.statusCode}',
+          ),
+        );
     }
   }
 

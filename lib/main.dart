@@ -15,9 +15,5 @@ Future<void> main() async {
   await Hive.initFlutter();
   await Hive.openBox<List<String>>('search_recents');
 
-  runApp(
-    const ProviderScope(
-      child: CelebSentimentApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: CelebSentimentApp()));
 }

@@ -29,7 +29,14 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+build/
+android/build/
+android/**/build/
 pubspec.lock
+
+# Scratch / experiment files
+test_groq*
+scratch_*
 
 # Symbolication related
 app.*.symbols

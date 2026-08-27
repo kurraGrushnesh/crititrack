@@ -36,11 +36,12 @@ class DashboardScreen extends ConsumerWidget {
       body: asyncCeleb.when(
         data: (celebrity) => _DashboardContent(celebrity: celebrity),
         loading: () => _ShimmerSkeleton(slug: slug),
-        error: (error, st) => _ErrorContent(
-          error: error,
-          slug: slug,
-          onRetry: () => ref.invalidate(dashboardProvider(slug)),
-        ),
+        error:
+            (error, st) => _ErrorContent(
+              error: error,
+              slug: slug,
+              onRetry: () => ref.invalidate(dashboardProvider(slug)),
+            ),
       ),
     );
   }
@@ -70,8 +71,11 @@ class _DashboardContent extends StatelessWidget {
             onPressed: () => GoRouter.of(context).go('/'),
           ),
           flexibleSpace: FlexibleSpaceBar(
-            titlePadding:
-                const EdgeInsets.only(left: 56, bottom: 16, right: 16),
+            titlePadding: const EdgeInsets.only(
+              left: 56,
+              bottom: 16,
+              right: 16,
+            ),
             title: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,8 +113,9 @@ class _DashboardContent extends StatelessWidget {
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: sentimentColor(celebrity.sentimentData.overallScore)
-                    .withValues(alpha: 0.15),
+                color: sentimentColor(
+                  celebrity.sentimentData.overallScore,
+                ).withValues(alpha: 0.15),
                 borderRadius: AppTheme.radiusSm,
               ),
               child: Row(
@@ -119,8 +124,7 @@ class _DashboardContent extends StatelessWidget {
                   Icon(
                     trendIcon(celebrity.sentimentData.trendDirection),
                     size: 16,
-                    color: sentimentColor(
-                        celebrity.sentimentData.overallScore),
+                    color: sentimentColor(celebrity.sentimentData.overallScore),
                   ),
                   const SizedBox(width: 4),
                   Text(
@@ -129,7 +133,8 @@ class _DashboardContent extends StatelessWidget {
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: sentimentColor(
-                          celebrity.sentimentData.overallScore),
+                        celebrity.sentimentData.overallScore,
+                      ),
                     ),
                   ),
                 ],
@@ -149,11 +154,15 @@ class _DashboardContent extends StatelessWidget {
                   Expanded(
                     child: Column(
                       children: [
-                        BiographyCard(biography: celebrity.biography,
-                            name: celebrity.name),
+                        BiographyCard(
+                          biography: celebrity.biography,
+                          name: celebrity.name,
+                        ),
                         const SizedBox(height: 16),
                         MediaFeedSection(
-                            mediaItems: celebrity.mediaItems, slug: celebrity.slug),
+                          mediaItems: celebrity.mediaItems,
+                          slug: celebrity.slug,
+                        ),
                       ],
                     ),
                   ),
@@ -161,7 +170,9 @@ class _DashboardContent extends StatelessWidget {
                   // Right column: Sentiment
                   Expanded(
                     child: SentimentSection(
-                        sentimentData: celebrity.sentimentData),
+                      sentimentData: celebrity.sentimentData,
+                      mediaItems: celebrity.mediaItems,
+                    ),
                   ),
                 ],
               ),
@@ -172,21 +183,27 @@ class _DashboardContent extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: BiographyCard(
-                  biography: celebrity.biography, name: celebrity.name),
+                biography: celebrity.biography,
+                name: celebrity.name,
+              ),
             ),
           ),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: MediaFeedSection(
-                  mediaItems: celebrity.mediaItems, slug: celebrity.slug),
+                mediaItems: celebrity.mediaItems,
+                slug: celebrity.slug,
+              ),
             ),
           ),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child:
-                  SentimentSection(sentimentData: celebrity.sentimentData),
+              child: SentimentSection(
+                sentimentData: celebrity.sentimentData,
+                mediaItems: celebrity.mediaItems,
+              ),
             ),
           ),
         ],
@@ -246,13 +263,13 @@ class _ShimmerSkeleton extends StatelessWidget {
   }
 
   Widget _box(double w, double h) => Container(
-        width: w,
-        height: h,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: AppTheme.radiusMd,
-        ),
-      );
+    width: w,
+    height: h,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: AppTheme.radiusMd,
+    ),
+  );
 }
 
 // ── Error Content ────────────────────────────────────────────────
@@ -271,6 +288,8 @@ class _ErrorContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final (icon, title, message) = _classifyError(error);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -290,20 +309,13 @@ class _ErrorContent extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: AppTheme.error.withValues(alpha: 0.1),
                 ),
-                child: const Icon(
-                  Icons.person_search_rounded,
-                  size: 64,
-                  color: AppTheme.error,
-                ),
+                child: Icon(icon, size: 64, color: AppTheme.error),
               ),
               const SizedBox(height: 24),
-              Text(
-                'Couldn\'t Load Data',
-                style: theme.textTheme.headlineMedium,
-              ),
+              Text(title, style: theme.textTheme.headlineMedium),
               const SizedBox(height: 8),
               Text(
-                error.toString(),
+                message,
                 style: theme.textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
@@ -323,5 +335,47 @@ class _ErrorContent extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  (IconData, String, String) _classifyError(Object error) {
+    // The error object from Riverpod wraps the Failure toString()
+    final errorStr = error.toString();
+
+    if (errorStr.contains('ModelNotFoundFailure') ||
+        errorStr.contains('model configuration needs updating')) {
+      return (
+        Icons.model_training_rounded,
+        'AI Model Unavailable',
+        'The AI model has been deprecated or is not available. '
+            'The developer needs to update the model configuration.',
+      );
+    }
+    if (errorStr.contains('ApiKeyFailure') ||
+        errorStr.contains('Invalid') && errorStr.contains('API key')) {
+      return (
+        Icons.vpn_key_off_rounded,
+        'API Key Error',
+        'The Groq API key is invalid or expired. '
+            'Update it in the .env file.',
+      );
+    }
+    if (errorStr.contains('RateLimitFailure') ||
+        errorStr.contains('Too many requests')) {
+      return (
+        Icons.speed_rounded,
+        'Rate Limited',
+        'Too many requests. Please wait a moment and try again.',
+      );
+    }
+    if (errorStr.contains('NetworkFailure') ||
+        errorStr.contains('No internet')) {
+      return (
+        Icons.wifi_off_rounded,
+        'No Connection',
+        'Please check your internet connection and try again.',
+      );
+    }
+
+    return (Icons.error_outline_rounded, 'Couldn\'t Load Data', errorStr);
   }
 }

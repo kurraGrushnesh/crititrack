@@ -6,67 +6,68 @@ on:
   push:
     branches: [main]
 
+env:
+  FLUTTER_VERSION: '3.41.6'
+
 jobs:
-  analyze-and-test:
-    name: Analyze & Test
+  quality:
+    name: Format · Analyze · Test
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.0'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Create api_keys.dart for CI
-        run: cp lib/core/constants/api_keys.dart.example lib/core/constants/api_keys.dart
+      # The app reads config from .env at startup; CI needs a placeholder
+      # so tests that touch startup code don't fail on a missing file.
+      - name: Create placeholder .env
+        run: cp .env.example .env
 
-      - name: Run analyzer
-        run: flutter analyze
+      - name: Verify formatting
+        run: dart format --set-exit-if-changed .
 
-      - name: Run tests
+      - name: Analyze (warnings and infos are failures)
+        run: flutter analyze --fatal-infos --fatal-warnings
+
+      - name: Run tests with coverage
         run: flutter test --coverage
 
-      - name: Upload coverage report
+      - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
+          name: coverage-lcov
           path: coverage/lcov.info
 
   build-web:
     name: Build Web
     runs-on: ubuntu-latest
-    needs: analyze-and-test
-
+    needs: quality
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.0'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
-      - name: Install dependencies
-        run: flutter pub get
+      - run: flutter pub get
 
-      - name: Create api_keys.dart for CI
-        run: cp lib/core/constants/api_keys.dart.example lib/core/constants/api_keys.dart
+      - name: Create placeholder .env
+        run: cp .env.example .env
 
-      - name: Build Web (CanvasKit)
-        run: flutter build web --release --web-renderer=canvaskit
+      # --web-renderer was removed in Flutter 3.29; renderer is auto/config now.
+      - name: Build web
+        run: flutter build web --release
 
-      - name: Upload web build
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: web-build
           path: build/web

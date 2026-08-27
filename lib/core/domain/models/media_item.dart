@@ -71,19 +71,19 @@ class MediaItem extends Equatable {
 
   /// Serializes to a Firestore sub-collection document.
   Map<String, dynamic> toFirestore() => {
-        'type': type.name,
-        'title': title,
-        'url': url,
-        'thumbnailUrl': thumbnailUrl,
-        'source': source,
-        'publishedAt': publishedAt?.toIso8601String(),
-        'description': description,
-        'sentimentTag': sentimentTag,
-        'videoId': videoId,
-        'channelTitle': channelTitle,
-        'mediaUrl': mediaUrl,
-        'permalink': permalink,
-      };
+    'type': type.name,
+    'title': title,
+    'url': url,
+    'thumbnailUrl': thumbnailUrl,
+    'source': source,
+    'publishedAt': publishedAt?.toIso8601String(),
+    'description': description,
+    'sentimentTag': sentimentTag,
+    'videoId': videoId,
+    'channelTitle': channelTitle,
+    'mediaUrl': mediaUrl,
+    'permalink': permalink,
+  };
 
   factory MediaItem.fromFirestore(String id, Map<String, dynamic> data) {
     return MediaItem(
@@ -96,9 +96,10 @@ class MediaItem extends Equatable {
       url: data['url'] as String? ?? '',
       thumbnailUrl: data['thumbnailUrl'] as String?,
       source: data['source'] as String?,
-      publishedAt: data['publishedAt'] != null
-          ? DateTime.tryParse(data['publishedAt'] as String)
-          : null,
+      publishedAt:
+          data['publishedAt'] != null
+              ? DateTime.tryParse(data['publishedAt'] as String)
+              : null,
       description: data['description'] as String?,
       sentimentTag: data['sentimentTag'] as String?,
       videoId: data['videoId'] as String?,
