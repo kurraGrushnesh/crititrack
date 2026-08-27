@@ -1,8 +1,8 @@
 /// Riverpod providers for the dashboard feature.
 ///
-/// Uses [DirectCelebrityRepository] which calls OpenAI, NewsAPI,
-/// YouTube, and Instagram APIs directly. No mock data, no Firebase
-/// caching in the provider layer — results flow straight from APIs.
+/// Uses [ProxyCelebrityRepository], which makes a single call to the
+/// CritiTrack Cloud Functions backend. All third-party API keys live
+/// server-side; the app never holds them.
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,11 +11,13 @@ import 'package:crititrack/core/domain/models/celebrity.dart';
 import 'package:crititrack/core/error/result.dart';
 import 'package:crititrack/core/utils/helpers.dart';
 import 'package:crititrack/features/dashboard/data/celebrity_repository.dart';
-import 'package:crititrack/features/dashboard/data/direct_celebrity_repository.dart';
+import 'package:crititrack/features/dashboard/data/proxy_celebrity_repository.dart';
 
-/// Singleton [DirectCelebrityRepository] — calls real APIs exclusively.
+/// Singleton [ProxyCelebrityRepository] — one call to the backend proxy.
 final celebrityRepositoryProvider = Provider<CelebrityRepository>((ref) {
-  return DirectCelebrityRepository();
+  final repo = ProxyCelebrityRepository();
+  ref.onDispose(repo.dispose);
+  return repo;
 });
 
 /// Celebrity data keyed by slug. Triggers real API calls on first watch.
