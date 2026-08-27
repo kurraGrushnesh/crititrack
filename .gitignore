@@ -54,10 +54,14 @@ app.*.map.json
 *.env
 !.env.example
 
-# Firebase credentials
+# Firebase
+# firebase_options.dart holds only public client config (project id, sender id,
+# app id, and a Firebase API key that is NOT a secret — access is controlled by
+# Security Rules + App Check). It must be committed for the app to initialise.
+# google-services.json / GoogleService-Info.plist stay out until Android/iOS CI
+# needs them, at which point they are injected from a CI secret.
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
-lib/firebase_options.dart
 
 # Gradle cache
 android/.gradle/
