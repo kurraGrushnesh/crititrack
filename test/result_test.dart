@@ -1,8 +1,8 @@
 // Unit tests for the Result type and Failure hierarchy.
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:celeb_sentiment_tracker/core/error/failures.dart';
-import 'package:celeb_sentiment_tracker/core/error/result.dart';
+import 'package:crititrack/core/error/failures.dart';
+import 'package:crititrack/core/error/result.dart';
 
 void main() {
   group('Result', () {

@@ -1,10 +1,10 @@
-// Smoke test for the Celeb Sentiment Tracker app.
+// Smoke test for the CritiTrack app.
 // Full widget tests with Firebase mocking are in Phase 5 test files.
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:celeb_sentiment_tracker/core/utils/helpers.dart';
-import 'package:celeb_sentiment_tracker/core/error/result.dart';
-import 'package:celeb_sentiment_tracker/core/error/failures.dart';
+import 'package:crititrack/core/utils/helpers.dart';
+import 'package:crititrack/core/error/result.dart';
+import 'package:crititrack/core/error/failures.dart';
 
 void main() {
   test('App compiles and core utilities work', () {

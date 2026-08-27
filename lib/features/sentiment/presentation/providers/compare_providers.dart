@@ -6,8 +6,8 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:celeb_sentiment_tracker/core/domain/models/celebrity.dart';
-import 'package:celeb_sentiment_tracker/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:crititrack/core/domain/models/celebrity.dart';
+import 'package:crititrack/features/dashboard/presentation/providers/dashboard_providers.dart';
 
 /// Currently selected celebrity slugs for comparison.
 final compareSelectionProvider = StateProvider<List<String>>((ref) => []);

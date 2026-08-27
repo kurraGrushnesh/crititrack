@@ -1,6 +1,6 @@
-# 🧠 Celeb-Sentiment-Tracker
+# ⚖️ CritiTrack
 
-**AI-Powered Celebrity Intelligence Platform** — A cross-platform Flutter app that provides real-time celebrity biography, media feed, and sentiment analysis powered by Groq AI, NewsAPI, YouTube, and Instagram.
+**AI-powered celebrity criticism & controversy tracker** — A cross-platform Flutter app that combines real-time biography, media coverage, sentiment analysis, and a structured **Controversy Tracker** for any public figure, powered by Groq AI, NewsAPI, YouTube, and Instagram.
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)
 ![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart)
@@ -12,13 +12,13 @@
 ## ✨ Features
 
 - **Smart Search** — Typewriter-animated search with debounced input and recent history
-- **AI Biography** — Groq AI generated structured celebrity profiles with notable works and controversies
+- **AI Biography** — Groq-generated structured profiles with profession, background, and notable works
+- **Controversy Tracker** — Structured controversy episodes (title, category, 1–5 severity, status, year, sources) with a deterministic 0–100 **Controversy Index**, severity-sorted timeline, and category breakdown
 - **Media Feed** — Aggregated news (NewsAPI), YouTube videos, and Instagram posts in a filterable feed
-- **Sentiment Dashboard** — Interactive Pie, Line, and Bar charts with AI-written analysis
+- **Sentiment Dashboard** — Interactive Pie, Line, and Bar charts with AI-written analysis, spike detection, and forecast
+- **Compare** — Overlay sentiment trajectories for multiple figures with Pearson correlation
 - **Premium Dark UI** — Glassmorphism, gradient cards, micro-animations, and responsive layout
-- **Smart Caching** — Firestore with 24h TTL + 5-min rate limiting to minimize API costs
 - **Cross-Platform** — iOS, Android, and Web from a single codebase
-- **Mock Mode** — Full demo with 5 pre-seeded celebrities, zero API keys required
 
 ---
 
@@ -45,31 +45,28 @@ Clean Architecture (Feature-First)
 ### 1. Clone and Install
 
 ```bash
-git clone https://github.com/kurraGrushnesh/celeb-sentiment-tracker.git
-cd celeb-sentiment-tracker
+git clone https://github.com/kurraGrushnesh/crititrack.git
+cd crititrack
 flutter pub get
 ```
 
 ### 2. Configure API Keys
 
 ```bash
-cp lib/core/constants/api_keys.dart.example lib/core/constants/api_keys.dart
+cp .env.example .env
 ```
 
-Edit `lib/core/constants/api_keys.dart` with your keys (see table below).
+Edit `.env` with your keys (see table below). `.env` is gitignored — never commit it.
 
-### 3. Run in Mock Mode (No Keys Needed!)
-
-The app ships with `useMockData = true`, so you can run immediately:
+### 3. Run
 
 ```bash
 flutter run -d chrome    # Web
 flutter run              # Mobile
 ```
 
-### 4. Switch to Real Mode
-
-Set `useMockData = false` in `api_keys.dart` and provide valid API keys.
+The app makes 100% real API calls — there is no mock mode. Without valid keys
+it shows typed error states rather than fake data.
 
 ---
 
@@ -77,28 +74,15 @@ Set `useMockData = false` in `api_keys.dart` and provide valid API keys.
 
 | Key | Where to Get | Used For |
 |-----|-------------|----------|
-| `groqApiKey` | https://console.groq.com | Biography generation + sentiment analysis |
-| `newsApiKey` | https://newsapi.org/account | Latest news articles |
-| `youtubeApiKey` | Google Cloud Console > YouTube Data API v3 | Video search |
-| `instagramAccessToken` | https://developers.facebook.com/apps | Public post search |
-| `instagramAppId` | https://developers.facebook.com/apps | Instagram Graph API auth |
+| `GROQ_API_KEY` | https://console.groq.com | Biography, controversies, sentiment analysis |
+| `NEWS_API_KEY` | https://newsapi.org/account | Latest news articles |
+| `YOUTUBE_API_KEY` | Google Cloud Console > YouTube Data API v3 | Video search |
+| `INSTAGRAM_ACCESS_TOKEN` | https://developers.facebook.com/apps | Public post search |
+| `INSTAGRAM_APP_ID` | https://developers.facebook.com/apps | Instagram Graph API auth |
 
-> ⚠️ **NEVER commit `api_keys.dart` or `google-services.json` to GitHub.**
-> These files are excluded via `.gitignore`. Use `api_keys.dart.example` as a template.
-
----
-
-## 🎭 Mock Mode
-
-When `useMockData = true` (default), the app uses pre-seeded realistic data for:
-
-| Celebrity | Sentiment Score | Emotion | Trend |
-|-----------|----------------|---------|-------|
-| Taylor Swift | 78 | Joy | ⬆️ Up |
-| Elon Musk | 45 | Controversy | ⬇️ Down |
-| BTS | 88 | Admiration | ⬆️ Up |
-| Cristiano Ronaldo | 62 | Excitement | ➡️ Stable |
-| Zendaya | 72 | Admiration | ⬆️ Up |
+> ⚠️ **NEVER commit `.env` or `google-services.json` to GitHub.**
+> Both are excluded via `.gitignore`. Use `.env.example` as a template.
+> Client-side keys are a stopgap — see the roadmap for moving them behind a server proxy.
 
 ---
 

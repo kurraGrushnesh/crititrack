@@ -2,7 +2,7 @@
 // properly calls APIs and returns Result types.
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:celeb_sentiment_tracker/features/dashboard/data/celebrity_repository.dart';
+import 'package:crititrack/features/dashboard/data/celebrity_repository.dart';
 
 void main() {
   group('CelebrityRepository (base)', () {

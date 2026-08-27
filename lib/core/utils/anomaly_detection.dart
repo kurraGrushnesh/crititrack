@@ -8,7 +8,7 @@ library;
 
 import 'dart:math' as math;
 
-import 'package:celeb_sentiment_tracker/core/domain/models/sentiment_data.dart';
+import 'package:crititrack/core/domain/models/sentiment_data.dart';
 
 /// Result of a single-day anomaly computation.
 class AnomalyResult {

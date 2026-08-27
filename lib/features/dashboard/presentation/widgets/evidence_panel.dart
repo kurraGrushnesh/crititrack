@@ -9,8 +9,8 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:celeb_sentiment_tracker/core/domain/models/sentiment_data.dart';
-import 'package:celeb_sentiment_tracker/core/theme/app_theme.dart';
+import 'package:crititrack/core/domain/models/sentiment_data.dart';
+import 'package:crititrack/core/theme/app_theme.dart';
 
 class EvidencePanel extends StatefulWidget {
   const EvidencePanel({super.key, required this.evidence});

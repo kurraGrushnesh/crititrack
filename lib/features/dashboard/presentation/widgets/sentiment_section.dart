@@ -18,13 +18,13 @@ import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-import 'package:celeb_sentiment_tracker/core/constants/app_constants.dart';
-import 'package:celeb_sentiment_tracker/core/domain/models/media_item.dart';
-import 'package:celeb_sentiment_tracker/core/domain/models/sentiment_data.dart';
-import 'package:celeb_sentiment_tracker/core/theme/app_theme.dart';
-import 'package:celeb_sentiment_tracker/core/utils/helpers.dart';
-import 'package:celeb_sentiment_tracker/features/dashboard/presentation/widgets/evidence_panel.dart';
-import 'package:celeb_sentiment_tracker/features/dashboard/presentation/widgets/source_breakdown.dart';
+import 'package:crititrack/core/constants/app_constants.dart';
+import 'package:crititrack/core/domain/models/media_item.dart';
+import 'package:crititrack/core/domain/models/sentiment_data.dart';
+import 'package:crititrack/core/theme/app_theme.dart';
+import 'package:crititrack/core/utils/helpers.dart';
+import 'package:crititrack/features/dashboard/presentation/widgets/evidence_panel.dart';
+import 'package:crititrack/features/dashboard/presentation/widgets/source_breakdown.dart';
 
 class SentimentSection extends StatefulWidget {
   const SentimentSection({

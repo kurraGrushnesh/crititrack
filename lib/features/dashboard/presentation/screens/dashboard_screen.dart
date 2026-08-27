@@ -14,14 +14,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 
-import 'package:celeb_sentiment_tracker/core/constants/app_constants.dart';
-import 'package:celeb_sentiment_tracker/core/domain/models/celebrity.dart';
-import 'package:celeb_sentiment_tracker/core/theme/app_theme.dart';
-import 'package:celeb_sentiment_tracker/core/utils/helpers.dart';
-import 'package:celeb_sentiment_tracker/features/dashboard/presentation/providers/dashboard_providers.dart';
-import 'package:celeb_sentiment_tracker/features/dashboard/presentation/widgets/biography_card.dart';
-import 'package:celeb_sentiment_tracker/features/dashboard/presentation/widgets/media_feed_section.dart';
-import 'package:celeb_sentiment_tracker/features/dashboard/presentation/widgets/sentiment_section.dart';
+import 'package:crititrack/core/constants/app_constants.dart';
+import 'package:crititrack/core/domain/models/celebrity.dart';
+import 'package:crititrack/core/theme/app_theme.dart';
+import 'package:crititrack/core/utils/helpers.dart';
+import 'package:crititrack/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:crititrack/features/controversy/presentation/widgets/controversy_section.dart';
+import 'package:crititrack/features/dashboard/presentation/widgets/biography_card.dart';
+import 'package:crititrack/features/dashboard/presentation/widgets/media_feed_section.dart';
+import 'package:crititrack/features/dashboard/presentation/widgets/sentiment_section.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key, required this.slug});
@@ -167,11 +168,20 @@ class _DashboardContent extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  // Right column: Sentiment
+                  // Right column: Controversy + Sentiment
                   Expanded(
-                    child: SentimentSection(
-                      sentimentData: celebrity.sentimentData,
-                      mediaItems: celebrity.mediaItems,
+                    child: Column(
+                      children: [
+                        ControversySection(
+                          controversies: celebrity.biography.controversies,
+                          name: celebrity.name,
+                        ),
+                        const SizedBox(height: 16),
+                        SentimentSection(
+                          sentimentData: celebrity.sentimentData,
+                          mediaItems: celebrity.mediaItems,
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -190,7 +200,16 @@ class _DashboardContent extends StatelessWidget {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: ControversySection(
+                controversies: celebrity.biography.controversies,
+                name: celebrity.name,
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: MediaFeedSection(
                 mediaItems: celebrity.mediaItems,
                 slug: celebrity.slug,

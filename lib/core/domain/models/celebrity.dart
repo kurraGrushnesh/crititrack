@@ -8,6 +8,7 @@ library;
 
 import 'package:equatable/equatable.dart';
 
+import 'controversy.dart';
 import 'media_item.dart';
 import 'sentiment_data.dart';
 
@@ -160,7 +161,9 @@ class Biography extends Equatable {
   final String summary;
   final String background;
   final List<String> notableWorks;
-  final List<String> controversies;
+
+  /// Structured controversy / criticism episodes. May be empty.
+  final List<Controversy> controversies;
 
   @override
   List<Object?> get props => [profession, summary];
@@ -170,7 +173,7 @@ class Biography extends Equatable {
     'summary': summary,
     'background': background,
     'notableWorks': notableWorks,
-    'controversies': controversies,
+    'controversies': controversies.map((c) => c.toMap()).toList(),
   };
 
   factory Biography.fromMap(Map<String, dynamic> map) {
@@ -179,7 +182,32 @@ class Biography extends Equatable {
       summary: map['summary'] as String? ?? '',
       background: map['background'] as String? ?? '',
       notableWorks: List<String>.from(map['notableWorks'] ?? []),
-      controversies: List<String>.from(map['controversies'] ?? []),
+      controversies: _parseControversies(map['controversies']),
     );
+  }
+
+  /// Tolerant parser: accepts the new list-of-objects shape, and also
+  /// the legacy list-of-strings shape from older cache documents.
+  static List<Controversy> _parseControversies(dynamic raw) {
+    if (raw is! List) return const [];
+    return raw
+        .map<Controversy?>((e) {
+          if (e is Map<String, dynamic>) return Controversy.fromMap(e);
+          if (e is Map) {
+            return Controversy.fromMap(Map<String, dynamic>.from(e));
+          }
+          if (e is String && e.trim().isNotEmpty) {
+            return Controversy(
+              title: e.trim(),
+              summary: e.trim(),
+              category: ControversyCategory.other,
+              severity: 2,
+              status: ControversyStatus.historical,
+            );
+          }
+          return null;
+        })
+        .whereType<Controversy>()
+        .toList();
   }
 }

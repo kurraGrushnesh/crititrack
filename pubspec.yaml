@@ -1,5 +1,5 @@
-name: celeb_sentiment_tracker
-description: "Celeb-Sentiment-Tracker — AI celebrity intelligence platform with sentiment analysis."
+name: crititrack
+description: "CritiTrack — AI-powered celebrity criticism & controversy tracker with sentiment analysis."
 publish_to: 'none'
 version: 1.0.0+1
 

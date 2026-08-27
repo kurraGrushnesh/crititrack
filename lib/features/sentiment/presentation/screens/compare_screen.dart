@@ -11,11 +11,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:celeb_sentiment_tracker/core/domain/models/celebrity.dart';
-import 'package:celeb_sentiment_tracker/core/theme/app_theme.dart';
-import 'package:celeb_sentiment_tracker/core/utils/correlation.dart';
-import 'package:celeb_sentiment_tracker/core/utils/helpers.dart';
-import 'package:celeb_sentiment_tracker/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:crititrack/core/domain/models/celebrity.dart';
+import 'package:crititrack/core/theme/app_theme.dart';
+import 'package:crititrack/core/utils/correlation.dart';
+import 'package:crititrack/core/utils/helpers.dart';
+import 'package:crititrack/features/dashboard/presentation/providers/dashboard_providers.dart';
 
 /// Colors assigned to each celebrity in the overlay chart.
 const _chartColors = [

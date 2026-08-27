@@ -10,9 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:celeb_sentiment_tracker/core/theme/app_theme.dart';
-import 'package:celeb_sentiment_tracker/core/utils/helpers.dart';
-import 'package:celeb_sentiment_tracker/features/search/presentation/providers/search_providers.dart';
+import 'package:crititrack/core/theme/app_theme.dart';
+import 'package:crititrack/core/utils/helpers.dart';
+import 'package:crititrack/features/search/presentation/providers/search_providers.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});

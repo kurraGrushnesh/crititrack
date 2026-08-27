@@ -1,8 +1,8 @@
 // Unit tests for anomaly / spike detection against hand-computed values.
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:celeb_sentiment_tracker/core/domain/models/sentiment_data.dart';
-import 'package:celeb_sentiment_tracker/core/utils/anomaly_detection.dart';
+import 'package:crititrack/core/domain/models/sentiment_data.dart';
+import 'package:crititrack/core/utils/anomaly_detection.dart';
 
 void main() {
   group('computeAnomaly', () {

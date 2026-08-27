@@ -1,7 +1,7 @@
 // Unit tests for Pearson correlation against hand-computed values.
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:celeb_sentiment_tracker/core/utils/correlation.dart';
+import 'package:crititrack/core/utils/correlation.dart';
 
 void main() {
   group('pearsonCorrelation', () {

@@ -1,4 +1,4 @@
-package com.celebtracker.celeb_sentiment_tracker
+package com.crititrack.app
 
 import io.flutter.embedding.android.FlutterActivity
 

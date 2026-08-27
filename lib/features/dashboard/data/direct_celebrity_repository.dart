@@ -2,19 +2,19 @@ library;
 
 import 'package:flutter/foundation.dart';
 
-import 'package:celeb_sentiment_tracker/core/domain/models/celebrity.dart';
-import 'package:celeb_sentiment_tracker/core/domain/models/media_item.dart';
-import 'package:celeb_sentiment_tracker/core/domain/models/sentiment_data.dart';
-import 'package:celeb_sentiment_tracker/core/error/failures.dart';
-import 'package:celeb_sentiment_tracker/core/error/result.dart';
-import 'package:celeb_sentiment_tracker/core/utils/anomaly_detection.dart';
-import 'package:celeb_sentiment_tracker/core/utils/forecasting.dart';
-import 'package:celeb_sentiment_tracker/core/utils/helpers.dart';
-import 'package:celeb_sentiment_tracker/features/dashboard/data/celebrity_repository.dart';
-import 'package:celeb_sentiment_tracker/features/dashboard/data/datasources/openai_service.dart';
-import 'package:celeb_sentiment_tracker/features/media_feed/data/datasources/news_api_service.dart';
-import 'package:celeb_sentiment_tracker/features/media_feed/data/datasources/youtube_api_service.dart';
-import 'package:celeb_sentiment_tracker/features/media_feed/data/datasources/instagram_api_service.dart';
+import 'package:crititrack/core/domain/models/celebrity.dart';
+import 'package:crititrack/core/domain/models/media_item.dart';
+import 'package:crititrack/core/domain/models/sentiment_data.dart';
+import 'package:crititrack/core/error/failures.dart';
+import 'package:crititrack/core/error/result.dart';
+import 'package:crititrack/core/utils/anomaly_detection.dart';
+import 'package:crititrack/core/utils/forecasting.dart';
+import 'package:crititrack/core/utils/helpers.dart';
+import 'package:crititrack/features/dashboard/data/celebrity_repository.dart';
+import 'package:crititrack/features/dashboard/data/datasources/openai_service.dart';
+import 'package:crititrack/features/media_feed/data/datasources/news_api_service.dart';
+import 'package:crititrack/features/media_feed/data/datasources/youtube_api_service.dart';
+import 'package:crititrack/features/media_feed/data/datasources/instagram_api_service.dart';
 
 /// Fetches celebrity data directly from APIs without any caching layer.
 class DirectCelebrityRepository extends CelebrityRepository {

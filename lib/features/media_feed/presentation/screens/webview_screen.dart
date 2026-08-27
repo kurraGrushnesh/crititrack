@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-import 'package:celeb_sentiment_tracker/core/theme/app_theme.dart';
+import 'package:crititrack/core/theme/app_theme.dart';
 
 class WebViewScreen extends StatefulWidget {
   const WebViewScreen({super.key, required this.url, required this.title});

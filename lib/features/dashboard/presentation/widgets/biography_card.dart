@@ -2,8 +2,8 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:celeb_sentiment_tracker/core/domain/models/celebrity.dart';
-import 'package:celeb_sentiment_tracker/core/theme/app_theme.dart';
+import 'package:crititrack/core/domain/models/celebrity.dart';
+import 'package:crititrack/core/theme/app_theme.dart';
 
 class BiographyCard extends StatefulWidget {
   const BiographyCard({super.key, required this.biography, required this.name});
@@ -18,7 +18,6 @@ class BiographyCard extends StatefulWidget {
 class _BiographyCardState extends State<BiographyCard>
     with SingleTickerProviderStateMixin {
   bool _expanded = false;
-  bool _controversiesExpanded = false;
   late AnimationController _animController;
   late Animation<double> _expandAnim;
 
@@ -217,89 +216,31 @@ class _BiographyCardState extends State<BiographyCard>
             ),
           ],
 
-          // ── Controversies ───────────────────────────────────────
-          if (bio.controversies.isNotEmpty) ...[
-            const SizedBox(height: 12),
+          // Controversies now render in the dedicated ControversySection
+          // on the dashboard rather than inside the biography card.
+          if (bio.controversies.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: GestureDetector(
-                onTap:
-                    () => setState(
-                      () => _controversiesExpanded = !_controversiesExpanded,
-                    ),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppTheme.warning.withValues(alpha: 0.08),
-                    borderRadius: AppTheme.radiusSm,
-                    border: Border.all(
-                      color: AppTheme.warning.withValues(alpha: 0.2),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.gavel_rounded,
+                    size: 14,
+                    color: AppTheme.textMuted,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${bio.controversies.length} '
+                    '${bio.controversies.length == 1 ? "controversy" : "controversies"}'
+                    ' tracked — see Controversy Tracker below',
+                    style: const TextStyle(
+                      color: AppTheme.textMuted,
+                      fontSize: 11,
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.warning_amber_rounded,
-                            size: 16,
-                            color: AppTheme.warning,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Controversies (${bio.controversies.length})',
-                            style: TextStyle(
-                              color: AppTheme.warning,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const Spacer(),
-                          Icon(
-                            _controversiesExpanded
-                                ? Icons.keyboard_arrow_up_rounded
-                                : Icons.keyboard_arrow_down_rounded,
-                            size: 18,
-                            color: AppTheme.warning,
-                          ),
-                        ],
-                      ),
-                      if (_controversiesExpanded) ...[
-                        const SizedBox(height: 8),
-                        ...bio.controversies.map(
-                          (c) => Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '• ',
-                                  style: TextStyle(
-                                    color: AppTheme.warning,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    c,
-                                    style: const TextStyle(
-                                      color: AppTheme.textSecondary,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
+                ],
               ),
             ),
-          ],
           const SizedBox(height: 16),
         ],
       ),

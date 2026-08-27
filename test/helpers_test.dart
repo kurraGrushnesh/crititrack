@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:celeb_sentiment_tracker/core/utils/helpers.dart';
-import 'package:celeb_sentiment_tracker/core/theme/app_theme.dart';
+import 'package:crititrack/core/utils/helpers.dart';
+import 'package:crititrack/core/theme/app_theme.dart';
 
 void main() {
   group('toSlug', () {

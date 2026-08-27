@@ -7,15 +7,15 @@ library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:celeb_sentiment_tracker/features/dashboard/data/celebrity_repository.dart';
-import 'package:celeb_sentiment_tracker/features/dashboard/data/repositories/cache_repository.dart';
-import 'package:celeb_sentiment_tracker/features/dashboard/data/datasources/openai_service.dart';
-import 'package:celeb_sentiment_tracker/features/media_feed/data/datasources/news_api_service.dart';
-import 'package:celeb_sentiment_tracker/features/media_feed/data/datasources/youtube_api_service.dart';
-import 'package:celeb_sentiment_tracker/features/media_feed/data/datasources/instagram_api_service.dart';
-import 'package:celeb_sentiment_tracker/core/domain/models/celebrity.dart';
-import 'package:celeb_sentiment_tracker/core/error/result.dart';
-import 'package:celeb_sentiment_tracker/core/error/failures.dart';
+import 'package:crititrack/features/dashboard/data/celebrity_repository.dart';
+import 'package:crititrack/features/dashboard/data/repositories/cache_repository.dart';
+import 'package:crititrack/features/dashboard/data/datasources/openai_service.dart';
+import 'package:crititrack/features/media_feed/data/datasources/news_api_service.dart';
+import 'package:crititrack/features/media_feed/data/datasources/youtube_api_service.dart';
+import 'package:crititrack/features/media_feed/data/datasources/instagram_api_service.dart';
+import 'package:crititrack/core/domain/models/celebrity.dart';
+import 'package:crititrack/core/error/result.dart';
+import 'package:crititrack/core/error/failures.dart';
 
 /// Extends [CelebrityRepository] with real Firebase-backed data.
 class RealCelebrityRepository extends CelebrityRepository {

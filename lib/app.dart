@@ -11,13 +11,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
 import 'core/routing/app_router.dart';
 
-class CelebSentimentApp extends ConsumerWidget {
-  const CelebSentimentApp({super.key});
+class CritiTrackApp extends ConsumerWidget {
+  const CritiTrackApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp.router(
-      title: 'Celeb Sentiment Tracker',
+      title: 'CritiTrack',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       routerConfig: appRouter,

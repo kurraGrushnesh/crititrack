@@ -1,7 +1,7 @@
 // Unit tests for linear-trend sentiment forecasting.
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:celeb_sentiment_tracker/core/utils/forecasting.dart';
+import 'package:crititrack/core/utils/forecasting.dart';
 
 void main() {
   group('linearForecast', () {

@@ -1,20 +1,30 @@
 // Unit tests for domain models — serialization, equality, and edge cases.
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:celeb_sentiment_tracker/core/domain/models/celebrity.dart';
-import 'package:celeb_sentiment_tracker/core/domain/models/media_item.dart';
-import 'package:celeb_sentiment_tracker/core/domain/models/sentiment_data.dart';
-import 'package:celeb_sentiment_tracker/core/domain/models/search_history.dart';
+import 'package:crititrack/core/domain/models/celebrity.dart';
+import 'package:crititrack/core/domain/models/controversy.dart';
+import 'package:crititrack/core/domain/models/media_item.dart';
+import 'package:crititrack/core/domain/models/sentiment_data.dart';
+import 'package:crititrack/core/domain/models/search_history.dart';
 
 void main() {
   group('Biography', () {
-    test('fromMap creates Biography with all fields', () {
+    test('fromMap creates Biography with structured controversies', () {
       final map = {
         'profession': 'Actor',
         'summary': 'Famous actor.',
         'background': 'Started young.',
         'notableWorks': ['Film A', 'Film B'],
-        'controversies': ['Dispute X'],
+        'controversies': [
+          {
+            'title': 'Dispute X',
+            'summary': 'A public disagreement.',
+            'category': 'Legal',
+            'severity': 4,
+            'status': 'resolved',
+            'year': 2019,
+          },
+        ],
       };
 
       final bio = Biography.fromMap(map);
@@ -22,7 +32,18 @@ void main() {
       expect(bio.profession, 'Actor');
       expect(bio.summary, 'Famous actor.');
       expect(bio.notableWorks, ['Film A', 'Film B']);
-      expect(bio.controversies, ['Dispute X']);
+      expect(bio.controversies, hasLength(1));
+      expect(bio.controversies.first.title, 'Dispute X');
+      expect(bio.controversies.first.category, ControversyCategory.legal);
+      expect(bio.controversies.first.severity, 4);
+    });
+
+    test('fromMap tolerates the legacy list-of-strings shape', () {
+      final bio = Biography.fromMap({
+        'controversies': ['Old cached controversy'],
+      });
+      expect(bio.controversies, hasLength(1));
+      expect(bio.controversies.first.title, 'Old cached controversy');
     });
 
     test('fromMap handles missing fields gracefully', () {

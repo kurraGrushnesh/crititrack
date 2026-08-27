@@ -100,15 +100,30 @@ class OpenAiService {
   Future<Result<Biography>> fetchBiography(String celebrityName) async {
     try {
       final prompt =
-          '''You are a celebrity biography expert. Return ONLY valid JSON with this exact structure:
+          '''You are a celebrity biography and public-controversy analyst. Return ONLY valid JSON with this exact structure:
 {
   "profession": "string — their primary profession/title",
   "summary": "string — 2-3 sentence overview of who they are",
   "background": "string — 2-3 paragraphs covering early life, career trajectory, and current status",
   "notableWorks": ["string array — 5-8 most notable achievements, albums, films, companies, etc."],
-  "controversies": ["string array — 0-5 notable controversies or issues, empty array if none"]
+  "controversies": [
+    {
+      "title": "string — ≤ 10 word headline for the episode",
+      "summary": "string — 1-3 neutral, factual sentences on what happened and the response",
+      "category": "one of: Legal, Financial, Social media, Personal conduct, Political, Professional, Relationships, Other",
+      "severity": 1,
+      "status": "one of: ongoing, resolved, historical",
+      "year": 2020,
+      "sources": ["publication name or URL", "..."]
+    }
+  ]
 }
-Do not include any text outside the JSON object. Do not wrap in markdown code blocks.
+Rules:
+- "controversies" holds 0-6 of the most significant, well-documented episodes. Use an empty array if there are none.
+- severity is an integer 1-5: 1 = minor backlash, 3 = sustained public criticism, 5 = major scandal with lasting legal/career consequences.
+- "year" is the approximate year it began; omit the field entirely if genuinely unknown.
+- Stay factual and neutral. Do not invent controversies; omit anything you are not confident is real and reported.
+- Do not include any text outside the JSON object. Do not wrap in markdown code blocks.
 
 Generate a comprehensive biography for: $celebrityName''';
 

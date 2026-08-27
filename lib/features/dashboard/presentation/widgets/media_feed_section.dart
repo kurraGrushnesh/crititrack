@@ -10,9 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:celeb_sentiment_tracker/core/domain/models/media_item.dart';
-import 'package:celeb_sentiment_tracker/core/theme/app_theme.dart';
-import 'package:celeb_sentiment_tracker/core/utils/helpers.dart';
+import 'package:crititrack/core/domain/models/media_item.dart';
+import 'package:crititrack/core/theme/app_theme.dart';
+import 'package:crititrack/core/utils/helpers.dart';
 
 class MediaFeedSection extends StatefulWidget {
   const MediaFeedSection({

@@ -7,11 +7,11 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:celeb_sentiment_tracker/core/domain/models/celebrity.dart';
-import 'package:celeb_sentiment_tracker/core/error/result.dart';
-import 'package:celeb_sentiment_tracker/core/utils/helpers.dart';
-import 'package:celeb_sentiment_tracker/features/dashboard/data/celebrity_repository.dart';
-import 'package:celeb_sentiment_tracker/features/dashboard/data/direct_celebrity_repository.dart';
+import 'package:crititrack/core/domain/models/celebrity.dart';
+import 'package:crititrack/core/error/result.dart';
+import 'package:crititrack/core/utils/helpers.dart';
+import 'package:crititrack/features/dashboard/data/celebrity_repository.dart';
+import 'package:crititrack/features/dashboard/data/direct_celebrity_repository.dart';
 
 /// Singleton [DirectCelebrityRepository] — calls real APIs exclusively.
 final celebrityRepositoryProvider = Provider<CelebrityRepository>((ref) {

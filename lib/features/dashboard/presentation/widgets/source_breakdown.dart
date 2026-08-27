@@ -9,9 +9,9 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:celeb_sentiment_tracker/core/domain/models/sentiment_data.dart';
-import 'package:celeb_sentiment_tracker/core/theme/app_theme.dart';
-import 'package:celeb_sentiment_tracker/core/utils/helpers.dart';
+import 'package:crititrack/core/domain/models/sentiment_data.dart';
+import 'package:crititrack/core/theme/app_theme.dart';
+import 'package:crititrack/core/utils/helpers.dart';
 
 class SourceBreakdown extends StatelessWidget {
   const SourceBreakdown({super.key, required this.sentimentData});

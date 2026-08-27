@@ -5,9 +5,9 @@
 /// no pre-seeded JSON, no hardcoded celebrity names.
 library;
 
-import 'package:celeb_sentiment_tracker/core/domain/models/celebrity.dart';
-import 'package:celeb_sentiment_tracker/core/error/failures.dart';
-import 'package:celeb_sentiment_tracker/core/error/result.dart';
+import 'package:crititrack/core/domain/models/celebrity.dart';
+import 'package:crititrack/core/error/failures.dart';
+import 'package:crititrack/core/error/result.dart';
 
 /// Base repository interface. Concrete implementations call real APIs.
 class CelebrityRepository {
