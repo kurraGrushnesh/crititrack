@@ -17,11 +17,16 @@ const logger = require("firebase-functions/logger");
 
 const {
   fetchBiography,
+  scoreItemsBatch,
   analyzeSentiment,
   analyzeSourceSentiment,
   defaultSentiment,
   ApiError,
 } = require("./groq");
+const lexicon = require("./sentiment/lexicon");
+const {blendItem, aggregate, confidenceLabel} = require("./sentiment/ensemble");
+const {weightFor} = require("./sentiment/reach");
+const {corroborate} = require("./corroborate");
 const {fetchNews, fetchVideos, fetchGdelt, dedupe} = require("./media");
 const {fetchWikiSummary} = require("./wiki");
 
@@ -70,11 +75,14 @@ async function assembleCelebrity(keys, name, slug) {
   // ── Sentiment over combined headlines ───────────────────────────
   const newsHeadlines = articles.map((m) => m.title).filter(Boolean);
   const ytTitles = videos.map((m) => m.title).filter(Boolean);
-  const allHeadlines = [...newsHeadlines, ...ytTitles];
-  const sourceLabels = [
-    ...newsHeadlines.map(() => "news"),
-    ...ytTitles.map(() => "youtube"),
-  ];
+
+  // The ensemble scores the deduped `media` list, not articles+videos.
+  // Deriving the text and the reach weight from the same array keeps them
+  // aligned: building them from two different lists meant `media[i]` was
+  // a different item than `allHeadlines[i]`, and undefined past the end.
+  const scorable = media.filter((m) => m && m.title);
+  const allHeadlines = scorable.map((m) => m.title);
+  const sourceLabels = scorable.map((m) => m.type);
 
   let sentiment;
   try {
@@ -86,11 +94,66 @@ async function assembleCelebrity(keys, name, slug) {
     sentiment = defaultSentiment("Sentiment analysis is temporarily unavailable.");
   }
 
+  // ── Ensemble (Phase 3) ──────────────────────────────────────────
+  // Two independent methods score every headline: a lexicon that is free
+  // and deterministic, and a batched LLM call that understands context.
+  // How much they disagree becomes the confidence band — a single-method
+  // score has nothing to disagree with, so it can only assert.
+  if (allHeadlines.length > 0) {
+    const [llmScores] = await Promise.all([
+      scoreItemsBatch(keys.groq, allHeadlines),
+    ]);
+    const lexScores = lexicon.scoreAll(allHeadlines);
+
+    const blended = allHeadlines
+        .map((_, i) => {
+          const b = blendItem({
+            lexicon: lexScores[i],
+            llm: llmScores[i] ? llmScores[i].score : null,
+          });
+          if (!b) return null;
+          return {...b, weight: weightFor(scorable[i]), index: i};
+        })
+        .filter(Boolean);
+
+    const agg = aggregate(blended);
+
+    // Ratios are now counted from the per-item scores rather than asked
+    // from the model, so they describe the coverage we actually retrieved.
+    const positive = blended.filter((b) => b.score >= 65).length;
+    const negative = blended.filter((b) => b.score < 40).length;
+    const total = blended.length || 1;
+
+    sentiment = {
+      ...sentiment,
+      overallScore: agg.score,
+      confidence: agg.confidence,
+      confidenceLabel: confidenceLabel(agg.confidence),
+      scoreLow: agg.low,
+      scoreHigh: agg.high,
+      sampleSize: agg.sampleSize,
+      methodAgreement: agg.meanSpread,
+      positiveRatio: positive / total,
+      negativeRatio: negative / total,
+      neutralRatio: (total - positive - negative) / total,
+    };
+  }
+
   // ── Per-source decomposition (best effort) ──────────────────────
   const [scoreNews, scoreYoutube] = await Promise.all([
     analyzeSourceSentiment(keys.groq, name, newsHeadlines, "news"),
     analyzeSourceSentiment(keys.groq, name, ytTitles, "YouTube"),
   ]);
+
+  // ── Corroboration gate (SEC-04) ─────────────────────────────────
+  // A serious allegation nothing we retrieved mentions is dropped rather
+  // than rendered with the same authority as a documented one.
+  const corpus = media.flatMap((m) => [m.title, m.description].filter(Boolean));
+  const {kept, dropped} = corroborate(biography.controversies, corpus);
+  if (dropped.length > 0) {
+    logger.info(`${slug}: dropped ${dropped.length} uncorroborated claim(s)`);
+  }
+  biography.controversies = kept;
 
   return {
     name,

@@ -1,0 +1,102 @@
+{
+  "generatedAt": "2026-08-28T16:54:56.603Z",
+  "dataset": {
+    "path": "benchmark/labelled.json",
+    "items": 40,
+    "note": "SEED SET — not a hold-out. 40 unambiguous headlines hand-labelled to prove the harness runs end to end and to catch regressions. A defensible accuracy figure needs 300-500 items drawn from real retrieved coverage, labelled without seeing any model output. See benchmark/README.md."
+  },
+  "thresholds": {
+    "positiveAt": 65,
+    "negativeBelow": 40
+  },
+  "methods": {
+    "lexicon": {
+      "accuracy": 0.8,
+      "macroF1": 0.8,
+      "scored": 40,
+      "skipped": 0,
+      "perClass": {
+        "positive": {
+          "precision": 1,
+          "recall": 0.667,
+          "f1": 0.8,
+          "support": 12
+        },
+        "neutral": {
+          "precision": 0.7,
+          "recall": 0.933,
+          "f1": 0.8,
+          "support": 15
+        },
+        "negative": {
+          "precision": 0.833,
+          "recall": 0.769,
+          "f1": 0.8,
+          "support": 13
+        }
+      },
+      "latencyMsTotal": 5,
+      "latencyMsPerItem": 0.125,
+      "costPer1000Usd": 0,
+      "note": "VADER lexicon. No network, no cost."
+    },
+    "llm": {
+      "accuracy": 0.85,
+      "macroF1": 0.85,
+      "scored": 40,
+      "skipped": 0,
+      "perClass": {
+        "positive": {
+          "precision": 0.667,
+          "recall": 1,
+          "f1": 0.8,
+          "support": 12
+        },
+        "neutral": {
+          "precision": 1,
+          "recall": 0.6,
+          "f1": 0.75,
+          "support": 15
+        },
+        "negative": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 13
+        }
+      },
+      "latencyMsTotal": 5470,
+      "latencyMsPerItem": 136.75,
+      "note": "Single batched Groq call scoring every item."
+    },
+    "ensemble": {
+      "accuracy": 0.975,
+      "macroF1": 0.975,
+      "scored": 40,
+      "skipped": 0,
+      "perClass": {
+        "positive": {
+          "precision": 0.923,
+          "recall": 1,
+          "f1": 0.96,
+          "support": 12
+        },
+        "neutral": {
+          "precision": 1,
+          "recall": 0.933,
+          "f1": 0.966,
+          "support": 15
+        },
+        "negative": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 13
+        }
+      },
+      "latencyMsTotal": 5475,
+      "latencyMsPerItem": 136.875,
+      "note": "Weighted blend of lexicon and LLM."
+    }
+  }
+}

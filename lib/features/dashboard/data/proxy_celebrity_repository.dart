@@ -208,6 +208,11 @@ class ProxyCelebrityRepository extends CelebrityRepository {
       scoreNews: (s['scoreNews'] as num?)?.toDouble(),
       scoreYoutube: (s['scoreYoutube'] as num?)?.toDouble(),
       scoreInstagram: (s['scoreInstagram'] as num?)?.toDouble(),
+      confidence: (s['confidence'] as num?)?.toDouble(),
+      confidenceLabel: s['confidenceLabel'] as String?,
+      scoreLow: (s['scoreLow'] as num?)?.toDouble(),
+      scoreHigh: (s['scoreHigh'] as num?)?.toDouble(),
+      sampleSize: (s['sampleSize'] as num?)?.toInt(),
     );
   }
 

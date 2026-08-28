@@ -52,6 +52,11 @@ class SentimentData extends Equatable {
     this.scoreNews,
     this.scoreYoutube,
     this.scoreInstagram,
+    this.confidence,
+    this.confidenceLabel,
+    this.scoreLow,
+    this.scoreHigh,
+    this.sampleSize,
   });
 
   /// Overall sentiment score on a 0–100 scale.
@@ -85,6 +90,27 @@ class SentimentData extends Equatable {
 
   /// Forecasted scores for the next h days (Phase 4).
   final List<double> forecast;
+
+  /// Ensemble agreement, 0-1 (Phase 3). Null when only one method ran.
+  ///
+  /// Derived from how closely the scoring methods landed on each item, how
+  /// much coverage there was, and how many methods were available. A score
+  /// without this is an assertion; a score with it is a measurement.
+  final double? confidence;
+
+  /// Plain-language reading of [confidence], supplied by the backend.
+  final String? confidenceLabel;
+
+  /// Lower and upper bounds of the confidence band, 0-100.
+  final double? scoreLow;
+  final double? scoreHigh;
+
+  /// How many media items the score was computed from.
+  final int? sampleSize;
+
+  /// Whether there is enough information to draw a band at all.
+  bool get hasConfidence =>
+      confidence != null && scoreLow != null && scoreHigh != null;
 
   /// Per-source sentiment scores (Phase 5). Null when unavailable.
   final double? scoreNews;
@@ -164,6 +190,11 @@ class SentimentData extends Equatable {
     double? scoreNews,
     double? scoreYoutube,
     double? scoreInstagram,
+    double? confidence,
+    String? confidenceLabel,
+    double? scoreLow,
+    double? scoreHigh,
+    int? sampleSize,
   }) {
     return SentimentData(
       overallScore: overallScore ?? this.overallScore,
@@ -179,6 +210,11 @@ class SentimentData extends Equatable {
       scoreNews: scoreNews ?? this.scoreNews,
       scoreYoutube: scoreYoutube ?? this.scoreYoutube,
       scoreInstagram: scoreInstagram ?? this.scoreInstagram,
+      confidence: confidence ?? this.confidence,
+      confidenceLabel: confidenceLabel ?? this.confidenceLabel,
+      scoreLow: scoreLow ?? this.scoreLow,
+      scoreHigh: scoreHigh ?? this.scoreHigh,
+      sampleSize: sampleSize ?? this.sampleSize,
     );
   }
 }

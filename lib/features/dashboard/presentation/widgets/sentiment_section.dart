@@ -150,6 +150,8 @@ class _SentimentSectionState extends State<SentimentSection>
           const SizedBox(height: 12),
 
           // ── Source Breakdown (Phase 5) ──────────────────────────
+          if (data.hasConfidence) _ConfidenceBand(data: data),
+
           SourceBreakdown(sentimentData: data),
 
           // ── Chart TabBar ────────────────────────────────────────
@@ -755,6 +757,116 @@ class _StatCard extends StatelessWidget {
             label,
             style: theme.textTheme.labelSmall,
             textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Shows the sentiment score as a band rather than a point.
+///
+/// The width of the band is the ensemble's disagreement made visible. A
+/// single-method score has nothing to disagree with, so it can only ever
+/// be asserted; showing the uncertainty is the honest form, and it is the
+/// part a reader can actually weigh.
+class _ConfidenceBand extends StatelessWidget {
+  const _ConfidenceBand({required this.data});
+
+  final SentimentData data;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+
+    final low = data.scoreLow!;
+    final high = data.scoreHigh!;
+    final score = data.overallScore;
+    final confidence = data.confidence ?? 0;
+    final label = data.confidenceLabel ?? '';
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.straighten_rounded,
+                size: 13,
+                color: palette.textMuted,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  '$label · likely ${low.toStringAsFixed(0)}'
+                  '–${high.toStringAsFixed(0)}'
+                  '${data.sampleSize != null ? " from ${data.sampleSize} items" : ""}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: palette.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          // The track is the full 0-100 range; the filled span is where
+          // the score plausibly sits, with a marker at the point estimate.
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final w = constraints.maxWidth;
+              final left = (low / 100).clamp(0.0, 1.0) * w;
+              final width = ((high - low) / 100).clamp(0.0, 1.0) * w;
+              final marker = (score / 100).clamp(0.0, 1.0) * w;
+              final color = sentimentColor(score);
+
+              return SizedBox(
+                height: 12,
+                child: Stack(
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        height: 4,
+                        width: w,
+                        decoration: BoxDecoration(
+                          color: palette.elevated,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: left,
+                      top: 4,
+                      child: Container(
+                        height: 4,
+                        width: width < 2 ? 2 : width,
+                        decoration: BoxDecoration(
+                          color: color.withValues(
+                            alpha: 0.25 + 0.4 * confidence,
+                          ),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: (marker - 4).clamp(0.0, w - 8),
+                      top: 1,
+                      child: Container(
+                        width: 8,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ],
       ),
