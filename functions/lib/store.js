@@ -204,4 +204,75 @@ async function listTracked(opts) {
   }));
 }
 
-module.exports = {writeCelebrity, markRequested, listTracked, toSnapshots};
+
+/**
+ * The trailing daily scores already stored for a figure, oldest first.
+ *
+ * Read from the snapshots the scheduler writes, so the alert baseline is
+ * real measured history rather than anything the model asserted.
+ *
+ * @param {string} slug
+ * @param {number} [days]
+ * @return {Promise<Array<{date: string, score: number}>>}
+ */
+async function readSnapshotHistory(slug, days = 14) {
+  const db = getFirestore();
+  const snap = await db
+      .collection(CELEBRITIES)
+      .doc(slug)
+      .collection(SENTIMENT_SNAPSHOTS)
+      .orderBy("date", "desc")
+      .limit(days)
+      .get();
+
+  return snap.docs
+      .map((d) => d.data())
+      .filter((d) => d && typeof d.score === "number")
+      .map((d) => ({date: d.date, score: d.score}))
+      .reverse();
+}
+
+/**
+ * When this figure last triggered an alert, for the cooldown.
+ *
+ * @param {string} slug
+ * @return {Promise<Date|null>}
+ */
+async function readLastAlertedAt(slug) {
+  const db = getFirestore();
+  const doc = await db.collection(CELEBRITIES).doc(slug).get();
+  const raw = doc.exists ? (doc.data() || {}).lastAlertedAt : null;
+  if (!raw) return null;
+  // Firestore Timestamp or an ISO string, depending on who wrote it.
+  if (typeof raw.toDate === "function") return raw.toDate();
+  const d = new Date(raw);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/**
+ * Records that an alert fired, so the cooldown can be honoured.
+ *
+ * @param {string} slug
+ * @param {object} spike
+ * @return {Promise<void>}
+ */
+async function markAlerted(slug, spike) {
+  await getFirestore().collection(CELEBRITIES).doc(slug).set(
+      {
+        lastAlertedAt: FieldValue.serverTimestamp(),
+        lastAlertZScore: spike.zScore,
+        lastAlertChange: spike.change,
+      },
+      {merge: true},
+  );
+}
+
+module.exports = {
+  writeCelebrity,
+  markRequested,
+  listTracked,
+  toSnapshots,
+  readSnapshotHistory,
+  readLastAlertedAt,
+  markAlerted,
+};

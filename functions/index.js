@@ -23,7 +23,15 @@ const {initializeApp} = require("firebase-admin/app");
 const {assembleCelebrity, ApiError} = require("./lib/assemble");
 const {validateName, toSlug, ValidationError} = require("./lib/validate");
 const {resolvePerson} = require("./lib/entity");
-const {writeCelebrity, markRequested, listTracked} = require("./lib/store");
+const {
+  writeCelebrity,
+  markRequested,
+  listTracked,
+  readSnapshotHistory,
+  readLastAlertedAt,
+  markAlerted,
+} = require("./lib/store");
+const {detectSpike, shouldAlert, buildAlertMessage} = require("./lib/alerts");
 const {
   requireUser,
   requireAppCheck,
@@ -193,11 +201,19 @@ exports.refreshTrackedCelebrities = onSchedule(
       let ok = 0;
       const failed = [];
 
+      let alerted = 0;
+
       for (const {slug, name} of tracked) {
         try {
+          // Read the baseline before writing today's snapshot, so today is
+          // compared against history rather than against itself.
+          const history = await readSnapshotHistory(slug);
+
           const payload = await assembleCelebrity(keys, name, slug);
           await writeCelebrity(payload, {trigger: "schedule"});
           ok++;
+
+          if (await maybeAlert(slug, name, history, payload)) alerted++;
         } catch (e) {
           // One bad figure must not abort the rest of the run.
           failed.push(slug);
@@ -205,8 +221,56 @@ exports.refreshTrackedCelebrities = onSchedule(
         }
       }
 
-      logger.info(`refresh complete: ${ok} ok, ${failed.length} failed`, {
-        failed,
-      });
+      logger.info(
+          `refresh complete: ${ok} ok, ${failed.length} failed, ` +
+        `${alerted} alert(s)`,
+          {failed},
+      );
     },
 );
+
+/**
+ * Decides whether today's score is worth notifying about, and records it.
+ *
+ * Detection runs here rather than on the client because the client only
+ * runs while the app is open — which is exactly when the user does not
+ * need telling.
+ *
+ * Delivery is not wired: sending needs FCM registration tokens, which need
+ * a device-registration flow this project has not built. Until then the
+ * decision is logged, so the thresholds can be validated against real data
+ * before anyone's lock screen is involved. Getting that wrong in public is
+ * how an app gets uninstalled.
+ *
+ * @param {string} slug
+ * @param {string} name
+ * @param {Array<{date: string, score: number}>} history
+ * @param {object} payload
+ * @return {Promise<boolean>} whether an alert was raised
+ */
+async function maybeAlert(slug, name, history, payload) {
+  const current =
+    payload && payload.sentiment ? payload.sentiment.overallScore : null;
+  if (typeof current !== "number") return false;
+
+  const spike = detectSpike(history.map((h) => h.score), current);
+  if (!spike.isSpike) return false;
+
+  const lastAlertedAt = await readLastAlertedAt(slug);
+  if (!shouldAlert(spike, lastAlertedAt)) {
+    logger.info(`${slug}: spike suppressed by cooldown`, {spike});
+    return false;
+  }
+
+  const message = buildAlertMessage(name, spike, current);
+  logger.info(`ALERT ${slug}: ${message.title}`, {
+    body: message.body,
+    zScore: spike.zScore,
+    change: spike.change,
+    baseline: spike.mean,
+    samples: history.length,
+  });
+
+  await markAlerted(slug, spike);
+  return true;
+}
