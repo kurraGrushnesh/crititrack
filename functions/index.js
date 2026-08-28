@@ -24,6 +24,27 @@ const {
 const {fetchNews, fetchVideos} = require("./lib/media");
 const {fetchWikiSummary} = require("./lib/wiki");
 const {validateName, ValidationError} = require("./lib/validate");
+const {
+  requireUser,
+  requireAppCheck,
+  consumeUserQuota,
+  consumeGlobalBudget,
+  GuardError,
+  IS_EMULATOR,
+} = require("./lib/guard");
+const {initializeApp} = require("firebase-admin/app");
+
+initializeApp();
+
+// SEC-02: only origins we publish may call the API from a browser. `true`
+// would reflect any Origin header, which is what made the endpoint
+// scriptable from anywhere.
+const ALLOWED_ORIGINS = IS_EMULATOR ?
+  [/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/] :
+  [
+    "https://crititrack-f7430.web.app",
+    "https://crititrack-f7430.firebaseapp.com",
+  ];
 
 setGlobalOptions({maxInstances: 10, region: "us-central1"});
 
@@ -36,8 +57,30 @@ const YOUTUBE_API_KEY = defineSecret("YOUTUBE_API_KEY");
  * Returns the assembled biography + sentiment + media payload.
  */
 exports.getCelebrity = onRequest(
-    {secrets: [GROQ_API_KEY, NEWS_API_KEY, YOUTUBE_API_KEY], timeoutSeconds: 120, cors: true},
+    {
+      secrets: [GROQ_API_KEY, NEWS_API_KEY, YOUTUBE_API_KEY],
+      timeoutSeconds: 120,
+      cors: ALLOWED_ORIGINS,
+    },
     async (req, res) => {
+      // ── SEC-02: perimeter ─────────────────────────────────────────
+      // Identity and attestation fail closed; metering fails open so a
+      // Firestore outage degrades accounting rather than the product.
+      // Every layer is relaxed inside the emulator.
+      try {
+        await requireAppCheck(req);
+        const uid = await requireUser(req);
+        await consumeUserQuota(uid);
+        await consumeGlobalBudget();
+      } catch (e) {
+        if (e instanceof GuardError) {
+          for (const [h, v] of Object.entries(e.headers)) res.set(h, v);
+          res.status(e.status).json({error: e.code, message: e.message});
+          return;
+        }
+        throw e;
+      }
+
       // SEC-03: the query parameter is attacker-controlled and flows into
       // an LLM prompt. Validate and canonicalise before spending anything.
       let name;
@@ -114,7 +157,7 @@ exports.getCelebrity = onRequest(
           analyzeSourceSentiment(groqKey, name, ytTitles, "YouTube"),
         ]);
 
-        res.set("Cache-Control", "public, max-age=1800");
+        res.set("Cache-Control", "private, max-age=1800");
         res.status(200).json({
           name,
           slug,

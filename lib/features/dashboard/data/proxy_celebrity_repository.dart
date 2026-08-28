@@ -19,15 +19,20 @@ import 'package:crititrack/core/domain/models/media_item.dart';
 import 'package:crititrack/core/domain/models/sentiment_data.dart';
 import 'package:crititrack/core/error/failures.dart';
 import 'package:crititrack/core/error/result.dart';
+import 'package:crititrack/core/security/api_credentials.dart';
 import 'package:crititrack/core/utils/anomaly_detection.dart';
 import 'package:crititrack/core/utils/forecasting.dart';
 import 'package:crititrack/features/dashboard/data/celebrity_repository.dart';
 
 class ProxyCelebrityRepository extends CelebrityRepository {
-  ProxyCelebrityRepository({http.Client? client})
-    : _client = client ?? http.Client();
+  ProxyCelebrityRepository({http.Client? client, ApiCredentials? credentials})
+    : _client = client ?? http.Client(),
+      _credentials = credentials ?? const ApiCredentials();
 
   final http.Client _client;
+
+  /// Supplies the ID and App Check tokens the backend requires (SEC-02).
+  final ApiCredentials _credentials;
 
   @override
   Future<Result<Celebrity>> getCelebrity(String name) => _fetch(name);
@@ -48,12 +53,28 @@ class ProxyCelebrityRepository extends CelebrityRepository {
     );
 
     try {
+      final headers = await _credentials.headers();
       final response = await _client
-          .get(uri)
+          .get(uri, headers: headers)
           .timeout(const Duration(seconds: 120));
 
-      if (response.statusCode == 429) {
-        return const Error(RateLimitFailure());
+      if (response.statusCode == 401) {
+        return Error(
+          ApiKeyFailure(
+            serviceName: 'CritiTrack',
+            message:
+                'This app could not authenticate with the CritiTrack '
+                'backend. ${_errorMessage(response)}',
+          ),
+        );
+      }
+      if (response.statusCode == 429 || response.statusCode == 503) {
+        // 429 is this user's quota; 503 is the global daily ceiling. Both
+        // mean "try later", which is what RateLimitFailure communicates.
+        final retry = response.headers['retry-after'];
+        return Error(
+          RateLimitFailure(message: _rateLimitMessage(response, retry)),
+        );
       }
       if (response.statusCode >= 500) {
         return Error(ServerFailure(message: _errorMessage(response)));
@@ -171,6 +192,21 @@ class ProxyCelebrityRepository extends CelebrityRepository {
       scoreYoutube: (s['scoreYoutube'] as num?)?.toDouble(),
       scoreInstagram: (s['scoreInstagram'] as num?)?.toDouble(),
     );
+  }
+
+  /// Turns a quota rejection into something a person can act on.
+  String _rateLimitMessage(http.Response response, String? retryAfter) {
+    final base = _errorMessage(response);
+    final seconds = int.tryParse(retryAfter ?? '');
+    if (seconds == null) {
+      return base.isEmpty ? 'Too many requests. Please try again later.' : base;
+    }
+    final minutes = (seconds / 60).ceil();
+    final wait =
+        minutes < 60
+            ? '$minutes ${minutes == 1 ? "minute" : "minutes"}'
+            : '${(minutes / 60).ceil()} hours';
+    return '${base.isEmpty ? "Too many requests." : base} Try again in $wait.';
   }
 
   String _errorMessage(http.Response response) {

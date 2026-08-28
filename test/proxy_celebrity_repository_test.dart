@@ -9,6 +9,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:crititrack/core/domain/models/controversy.dart';
 import 'package:crititrack/core/error/failures.dart';
 import 'package:crititrack/core/error/result.dart';
+import 'package:crititrack/core/security/api_credentials.dart';
 import 'package:crititrack/features/dashboard/data/proxy_celebrity_repository.dart';
 
 class _MockClient extends Mock implements http.Client {}
@@ -23,7 +24,12 @@ void main() {
 
   setUp(() {
     client = _MockClient();
-    repo = ProxyCelebrityRepository(client: client);
+    // Firebase is not initialised under test, so the real provider yields
+    // no headers; pass it explicitly to keep that dependency visible.
+    repo = ProxyCelebrityRepository(
+      client: client,
+      credentials: const ApiCredentials(),
+    );
   });
 
   const payload = {
@@ -83,7 +89,7 @@ void main() {
 
   test('parses a 200 payload into a Celebrity', () async {
     when(
-      () => client.get(any()),
+      () => client.get(any(), headers: any(named: 'headers')),
     ).thenAnswer((_) async => http.Response(jsonEncode(payload), 200));
 
     final result = await repo.getCelebrity('Jane Doe');
@@ -106,7 +112,7 @@ void main() {
 
   test('maps HTTP 429 to RateLimitFailure', () async {
     when(
-      () => client.get(any()),
+      () => client.get(any(), headers: any(named: 'headers')),
     ).thenAnswer((_) async => http.Response('{"error":"rate"}', 429));
 
     final result = await repo.getCelebrity('X');
@@ -114,9 +120,53 @@ void main() {
     expect((result as Error).failure, isA<RateLimitFailure>());
   });
 
+  test('SEC-02: a 429 turns Retry-After into a human wait time', () async {
+    when(() => client.get(any(), headers: any(named: 'headers'))).thenAnswer(
+      (_) async => http.Response(
+        '{"error":"rate_limited","message":"Limit reached."}',
+        429,
+        headers: const {'retry-after': '900'},
+      ),
+    );
+
+    final failure = (await repo.getCelebrity('X') as Error).failure;
+    expect(failure, isA<RateLimitFailure>());
+    expect(failure.message, contains('Limit reached.'));
+    expect(failure.message, contains('15 minutes'));
+  });
+
+  test('SEC-02: the global 503 ceiling also reads as rate limited', () async {
+    when(() => client.get(any(), headers: any(named: 'headers'))).thenAnswer(
+      (_) async => http.Response(
+        '{"error":"capacity_reached","message":"Daily capacity reached."}',
+        503,
+        headers: const {'retry-after': '7200'},
+      ),
+    );
+
+    final failure = (await repo.getCelebrity('X') as Error).failure;
+    expect(failure, isA<RateLimitFailure>());
+    expect(failure.message, contains('Daily capacity reached.'));
+    expect(failure.message, contains('2 hours'));
+  });
+
+  test('SEC-02: a 401 surfaces as an authentication failure', () async {
+    when(() => client.get(any(), headers: any(named: 'headers'))).thenAnswer(
+      (_) async => http.Response(
+        '{"error":"unauthenticated","message":"Token required."}',
+        401,
+      ),
+    );
+
+    final failure = (await repo.getCelebrity('X') as Error).failure;
+    expect(failure, isA<ApiKeyFailure>());
+    expect((failure as ApiKeyFailure).serviceName, 'CritiTrack');
+    expect(failure.message, contains('Token required.'));
+  });
+
   test('maps HTTP 500 to ServerFailure with the backend message', () async {
     when(
-      () => client.get(any()),
+      () => client.get(any(), headers: any(named: 'headers')),
     ).thenAnswer((_) async => http.Response('{"message":"groq down"}', 500));
 
     final result = await repo.getCelebrity('X');
@@ -127,7 +177,7 @@ void main() {
 
   test('maps malformed JSON to ParseFailure', () async {
     when(
-      () => client.get(any()),
+      () => client.get(any(), headers: any(named: 'headers')),
     ).thenAnswer((_) async => http.Response('not json', 200));
 
     final result = await repo.getCelebrity('X');
