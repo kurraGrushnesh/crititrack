@@ -15,6 +15,7 @@ import 'package:crititrack/core/theme/app_theme.dart';
 import 'package:crititrack/core/theme/theme_toggle.dart';
 import 'package:crititrack/core/utils/helpers.dart';
 import 'package:crititrack/features/search/presentation/providers/search_providers.dart';
+import 'package:crititrack/features/privacy/presentation/widgets/delete_data_tile.dart';
 import 'package:crititrack/features/watchlist/domain/watched_figure.dart';
 import 'package:crititrack/features/watchlist/presentation/providers/watchlist_providers.dart';
 
@@ -194,6 +195,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
+
+                    // ── Privacy ──────────────────────────────────────
+                    // Placed at the foot of the screen: reachable without
+                    // hunting, but not competing with the primary action.
+                    const _PrivacySection(),
 
                     // ── Watchlist ─────────────────────────────────────
                     // Above recents: someone who has followed a figure
@@ -444,6 +450,74 @@ class _Avatar extends StatelessWidget {
           fit: BoxFit.cover,
           placeholder: (_, __) => fallback,
           errorWidget: (_, __, ___) => fallback,
+        ),
+      ),
+    );
+  }
+}
+
+/// Data controls, kept deliberately plain.
+///
+/// The delete action is what makes the privacy policy's promise real, so
+/// it lives in the app rather than only in a document nobody reads.
+class _PrivacySection extends StatelessWidget {
+  const _PrivacySection();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 500),
+      margin: const EdgeInsets.only(bottom: 28),
+      child: Theme(
+        // A plain ExpansionTile divider fights the card borders used
+        // everywhere else on this screen.
+        data: theme.copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: EdgeInsets.zero,
+          childrenPadding: EdgeInsets.zero,
+          leading: Icon(
+            Icons.privacy_tip_outlined,
+            size: 18,
+            color: palette.textSecondary,
+          ),
+          title: Text('Your data', style: theme.textTheme.labelLarge),
+          subtitle: Text(
+            'No account, no tracking',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: palette.textMuted,
+            ),
+          ),
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: palette.elevated,
+                borderRadius: AppTheme.radiusMd,
+                border: Border.all(color: palette.border),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+                    child: Text(
+                      'CritiTrack asks for no name, email or phone number, '
+                      'runs no advertising and uses no tracking SDK. Your '
+                      'searches stay on this device; your watchlist syncs '
+                      'under an anonymous identifier.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: palette.textSecondary,
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                  const DeleteDataTile(),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
