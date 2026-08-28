@@ -13,6 +13,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:crititrack/core/domain/models/media_item.dart';
+import 'package:crititrack/core/security/safe_url.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
 import 'package:crititrack/core/utils/helpers.dart';
 
@@ -170,15 +171,26 @@ class _MediaRow extends StatelessWidget {
   final String slug;
 
   Future<void> _open(BuildContext context) async {
-    if (item.url.isEmpty) return;
+    // SEC-06: links come from third-party APIs, so the scheme is checked
+    // before anything is opened — on web directly, and on mobile before
+    // the in-app WebView is even routed to.
+    final uri = SafeUrl.parse(item.url);
+    if (uri == null) {
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        const SnackBar(content: Text('That link could not be opened safely.')),
+      );
+      return;
+    }
+
     if (kIsWeb) {
-      final uri = Uri.parse(item.url);
-      if (await canLaunchUrl(uri)) await launchUrl(uri);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
       return;
     }
     if (!context.mounted) return;
     context.go(
-      '/dashboard/$slug/media?url=${Uri.encodeComponent(item.url)}'
+      '/dashboard/$slug/media?url=${Uri.encodeComponent(uri.toString())}'
       '&title=${Uri.encodeComponent(item.title)}',
     );
   }

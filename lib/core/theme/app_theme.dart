@@ -21,6 +21,7 @@
 /// — no hardcoded font sizes anywhere in the widget tree.
 library;
 
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -99,6 +100,21 @@ abstract final class AppTheme {
 
   // ── ThemeData ─────────────────────────────────────────────────────
 
+  /// Typeface for the whole app.
+  ///
+  /// `null` means the platform default — Roboto on Android, San Francisco
+  /// on iOS — which is a deliberate, legible choice rather than an
+  /// accident.
+  ///
+  /// This was previously hardcoded to `'Inter'` while no Inter asset was
+  /// bundled, so Flutter silently fell back to Roboto anyway: the theme
+  /// claimed a typeface the app did not ship. Naming a family here only
+  /// has an effect once matching files are declared under `fonts:` in
+  /// pubspec.yaml — see docs/FONTS.md.
+  /// Change to `'Inter'` once the four Inter `.ttf` files are in
+  /// `assets/fonts/` and declared under `fonts:` in pubspec.yaml.
+  static const String? fontFamily = null;
+
   static ThemeData get darkTheme => _build(Brightness.dark, darkPalette);
   static ThemeData get lightTheme => _build(Brightness.light, lightPalette);
 
@@ -134,7 +150,7 @@ abstract final class AppTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: palette.background,
       canvasColor: palette.background,
-      fontFamily: 'Inter',
+      fontFamily: fontFamily,
       textTheme: textTheme,
       splashFactory: InkRipple.splashFactory,
       extensions: [palette],

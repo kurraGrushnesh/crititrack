@@ -41,10 +41,11 @@ Future<void> main() async {
     // and anyone who finds the endpoint URL. Debug providers are used in
     // debug builds so local development needs no real attestation.
     await FirebaseAppCheck.instance.activate(
-      androidProvider:
-          kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
-      appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.appAttest,
-      webProvider:
+      providerAndroid:
+          kDebugMode ? AndroidDebugProvider() : AndroidPlayIntegrityProvider(),
+      providerApple:
+          kDebugMode ? AppleDebugProvider() : AppleAppAttestProvider(),
+      providerWeb:
           kDebugMode || _recaptchaSiteKey.isEmpty
               ? null
               : ReCaptchaV3Provider(_recaptchaSiteKey),
