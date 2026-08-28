@@ -1,9 +1,0 @@
-library;
-
-abstract final class ApiKeys {
-  static const String groqApiKey = 'YOUR_API_KEY_HERE';
-  static const String newsApiKey = 'YOUR_API_KEY_HERE';
-  static const String youtubeApiKey = 'YOUR_API_KEY_HERE';
-  static const String instagramAccessToken = 'YOUR_API_KEY_HERE';
-  static const String instagramAppId = 'YOUR_API_KEY_HERE'; 
-}

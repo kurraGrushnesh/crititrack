@@ -56,6 +56,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = context.palette;
 
     return Scaffold(
       appBar: AppBar(
@@ -70,8 +71,10 @@ class _WebViewScreenState extends State<WebViewScreen> {
                   preferredSize: const Size.fromHeight(2),
                   child: LinearProgressIndicator(
                     value: _progress,
-                    backgroundColor: AppTheme.surfaceElevated,
-                    valueColor: const AlwaysStoppedAnimation(AppTheme.primary),
+                    backgroundColor: palette.elevated,
+                    valueColor: AlwaysStoppedAnimation(
+                      theme.colorScheme.primary,
+                    ),
                   ),
                 )
                 : null,
@@ -89,10 +92,10 @@ class _WebViewScreenState extends State<WebViewScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.open_in_browser_rounded,
                 size: 48,
-                color: AppTheme.primary,
+                color: theme.colorScheme.primary,
               ),
               const SizedBox(height: 16),
               Text('Open in Browser', style: theme.textTheme.titleLarge),
@@ -100,7 +103,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
               SelectableText(
                 widget.url,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppTheme.primary,
+                  color: theme.colorScheme.primary,
                 ),
                 textAlign: TextAlign.center,
               ),

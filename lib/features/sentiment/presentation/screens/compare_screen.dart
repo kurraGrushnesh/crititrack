@@ -68,6 +68,7 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = context.palette;
 
     // Watch all selected celebrities
     final celebrities = <Celebrity>[];
@@ -96,7 +97,7 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
                 avatar: Icon(
                   Icons.compare_arrows_rounded,
                   size: 16,
-                  color: AppTheme.primary,
+                  color: theme.colorScheme.primary,
                 ),
                 label: Text(
                   '${celebrities.length} selected',
@@ -162,7 +163,7 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
                   Text(
                     'Correlations are algorithmically generated from cached data',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppTheme.textMuted,
+                      color: palette.textMuted,
                       fontSize: 9,
                       fontStyle: FontStyle.italic,
                     ),
@@ -173,9 +174,9 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppTheme.surfaceElevated,
+                  color: palette.card,
                   borderRadius: AppTheme.radiusMd,
-                  border: Border.all(color: AppTheme.border),
+                  border: Border.all(color: palette.border),
                 ),
                 child: Center(
                   child: Text(
@@ -190,9 +191,9 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
               Container(
                 padding: const EdgeInsets.all(32),
                 decoration: BoxDecoration(
-                  color: AppTheme.surfaceElevated,
+                  color: palette.card,
                   borderRadius: AppTheme.radiusMd,
-                  border: Border.all(color: AppTheme.border),
+                  border: Border.all(color: palette.border),
                 ),
                 child: Center(
                   child: Column(
@@ -200,7 +201,7 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
                       Icon(
                         Icons.compare_arrows_rounded,
                         size: 48,
-                        color: AppTheme.textMuted,
+                        color: palette.textMuted,
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -240,12 +241,14 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
   }
 
   Widget _buildOverlayChart(List<Celebrity> celebrities, ThemeData theme) {
+    final palette = context.palette;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceCard,
+        color: palette.card,
         borderRadius: AppTheme.radiusLg,
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: palette.border),
+        boxShadow: palette.softShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -261,10 +264,8 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
                   drawVerticalLine: false,
                   horizontalInterval: 20,
                   getDrawingHorizontalLine:
-                      (value) => FlLine(
-                        color: AppTheme.border.withValues(alpha: 0.3),
-                        strokeWidth: 1,
-                      ),
+                      (value) =>
+                          FlLine(color: palette.chartGrid, strokeWidth: 1),
                 ),
                 titlesData: FlTitlesData(
                   rightTitles: const AxisTitles(),
@@ -277,8 +278,8 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
                       getTitlesWidget:
                           (v, _) => Text(
                             '${v.toInt()}',
-                            style: const TextStyle(
-                              color: AppTheme.textMuted,
+                            style: TextStyle(
+                              color: palette.textMuted,
                               fontSize: 10,
                             ),
                           ),
@@ -299,8 +300,8 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
                           padding: const EdgeInsets.only(top: 8),
                           child: Text(
                             trend[idx].date,
-                            style: const TextStyle(
-                              color: AppTheme.textMuted,
+                            style: TextStyle(
+                              color: palette.textMuted,
                               fontSize: 10,
                             ),
                           ),
@@ -340,7 +341,7 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
                                 radius: 3,
                                 color: color,
                                 strokeWidth: 1,
-                                strokeColor: Colors.white,
+                                strokeColor: palette.card,
                               ),
                         ),
                       );
@@ -366,7 +367,7 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
                         e.value.name,
                         style: TextStyle(
                           fontSize: 11,
-                          color: AppTheme.textSecondary,
+                          color: palette.textSecondary,
                         ),
                       ),
                     ],
@@ -379,12 +380,14 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
   }
 
   Widget _buildCorrelationMatrix(List<Celebrity> celebrities, ThemeData theme) {
+    final palette = context.palette;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceCard,
+        color: palette.card,
         borderRadius: AppTheme.radiusLg,
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: palette.border),
+        boxShadow: palette.softShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -402,6 +405,7 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
     ThemeData theme,
   ) {
     final pairs = <Widget>[];
+    final palette = context.palette;
 
     for (int i = 0; i < celebrities.length; i++) {
       for (int j = i + 1; j < celebrities.length; j++) {
@@ -433,8 +437,9 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppTheme.surfaceElevated,
+              color: palette.elevated,
               borderRadius: AppTheme.radiusMd,
+              border: Border.all(color: palette.border),
             ),
             child: Row(
               children: [

@@ -55,19 +55,20 @@ class _ControversyCardState extends State<ControversyCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = context.palette;
     final c = widget.controversy;
     final sevColor = severityColor(c.severity);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceElevated,
+        color: palette.elevated,
         borderRadius: AppTheme.radiusMd,
         border: Border.all(
           color:
               c.isOngoing
                   ? AppTheme.error.withValues(alpha: 0.35)
-                  : AppTheme.border,
+                  : palette.border,
         ),
       ),
       child: Material(
@@ -112,7 +113,7 @@ class _ControversyCardState extends State<ControversyCard> {
                           Text(
                             c.title,
                             style: theme.textTheme.titleSmall?.copyWith(
-                              color: AppTheme.textPrimary,
+                              color: palette.textPrimary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -128,12 +129,12 @@ class _ControversyCardState extends State<ControversyCard> {
                               ),
                               _MiniTag(
                                 label: c.category,
-                                color: AppTheme.primaryLight,
+                                color: palette.brandText,
                               ),
                               if (c.year != null)
                                 _MiniTag(
                                   label: '${c.year}',
-                                  color: AppTheme.textSecondary,
+                                  color: palette.textSecondary,
                                 ),
                               _StatusTag(status: c.status),
                             ],
@@ -146,7 +147,7 @@ class _ControversyCardState extends State<ControversyCard> {
                           ? Icons.keyboard_arrow_up_rounded
                           : Icons.keyboard_arrow_down_rounded,
                       size: 20,
-                      color: AppTheme.textMuted,
+                      color: palette.textMuted,
                     ),
                   ],
                 ),
@@ -174,7 +175,7 @@ class _ControversyCardState extends State<ControversyCard> {
                                   Text(
                                     'Sources: ${c.sources.join(' · ')}',
                                     style: theme.textTheme.bodySmall?.copyWith(
-                                      color: AppTheme.textMuted,
+                                      color: palette.textMuted,
                                       fontStyle: FontStyle.italic,
                                     ),
                                   ),
@@ -228,7 +229,7 @@ class _StatusTag extends StatelessWidget {
     final (color, label) = switch (status) {
       ControversyStatus.ongoing => (AppTheme.error, 'Ongoing'),
       ControversyStatus.resolved => (AppTheme.success, 'Resolved'),
-      _ => (AppTheme.textMuted, 'Historical'),
+      _ => (context.palette.textMuted, 'Historical'),
     };
 
     return Container(

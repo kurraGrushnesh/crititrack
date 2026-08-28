@@ -29,12 +29,13 @@ class ControversySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = context.palette;
 
     if (controversies.isEmpty) {
       return _Shell(
         child: Row(
           children: [
-            Icon(
+            const Icon(
               Icons.verified_user_rounded,
               size: 20,
               color: AppTheme.success,
@@ -65,7 +66,7 @@ class ControversySection extends StatelessWidget {
           // ── Header ──────────────────────────────────────────────
           Row(
             children: [
-              Icon(Icons.gavel_rounded, size: 20, color: AppTheme.accent),
+              const Icon(Icons.gavel_rounded, size: 20, color: AppTheme.accent),
               const SizedBox(width: 8),
               Text('Controversy Tracker', style: theme.textTheme.titleMedium),
             ],
@@ -88,14 +89,14 @@ class ControversySection extends StatelessWidget {
                       vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color: AppTheme.surfaceElevated,
+                      color: palette.elevated,
                       borderRadius: AppTheme.radiusSm,
-                      border: Border.all(color: AppTheme.border),
+                      border: Border.all(color: palette.border),
                     ),
                     child: Text(
                       '${e.key} · ${e.value}',
-                      style: const TextStyle(
-                        color: AppTheme.textSecondary,
+                      style: TextStyle(
+                        color: palette.textSecondary,
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                       ),
@@ -126,7 +127,7 @@ class ControversySection extends StatelessWidget {
                 child: Text(
                   'Index and severities are AI-assessed from public reporting',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppTheme.textMuted,
+                    color: palette.textMuted,
                     fontSize: 9,
                     fontStyle: FontStyle.italic,
                   ),
@@ -157,6 +158,7 @@ class _IndexPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = context.palette;
     final color = _indexColor(index.score);
 
     return Container(
@@ -195,7 +197,7 @@ class _IndexPanel extends StatelessWidget {
                 child: Text(
                   '/ 100',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppTheme.textMuted,
+                    color: palette.textMuted,
                   ),
                 ),
               ),
@@ -215,7 +217,7 @@ class _IndexPanel extends StatelessWidget {
             borderRadius: BorderRadius.circular(999),
             child: Stack(
               children: [
-                Container(height: 8, color: AppTheme.surfaceElevated),
+                Container(height: 8, color: palette.elevated),
                 FractionallySizedBox(
                   widthFactor: (index.score / 100).clamp(0.02, 1.0),
                   child: Container(
@@ -236,7 +238,7 @@ class _IndexPanel extends StatelessWidget {
             ' · peak severity ${index.peakSeverity}/5'
             '${index.ongoingCount > 0 ? " · ${index.ongoingCount} ongoing" : ""}',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: AppTheme.textSecondary,
+              color: palette.textSecondary,
             ),
           ),
         ],
@@ -260,13 +262,15 @@ class _Shell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceCard,
+        color: palette.card,
         borderRadius: AppTheme.radiusLg,
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: palette.border),
+        boxShadow: palette.softShadow,
       ),
       child: child,
     );

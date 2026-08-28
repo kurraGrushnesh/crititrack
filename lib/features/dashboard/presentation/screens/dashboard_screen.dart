@@ -9,6 +9,9 @@
 /// Dependencies: [dashboardProvider] for async celebrity data.
 library;
 
+import 'dart:ui';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +20,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:crititrack/core/constants/app_constants.dart';
 import 'package:crititrack/core/domain/models/celebrity.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
+import 'package:crititrack/core/theme/theme_toggle.dart';
 import 'package:crititrack/core/utils/helpers.dart';
 import 'package:crititrack/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:crititrack/features/controversy/presentation/widgets/controversy_section.dart';
@@ -58,6 +62,7 @@ class _DashboardContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isWide = screenWidth >= AppConstants.mobileBreakpoint;
+    final palette = context.palette;
 
     return CustomScrollView(
       slivers: [
@@ -66,7 +71,7 @@ class _DashboardContent extends StatelessWidget {
           expandedHeight: 120,
           floating: true,
           pinned: true,
-          backgroundColor: AppTheme.surfaceDark,
+          backgroundColor: palette.background,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () => GoRouter.of(context).go('/'),
@@ -83,31 +88,23 @@ class _DashboardContent extends StatelessWidget {
               children: [
                 Text(
                   celebrity.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: AppTheme.textPrimary,
+                    color: palette.textPrimary,
                   ),
                 ),
                 Text(
                   cacheTimestamp(celebrity.fetchedAt),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w400,
-                    color: AppTheme.textMuted,
+                    color: palette.textMuted,
                   ),
                 ),
               ],
             ),
-            background: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF1A1040), AppTheme.surfaceDark],
-                ),
-              ),
-            ),
+            background: _AppBarBackground(imageUrl: celebrity.imageUrl),
           ),
           actions: [
             Container(
@@ -141,6 +138,8 @@ class _DashboardContent extends StatelessWidget {
                 ],
               ),
             ),
+            const ThemeToggle(compact: true),
+            const SizedBox(width: 4),
           ],
         ),
         // ── Content ─────────────────────────────────────────────
@@ -158,6 +157,7 @@ class _DashboardContent extends StatelessWidget {
                         BiographyCard(
                           biography: celebrity.biography,
                           name: celebrity.name,
+                          imageUrl: celebrity.imageUrl,
                         ),
                         const SizedBox(height: 16),
                         MediaFeedSection(
@@ -195,6 +195,7 @@ class _DashboardContent extends StatelessWidget {
               child: BiographyCard(
                 biography: celebrity.biography,
                 name: celebrity.name,
+                imageUrl: celebrity.imageUrl,
               ),
             ),
           ),
@@ -232,6 +233,63 @@ class _DashboardContent extends StatelessWidget {
   }
 }
 
+// ── SliverAppBar background ──────────────────────────────────────
+// A blurred, darkened portrait behind the app-bar title, falling back
+// to the violet gradient when there is no image.
+
+class _AppBarBackground extends StatelessWidget {
+  const _AppBarBackground({this.imageUrl});
+
+  final String? imageUrl;
+
+  /// Flat brand-tinted fill used when there is no portrait to show.
+  static BoxDecoration _fallback(AppPalette palette) => BoxDecoration(
+    gradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [palette.heroTint, palette.background],
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final fallback = _fallback(palette);
+
+    if (imageUrl == null || imageUrl!.isEmpty) {
+      return DecoratedBox(decoration: fallback);
+    }
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        CachedNetworkImage(
+          imageUrl: imageUrl!,
+          fit: BoxFit.cover,
+          alignment: const Alignment(0, -0.35),
+          placeholder: (_, __) => DecoratedBox(decoration: fallback),
+          errorWidget: (_, __, ___) => DecoratedBox(decoration: fallback),
+        ),
+        BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  palette.scrim.withValues(alpha: 0.45),
+                  palette.scrim.withValues(alpha: 0.88),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 // ── Shimmer Skeleton ─────────────────────────────────────────────
 
 class _ShimmerSkeleton extends StatelessWidget {
@@ -240,6 +298,8 @@ class _ShimmerSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(fromSlug(slug)),
@@ -247,10 +307,11 @@ class _ShimmerSkeleton extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => GoRouter.of(context).go('/'),
         ),
+        actions: const [ThemeToggle(compact: true), SizedBox(width: 4)],
       ),
       body: Shimmer.fromColors(
-        baseColor: AppTheme.surfaceCard,
-        highlightColor: AppTheme.surfaceElevated,
+        baseColor: palette.elevated,
+        highlightColor: Color.alphaBlend(palette.glass, palette.elevated),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(

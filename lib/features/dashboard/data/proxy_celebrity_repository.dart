@@ -104,6 +104,8 @@ class ProxyCelebrityRepository extends CelebrityRepository {
       (json['sentiment'] as Map?)?.cast<String, dynamic>() ?? const {},
     );
 
+    final image = (json['image'] as Map?)?.cast<String, dynamic>();
+
     return Celebrity(
       slug: json['slug'] as String? ?? '',
       name: json['name'] as String? ?? '',
@@ -113,6 +115,7 @@ class ProxyCelebrityRepository extends CelebrityRepository {
       fetchedAt:
           DateTime.tryParse(json['fetchedAt'] as String? ?? '') ??
           DateTime.now(),
+      imageUrl: image?['url'] as String?,
     );
   }
 

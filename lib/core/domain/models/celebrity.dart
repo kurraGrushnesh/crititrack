@@ -20,6 +20,7 @@ class Celebrity extends Equatable {
     required this.sentimentData,
     required this.mediaItems,
     required this.fetchedAt,
+    this.imageUrl,
     this.cacheVersion = 1,
   });
 
@@ -28,6 +29,9 @@ class Celebrity extends Equatable {
 
   /// Display name as returned by OpenAI.
   final String name;
+
+  /// Portrait image URL (Wikipedia), when one could be found.
+  final String? imageUrl;
 
   /// Structured biography data.
   final Biography biography;
@@ -58,6 +62,7 @@ class Celebrity extends Equatable {
     SentimentData? sentimentData,
     List<MediaItem>? mediaItems,
     DateTime? fetchedAt,
+    String? imageUrl,
     int? cacheVersion,
   }) {
     return Celebrity(
@@ -67,6 +72,7 @@ class Celebrity extends Equatable {
       sentimentData: sentimentData ?? this.sentimentData,
       mediaItems: mediaItems ?? this.mediaItems,
       fetchedAt: fetchedAt ?? this.fetchedAt,
+      imageUrl: imageUrl ?? this.imageUrl,
       cacheVersion: cacheVersion ?? this.cacheVersion,
     );
   }
@@ -84,6 +90,7 @@ class Celebrity extends Equatable {
       'sentimentExplanation': sentimentData.explanation,
       'fetchedAt': fetchedAt.toIso8601String(),
       'cacheVersion': cacheVersion,
+      if (imageUrl != null) 'imageUrl': imageUrl,
       // Phase 2: Evidence fragments
       'evidence': sentimentData.evidence.map((e) => e.toMap()).toList(),
       // Phase 4: Forecast
@@ -142,6 +149,7 @@ class Celebrity extends Equatable {
       fetchedAt:
           DateTime.tryParse(data['fetchedAt'] as String? ?? '') ??
           DateTime.now(),
+      imageUrl: data['imageUrl'] as String?,
       cacheVersion: data['cacheVersion'] as int? ?? 1,
     );
   }

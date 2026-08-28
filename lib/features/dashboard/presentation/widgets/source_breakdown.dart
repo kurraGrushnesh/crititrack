@@ -27,6 +27,8 @@ class SourceBreakdown extends StatelessWidget {
 
     if (!hasSourceScores) return const SizedBox.shrink();
 
+    final palette = context.palette;
+
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       child: Column(
@@ -38,7 +40,7 @@ class SourceBreakdown extends StatelessWidget {
               Icon(
                 Icons.stacked_bar_chart_rounded,
                 size: 14,
-                color: AppTheme.textMuted,
+                color: palette.textMuted,
               ),
               const SizedBox(width: 6),
               Text(
@@ -50,10 +52,10 @@ class SourceBreakdown extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppTheme.warning.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(4),
+                  color: AppTheme.warning.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(6),
                 ),
-                child: Text(
+                child: const Text(
                   '⚡ Algorithmically generated',
                   style: TextStyle(
                     fontSize: 8,
@@ -151,7 +153,7 @@ class _SourceChip extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.w500,
-                    color: AppTheme.textMuted,
+                    color: context.palette.textMuted,
                     letterSpacing: 0.3,
                   ),
                   overflow: TextOverflow.ellipsis,

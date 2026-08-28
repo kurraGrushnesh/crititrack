@@ -1,15 +1,24 @@
 library;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import 'package:crititrack/core/domain/models/celebrity.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
 
 class BiographyCard extends StatefulWidget {
-  const BiographyCard({super.key, required this.biography, required this.name});
+  const BiographyCard({
+    super.key,
+    required this.biography,
+    required this.name,
+    this.imageUrl,
+  });
 
   final Biography biography;
   final String name;
+
+  /// Portrait image URL, when available.
+  final String? imageUrl;
 
   @override
   State<BiographyCard> createState() => _BiographyCardState();
@@ -52,14 +61,15 @@ class _BiographyCardState extends State<BiographyCard>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = context.palette;
     final bio = widget.biography;
 
     return Container(
       decoration: BoxDecoration(
-        gradient: AppTheme.cardGradient,
+        gradient: palette.cardGradient,
         borderRadius: AppTheme.radiusLg,
-        border: Border.all(color: AppTheme.border),
-        boxShadow: AppTheme.cardShadow,
+        border: Border.all(color: palette.border),
+        boxShadow: palette.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,25 +79,14 @@ class _BiographyCardState extends State<BiographyCard>
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: AppTheme.primaryGradient,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
               ),
             ),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.person_rounded,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                ),
+                _Portrait(imageUrl: widget.imageUrl),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
@@ -157,17 +156,17 @@ class _BiographyCardState extends State<BiographyCard>
                     Text(
                       _expanded ? 'Show less' : 'Read more',
                       style: TextStyle(
-                        color: AppTheme.primary,
+                        color: palette.brandText,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     RotationTransition(
                       turns: Tween(begin: 0.0, end: 0.5).animate(_expandAnim),
-                      child: const Icon(
+                      child: Icon(
                         Icons.keyboard_arrow_down_rounded,
                         size: 18,
-                        color: AppTheme.primary,
+                        color: palette.brandText,
                       ),
                     ),
                   ],
@@ -206,7 +205,7 @@ class _BiographyCardState extends State<BiographyCard>
                       child: Text(
                         bio.notableWorks[i],
                         style: TextStyle(
-                          color: AppTheme.primaryLight,
+                          color: palette.brandText,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -223,26 +222,71 @@ class _BiographyCardState extends State<BiographyCard>
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.gavel_rounded,
-                    size: 14,
-                    color: AppTheme.textMuted,
-                  ),
+                  Icon(Icons.gavel_rounded, size: 14, color: palette.textMuted),
                   const SizedBox(width: 6),
                   Text(
                     '${bio.controversies.length} '
                     '${bio.controversies.length == 1 ? "controversy" : "controversies"}'
                     ' tracked — see Controversy Tracker below',
-                    style: const TextStyle(
-                      color: AppTheme.textMuted,
-                      fontSize: 11,
-                    ),
+                    style: TextStyle(color: palette.textMuted, fontSize: 11),
                   ),
                 ],
               ),
             ),
           const SizedBox(height: 16),
         ],
+      ),
+    );
+  }
+}
+
+/// Circular portrait for the header — the person's photo when we have a
+/// URL, otherwise a translucent person glyph on the gradient.
+class _Portrait extends StatelessWidget {
+  const _Portrait({this.imageUrl});
+
+  final String? imageUrl;
+
+  static const double _size = 56;
+
+  @override
+  Widget build(BuildContext context) {
+    final fallback = Container(
+      width: _size,
+      height: _size,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.2),
+        shape: BoxShape.circle,
+      ),
+      child: const Icon(Icons.person_rounded, color: Colors.white, size: 28),
+    );
+
+    if (imageUrl == null || imageUrl!.isEmpty) return fallback;
+
+    return Container(
+      width: _size,
+      height: _size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.5),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: CachedNetworkImage(
+          imageUrl: imageUrl!,
+          fit: BoxFit.cover,
+          placeholder: (_, __) => fallback,
+          errorWidget: (_, __, ___) => fallback,
+        ),
       ),
     );
   }

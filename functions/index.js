@@ -22,17 +22,14 @@ const {
   ApiError,
 } = require("./lib/groq");
 const {fetchNews, fetchVideos} = require("./lib/media");
+const {fetchWikiSummary} = require("./lib/wiki");
+const {validateName, ValidationError} = require("./lib/validate");
 
 setGlobalOptions({maxInstances: 10, region: "us-central1"});
 
 const GROQ_API_KEY = defineSecret("GROQ_API_KEY");
 const NEWS_API_KEY = defineSecret("NEWS_API_KEY");
 const YOUTUBE_API_KEY = defineSecret("YOUTUBE_API_KEY");
-
-/** @param {string} s @return {string} */
-function toSlug(s) {
-  return s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-}
 
 /**
  * GET /getCelebrity?name=Zendaya
@@ -41,10 +38,18 @@ function toSlug(s) {
 exports.getCelebrity = onRequest(
     {secrets: [GROQ_API_KEY, NEWS_API_KEY, YOUTUBE_API_KEY], timeoutSeconds: 120, cors: true},
     async (req, res) => {
-      const name = String(req.query.name || "").trim();
-      if (!name) {
-        res.status(400).json({error: "missing_name", message: "?name= is required"});
-        return;
+      // SEC-03: the query parameter is attacker-controlled and flows into
+      // an LLM prompt. Validate and canonicalise before spending anything.
+      let name;
+      let slug;
+      try {
+        ({name, slug} = validateName(req.query.name));
+      } catch (e) {
+        if (e instanceof ValidationError) {
+          res.status(e.status).json({error: e.code, message: e.message});
+          return;
+        }
+        throw e;
       }
 
       const groqKey = GROQ_API_KEY.value();
@@ -52,14 +57,15 @@ exports.getCelebrity = onRequest(
       const ytKey = YOUTUBE_API_KEY.value();
 
       try {
-        // ── Parallel: biography + media ────────────────────────────────
-        const [bioResult, news, videos] = await Promise.all([
+        // ── Parallel: biography + media + portrait ─────────────────────
+        const [bioResult, news, videos, wiki] = await Promise.all([
           fetchBiography(groqKey, name).then(
               (v) => ({ok: true, value: v}),
               (e) => ({ok: false, error: e}),
           ),
           fetchNews(newsKey, name),
           fetchVideos(ytKey, name),
+          fetchWikiSummary(name),
         ]);
 
         const media = [...news, ...videos];
@@ -111,8 +117,11 @@ exports.getCelebrity = onRequest(
         res.set("Cache-Control", "public, max-age=1800");
         res.status(200).json({
           name,
-          slug: toSlug(name),
+          slug,
           fetchedAt: new Date().toISOString(),
+          image: wiki && wiki.imageUrl ?
+            {url: wiki.imageUrl, source: "Wikipedia"} :
+            null,
           biography,
           sentiment: {
             ...sentiment,

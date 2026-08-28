@@ -1,14 +1,16 @@
 /// Root application widget.
 ///
-/// Configures the [MaterialApp.router] with the app's dark theme
-/// and go_router navigation. This is a [ConsumerWidget] to allow
-/// future auth-state-based redirect logic in Phase 4.
+/// Configures the [MaterialApp.router] with the light and dark themes
+/// and go_router navigation. The active [ThemeMode] comes from
+/// [themeModeProvider], so choosing System / Light / Dark anywhere in
+/// the app re-themes it instantly.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_controller.dart';
 import 'core/routing/app_router.dart';
 
 class CritiTrackApp extends ConsumerWidget {
@@ -19,7 +21,9 @@ class CritiTrackApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'CritiTrack',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ref.watch(themeModeProvider),
       routerConfig: appRouter,
     );
   }

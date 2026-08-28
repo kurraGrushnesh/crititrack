@@ -83,13 +83,15 @@ class _SentimentSectionState extends State<SentimentSection>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = context.palette;
     final data = widget.sentimentData;
 
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.surfaceCard,
+        color: palette.card,
         borderRadius: AppTheme.radiusLg,
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: palette.border),
+        boxShadow: palette.softShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,7 +192,7 @@ class _SentimentSectionState extends State<SentimentSection>
                 Text(
                   'Scores and charts are algorithmically generated',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppTheme.textMuted,
+                    color: palette.textMuted,
                     fontSize: 9,
                     fontStyle: FontStyle.italic,
                   ),
@@ -214,13 +216,13 @@ class _SentimentSectionState extends State<SentimentSection>
                   Icon(
                     Icons.auto_awesome_rounded,
                     size: 16,
-                    color: AppTheme.primary,
+                    color: palette.brandText,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     'AI Analysis',
                     style: theme.textTheme.labelLarge?.copyWith(
-                      color: AppTheme.primary,
+                      color: palette.brandText,
                     ),
                   ),
                 ],
@@ -342,6 +344,7 @@ class _SentimentSectionState extends State<SentimentSection>
   }
 
   Widget _legendItem(String label, Color color, String value) {
+    final palette = context.palette;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -353,13 +356,13 @@ class _SentimentSectionState extends State<SentimentSection>
         const SizedBox(width: 8),
         Text(
           label,
-          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+          style: TextStyle(color: palette.textSecondary, fontSize: 12),
         ),
         const SizedBox(width: 8),
         Text(
           value,
-          style: const TextStyle(
-            color: AppTheme.textPrimary,
+          style: TextStyle(
+            color: palette.textPrimary,
             fontSize: 12,
             fontWeight: FontWeight.w600,
           ),
@@ -397,6 +400,8 @@ class _SentimentSectionState extends State<SentimentSection>
     }
 
     final totalPoints = data.trendData.length + data.forecast.length;
+    final palette = context.palette;
+    final brand = Theme.of(context).colorScheme.primary;
 
     // Phase 1: Collect spike indices
     final spikeIndices = <int>{};
@@ -415,10 +420,7 @@ class _SentimentSectionState extends State<SentimentSection>
             drawVerticalLine: false,
             horizontalInterval: 20,
             getDrawingHorizontalLine:
-                (value) => FlLine(
-                  color: AppTheme.border.withValues(alpha: 0.3),
-                  strokeWidth: 1,
-                ),
+                (value) => FlLine(color: palette.chartGrid, strokeWidth: 1),
           ),
           titlesData: FlTitlesData(
             rightTitles: const AxisTitles(),
@@ -431,10 +433,7 @@ class _SentimentSectionState extends State<SentimentSection>
                 getTitlesWidget:
                     (v, _) => Text(
                       '${v.toInt()}',
-                      style: const TextStyle(
-                        color: AppTheme.textMuted,
-                        fontSize: 10,
-                      ),
+                      style: TextStyle(color: palette.textMuted, fontSize: 10),
                     ),
               ),
             ),
@@ -453,8 +452,8 @@ class _SentimentSectionState extends State<SentimentSection>
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
                         data.trendData[idx].date,
-                        style: const TextStyle(
-                          color: AppTheme.textMuted,
+                        style: TextStyle(
+                          color: palette.textMuted,
                           fontSize: 10,
                         ),
                       ),
@@ -514,7 +513,7 @@ class _SentimentSectionState extends State<SentimentSection>
             LineChartBarData(
               spots: spots,
               isCurved: true,
-              color: AppTheme.primary,
+              color: brand,
               barWidth: 3,
               isStrokeCapRound: true,
               belowBarData: BarAreaData(
@@ -523,8 +522,8 @@ class _SentimentSectionState extends State<SentimentSection>
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    AppTheme.primary.withValues(alpha: 0.3),
-                    AppTheme.primary.withValues(alpha: 0.0),
+                    brand.withValues(alpha: 0.28),
+                    brand.withValues(alpha: 0.0),
                   ],
                 ),
               ),
@@ -543,9 +542,9 @@ class _SentimentSectionState extends State<SentimentSection>
                   }
                   return FlDotCirclePainter(
                     radius: 4,
-                    color: AppTheme.primary,
+                    color: brand,
                     strokeWidth: 2,
-                    strokeColor: Colors.white,
+                    strokeColor: palette.card,
                   );
                 },
               ),
@@ -579,7 +578,7 @@ class _SentimentSectionState extends State<SentimentSection>
                     verticalLines: [
                       VerticalLine(
                         x: (data.trendData.length - 1).toDouble(),
-                        color: AppTheme.textMuted.withValues(alpha: 0.3),
+                        color: palette.textMuted.withValues(alpha: 0.35),
                         strokeWidth: 1,
                         dashArray: [4, 4],
                         label: VerticalLineLabel(
@@ -608,6 +607,8 @@ class _SentimentSectionState extends State<SentimentSection>
       return const Center(child: Text('No mention data available'));
     }
 
+    final palette = context.palette;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 24, 16),
       child: BarChart(
@@ -617,10 +618,7 @@ class _SentimentSectionState extends State<SentimentSection>
             drawVerticalLine: false,
             horizontalInterval: 20,
             getDrawingHorizontalLine:
-                (value) => FlLine(
-                  color: AppTheme.border.withValues(alpha: 0.3),
-                  strokeWidth: 1,
-                ),
+                (value) => FlLine(color: palette.chartGrid, strokeWidth: 1),
           ),
           titlesData: FlTitlesData(
             rightTitles: const AxisTitles(),
@@ -633,10 +631,7 @@ class _SentimentSectionState extends State<SentimentSection>
                 getTitlesWidget:
                     (v, _) => Text(
                       '${v.toInt()}',
-                      style: const TextStyle(
-                        color: AppTheme.textMuted,
-                        fontSize: 10,
-                      ),
+                      style: TextStyle(color: palette.textMuted, fontSize: 10),
                     ),
               ),
             ),
@@ -653,10 +648,7 @@ class _SentimentSectionState extends State<SentimentSection>
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
                       data.trendData[idx].date,
-                      style: const TextStyle(
-                        color: AppTheme.textMuted,
-                        fontSize: 10,
-                      ),
+                      style: TextStyle(color: palette.textMuted, fontSize: 10),
                     ),
                   );
                 },

@@ -75,4 +75,3 @@ android/app/*.docx
 # Node
 node_modules/
 /package-lock.json
-lib/core/constants/api_keys.dart

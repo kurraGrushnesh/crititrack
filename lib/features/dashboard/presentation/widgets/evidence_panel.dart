@@ -30,13 +30,16 @@ class _EvidencePanelState extends State<EvidencePanel>
     if (widget.evidence.isEmpty) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
+    final palette = context.palette;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceElevated.withValues(alpha: 0.5),
+        color: palette.elevated,
         borderRadius: AppTheme.radiusMd,
-        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.22),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,7 +52,7 @@ class _EvidencePanelState extends State<EvidencePanel>
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.lightbulb_outline_rounded,
                     size: 16,
                     color: AppTheme.warning,
@@ -59,7 +62,7 @@ class _EvidencePanelState extends State<EvidencePanel>
                     child: Text(
                       'What the model pointed to',
                       style: theme.textTheme.labelLarge?.copyWith(
-                        color: AppTheme.textSecondary,
+                        color: palette.textSecondary,
                       ),
                     ),
                   ),
@@ -69,7 +72,7 @@ class _EvidencePanelState extends State<EvidencePanel>
                     child: Icon(
                       Icons.keyboard_arrow_down_rounded,
                       size: 20,
-                      color: AppTheme.textMuted,
+                      color: palette.textMuted,
                     ),
                   ),
                 ],
@@ -85,7 +88,7 @@ class _EvidencePanelState extends State<EvidencePanel>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Divider(height: 1, color: AppTheme.border),
+                  Divider(height: 1, color: palette.border),
                   const SizedBox(height: 12),
 
                   // Evidence fragments
@@ -99,14 +102,14 @@ class _EvidencePanelState extends State<EvidencePanel>
                       Icon(
                         Icons.info_outline_rounded,
                         size: 12,
-                        color: AppTheme.textMuted,
+                        color: palette.textMuted,
                       ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           'Algorithmically generated — not verified facts',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppTheme.textMuted,
+                            color: palette.textMuted,
                             fontStyle: FontStyle.italic,
                             fontSize: 10,
                           ),
@@ -149,15 +152,18 @@ class _EvidenceItem extends StatelessWidget {
             margin: const EdgeInsets.only(top: 2),
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: _sourceColor(evidence.source).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(4),
+              color: _sourceColor(
+                context,
+                evidence.source,
+              ).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
               _sourceLabel(evidence.source),
               style: TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w600,
-                color: _sourceColor(evidence.source),
+                color: _sourceColor(context, evidence.source),
                 letterSpacing: 0.5,
               ),
             ),
@@ -178,11 +184,12 @@ class _EvidenceItem extends StatelessWidget {
     );
   }
 
-  Color _sourceColor(String source) => switch (source.toLowerCase()) {
+  Color _sourceColor(BuildContext context, String source) => switch (source
+      .toLowerCase()) {
     'news' => AppTheme.secondary,
     'youtube' => AppTheme.error,
     'instagram' => AppTheme.accent,
-    _ => AppTheme.textSecondary,
+    _ => context.palette.textSecondary,
   };
 
   String _sourceLabel(String source) => switch (source.toLowerCase()) {

@@ -1,22 +1,29 @@
-/// Base URL for the CritiTrack backend (Cloud Functions proxy).
+/// Base URL for the CritiTrack backend.
 ///
-/// All third-party API keys live server-side now — the app only ever
-/// talks to this origin. Override `API_BASE_URL` in `.env` to point at
-/// the local Firebase emulator during development, e.g.
-/// `http://127.0.0.1:5001/crititrack-f7430/us-central1`.
+/// The app holds no third-party API keys — every upstream call is made by
+/// the Cloud Functions proxy, which reads its secrets from Secret Manager.
+/// The only thing the client needs to know is which origin to talk to.
+///
+/// That origin is a compile-time constant rather than a bundled `.env`
+/// file, because anything shipped as a Flutter asset is trivially readable
+/// in a release build. Point the app at a local emulator with:
+///
+/// ```
+/// flutter run --dart-define=API_BASE_URL=http://127.0.0.1:5001/crititrack-f7430/us-central1
+/// ```
 library;
 
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 abstract final class ApiConfig {
-  static const String _prodBaseUrl =
+  /// Deployed backend, used whenever no override is supplied at build time.
+  static const String _defaultBaseUrl =
       'https://us-central1-crititrack-f7430.cloudfunctions.net';
 
-  static String get baseUrl {
-    // dotenv throws if load() was never called (e.g. in unit tests), so
-    // guard with isInitialized and fall back to the production URL.
-    final override =
-        dotenv.isInitialized ? dotenv.maybeGet('API_BASE_URL') : null;
-    return (override != null && override.isNotEmpty) ? override : _prodBaseUrl;
-  }
+  /// Build-time override. Empty when the flag is not passed.
+  static const String _override = String.fromEnvironment('API_BASE_URL');
+
+  static String get baseUrl => _override.isEmpty ? _defaultBaseUrl : _override;
+
+  /// True when pointed at something other than the deployed backend —
+  /// useful for surfacing a "local backend" badge in debug builds.
+  static bool get isOverridden => _override.isNotEmpty;
 }

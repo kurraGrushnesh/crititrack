@@ -1,49 +1,48 @@
-/// Application theme providing a cohesive dark-mode-first design
-/// system with curated HSL color palettes, glassmorphism surface
-/// treatments, and typography powered by the Inter font family.
+/// Application design system.
+///
+/// Defines a single premium visual language rendered in two skins —
+/// a deep indigo **dark** theme and a soft, paper-white **light**
+/// theme — plus the [AppPalette] theme extension that carries every
+/// surface, text and border token that differs between them.
+///
+/// Widgets must never reference a raw surface/text colour. Read them
+/// from the palette instead:
+///
+/// ```dart
+/// final palette = context.palette;
+/// Container(color: palette.card, ...);
+/// ```
+///
+/// Brand and sentiment hues ([primary], [sentimentPositive], …) are
+/// deliberately mid-tone so they stay legible on both skins and are
+/// exposed as plain constants.
 ///
 /// All text styles are accessed through `Theme.of(context).textTheme`
 /// — no hardcoded font sizes anywhere in the widget tree.
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 abstract final class AppTheme {
-  // ── Brand Palette (HSL-derived) ───────────────────────────────────
-  static const Color primary = Color(0xFF6C5CE7); // Vivid violet
-  static const Color primaryLight = Color(0xFFA29BFE); // Soft lavender
-  static const Color secondary = Color(0xFF00CEC9); // Electric teal
-  static const Color accent = Color(0xFFFD79A8); // Hot pink
-  static const Color warning = Color(0xFFFDCB6E); // Amber gold
-  static const Color error = Color(0xFFE17055); // Warm red
-  static const Color success = Color(0xFF00B894); // Mint green
+  // ── Brand Palette ─────────────────────────────────────────────────
+  static const Color primary = Color(0xFF6D5DF6); // Vivid indigo-violet
+  static const Color primaryDeep = Color(0xFF4B3FD4); // Pressed / light-mode
+  static const Color primaryLight = Color(0xFFA79CFF); // Soft lavender
+  static const Color secondary = Color(0xFF17C3B2); // Refined teal
+  static const Color accent = Color(0xFFF368A0); // Orchid pink
+  static const Color warning = Color(0xFFF2B544); // Amber gold
+  static const Color error = Color(0xFFE05C4B); // Warm red
+  static const Color success = Color(0xFF17B57E); // Emerald
 
   // ── Sentiment Colors ──────────────────────────────────────────────
-  static const Color sentimentPositive = Color(0xFF00B894);
-  static const Color sentimentNeutral = Color(0xFFFDCB6E);
-  static const Color sentimentNegative = Color(0xFFE17055);
-
-  // ── Surface Colors ────────────────────────────────────────────────
-  static const Color surfaceDark = Color(0xFF0D1117);
-  static const Color surfaceCard = Color(0xFF161B22);
-  static const Color surfaceElevated = Color(0xFF21262D);
-  static const Color surfaceGlass = Color(0x1AFFFFFF); // 10% white
-  static const Color border = Color(0xFF30363D);
-
-  // ── Text Colors ───────────────────────────────────────────────────
-  static const Color textPrimary = Color(0xFFF0F6FC);
-  static const Color textSecondary = Color(0xFF8B949E);
-  static const Color textMuted = Color(0xFF484F58);
+  static const Color sentimentPositive = Color(0xFF17B57E);
+  static const Color sentimentNeutral = Color(0xFFF2B544);
+  static const Color sentimentNegative = Color(0xFFE05C4B);
 
   // ── Gradients ─────────────────────────────────────────────────────
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [primary, Color(0xFF8B5CF6)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  static const LinearGradient cardGradient = LinearGradient(
-    colors: [surfaceCard, Color(0xFF1A1F2E)],
+    colors: [Color(0xFF7C6BFF), Color(0xFF5B3FE0)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -55,200 +54,569 @@ abstract final class AppTheme {
   );
 
   // ── Border Radius ─────────────────────────────────────────────────
-  static final BorderRadius radiusSm = BorderRadius.circular(8);
-  static final BorderRadius radiusMd = BorderRadius.circular(12);
-  static final BorderRadius radiusLg = BorderRadius.circular(16);
-  static final BorderRadius radiusXl = BorderRadius.circular(24);
+  static final BorderRadius radiusSm = BorderRadius.circular(10);
+  static final BorderRadius radiusMd = BorderRadius.circular(14);
+  static final BorderRadius radiusLg = BorderRadius.circular(20);
+  static final BorderRadius radiusXl = BorderRadius.circular(28);
 
-  // ── Shadows ───────────────────────────────────────────────────────
-  static List<BoxShadow> get cardShadow => [
-    BoxShadow(
-      color: Colors.black.withValues(alpha: 0.3),
-      blurRadius: 20,
-      offset: const Offset(0, 8),
-    ),
-  ];
+  // ── Palettes ──────────────────────────────────────────────────────
 
-  static List<BoxShadow> get glowShadow => [
-    BoxShadow(
-      color: primary.withValues(alpha: 0.3),
-      blurRadius: 30,
-      spreadRadius: -5,
-    ),
-  ];
+  static const AppPalette darkPalette = AppPalette(
+    background: Color(0xFF0A0B12),
+    card: Color(0xFF12141F),
+    elevated: Color(0xFF1B1E2C),
+    glass: Color(0x14FFFFFF),
+    border: Color(0xFF272B3B),
+    borderStrong: Color(0xFF39405A),
+    textPrimary: Color(0xFFECEEF7),
+    textSecondary: Color(0xFF9AA2B8),
+    textMuted: Color(0xFF656C82),
+    brandText: primaryLight,
+    chartGrid: Color(0xFF272B3B),
+    scrim: Color(0xFF0A0B12),
+    heroTint: Color(0xFF221A55),
+    shadowColor: Color(0xFF000000),
+    shadowOpacity: 0.45,
+  );
 
-  // ── Glass Decoration ──────────────────────────────────────────────
-  static BoxDecoration get glassDecoration => BoxDecoration(
-    color: surfaceGlass,
-    borderRadius: radiusLg,
-    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+  static const AppPalette lightPalette = AppPalette(
+    background: Color(0xFFF5F6FB),
+    card: Color(0xFFFFFFFF),
+    elevated: Color(0xFFEFF1F8),
+    glass: Color(0x0F101828),
+    border: Color(0xFFE2E6F0),
+    borderStrong: Color(0xFFCBD2E2),
+    textPrimary: Color(0xFF10121A),
+    textSecondary: Color(0xFF545C71),
+    textMuted: Color(0xFF8A92A6),
+    brandText: primaryDeep,
+    chartGrid: Color(0xFFD9DFEC),
+    scrim: Color(0xFFF5F6FB),
+    heroTint: Color(0xFFE7E3FF),
+    shadowColor: Color(0xFF3C4670),
+    shadowOpacity: 0.14,
   );
 
   // ── ThemeData ─────────────────────────────────────────────────────
-  static ThemeData get darkTheme {
+
+  static ThemeData get darkTheme => _build(Brightness.dark, darkPalette);
+  static ThemeData get lightTheme => _build(Brightness.light, lightPalette);
+
+  static ThemeData _build(Brightness brightness, AppPalette palette) {
+    final isDark = brightness == Brightness.dark;
+    final brand = isDark ? primary : primaryDeep;
+    final textTheme = _textTheme(palette);
+
+    final colorScheme = ColorScheme(
+      brightness: brightness,
+      primary: brand,
+      onPrimary: Colors.white,
+      primaryContainer: brand.withValues(alpha: isDark ? 0.22 : 0.12),
+      onPrimaryContainer: palette.brandText,
+      secondary: secondary,
+      onSecondary: Colors.white,
+      tertiary: accent,
+      onTertiary: Colors.white,
+      error: error,
+      onError: Colors.white,
+      surface: palette.card,
+      onSurface: palette.textPrimary,
+      surfaceContainerHighest: palette.elevated,
+      onSurfaceVariant: palette.textSecondary,
+      outline: palette.border,
+      outlineVariant: palette.borderStrong,
+      shadow: palette.shadowColor,
+    );
+
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: surfaceDark,
-      colorScheme: const ColorScheme.dark(
-        primary: primary,
-        secondary: secondary,
-        tertiary: accent,
-        surface: surfaceCard,
-        error: error,
-        onPrimary: Colors.white,
-        onSecondary: Colors.white,
-        onSurface: textPrimary,
-        onError: Colors.white,
-      ),
+      brightness: brightness,
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: palette.background,
+      canvasColor: palette.background,
       fontFamily: 'Inter',
-      textTheme: const TextTheme(
-        displayLarge: TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.w700,
-          color: textPrimary,
-          letterSpacing: -1.0,
-          height: 1.2,
-        ),
-        displayMedium: TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.w700,
-          color: textPrimary,
-          letterSpacing: -0.5,
-          height: 1.2,
-        ),
-        headlineLarge: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-          color: textPrimary,
-          letterSpacing: -0.5,
-        ),
-        headlineMedium: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: textPrimary,
-        ),
-        titleLarge: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: textPrimary,
-        ),
-        titleMedium: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: textPrimary,
-        ),
-        titleSmall: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: textSecondary,
-        ),
-        bodyLarge: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-          color: textPrimary,
-          height: 1.6,
-        ),
-        bodyMedium: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-          color: textSecondary,
-          height: 1.5,
-        ),
-        bodySmall: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w400,
-          color: textMuted,
-          height: 1.4,
-        ),
-        labelLarge: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: textPrimary,
-          letterSpacing: 0.5,
-        ),
-        labelMedium: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: textSecondary,
-        ),
-        labelSmall: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w500,
-          color: textMuted,
-          letterSpacing: 0.5,
-        ),
+      textTheme: textTheme,
+      splashFactory: InkRipple.splashFactory,
+      extensions: [palette],
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: ZoomPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.windows: ZoomPageTransitionsBuilder(),
+          TargetPlatform.linux: ZoomPageTransitionsBuilder(),
+        },
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: surfaceDark,
-        foregroundColor: textPrimary,
-        elevation: 0,
-        centerTitle: true,
-      ),
+      iconTheme: IconThemeData(color: palette.textSecondary, size: 22),
+      appBarTheme: _appBarTheme(palette, textTheme, isDark),
       cardTheme: CardThemeData(
-        color: surfaceCard,
+        color: palette.card,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: radiusMd),
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: radiusLg,
+          side: BorderSide(color: palette.border),
+        ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: surfaceElevated,
-        labelStyle: const TextStyle(
-          color: textPrimary,
-          fontSize: 12,
+        backgroundColor: palette.elevated,
+        selectedColor: brand.withValues(alpha: 0.16),
+        secondarySelectedColor: brand.withValues(alpha: 0.16),
+        checkmarkColor: brand,
+        labelStyle: textTheme.labelMedium!.copyWith(
+          color: palette.textPrimary,
           fontWeight: FontWeight.w500,
         ),
-        side: const BorderSide(color: border),
+        side: BorderSide(color: palette.border),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         shape: RoundedRectangleBorder(borderRadius: radiusSm),
       ),
-      tabBarTheme: const TabBarThemeData(
-        indicatorColor: primary,
-        labelColor: primary,
-        unselectedLabelColor: textSecondary,
+      tabBarTheme: TabBarThemeData(
+        indicatorColor: brand,
+        labelColor: brand,
+        unselectedLabelColor: palette.textSecondary,
         indicatorSize: TabBarIndicatorSize.label,
+        dividerColor: Colors.transparent,
+        labelStyle: textTheme.labelLarge,
+        unselectedLabelStyle: textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w500,
+        ),
+        overlayColor: WidgetStatePropertyAll(brand.withValues(alpha: 0.06)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: surfaceElevated,
+        fillColor: palette.elevated,
         border: OutlineInputBorder(
           borderRadius: radiusMd,
-          borderSide: const BorderSide(color: border),
+          borderSide: BorderSide(color: palette.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: radiusMd,
-          borderSide: const BorderSide(color: border),
+          borderSide: BorderSide(color: palette.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: radiusMd,
-          borderSide: const BorderSide(color: primary, width: 2),
+          borderSide: BorderSide(color: brand, width: 1.6),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: radiusMd,
+          borderSide: const BorderSide(color: error),
         ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
+          horizontal: 18,
           vertical: 16,
         ),
-        hintStyle: const TextStyle(color: textMuted),
+        hintStyle: textTheme.bodyLarge?.copyWith(color: palette.textMuted),
+        prefixIconColor: palette.textMuted,
+        suffixIconColor: palette.textMuted,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primary,
+          backgroundColor: brand,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: palette.elevated,
+          disabledForegroundColor: palette.textMuted,
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(borderRadius: radiusMd),
+          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
+          textStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: brand,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: radiusMd),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: palette.textPrimary,
+          side: BorderSide(color: palette.border),
+          shape: RoundedRectangleBorder(borderRadius: radiusMd),
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: brand,
+          shape: RoundedRectangleBorder(borderRadius: radiusSm),
+          textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          foregroundColor: palette.textSecondary,
+          highlightColor: brand.withValues(alpha: 0.10),
         ),
       ),
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: surfaceCard,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        backgroundColor: palette.card,
+        surfaceTintColor: Colors.transparent,
+        showDragHandle: true,
+        dragHandleColor: palette.borderStrong,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
       ),
-      dividerTheme: const DividerThemeData(color: border, thickness: 1),
+      dialogTheme: DialogThemeData(
+        backgroundColor: palette.card,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: radiusLg,
+          side: BorderSide(color: palette.border),
+        ),
+        titleTextStyle: textTheme.titleLarge,
+        contentTextStyle: textTheme.bodyMedium,
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: palette.card,
+        surfaceTintColor: Colors.transparent,
+        elevation: 8,
+        shadowColor: palette.shadowColor.withValues(
+          alpha: palette.shadowOpacity,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: radiusMd,
+          side: BorderSide(color: palette.border),
+        ),
+        textStyle: textTheme.bodyMedium?.copyWith(color: palette.textPrimary),
+      ),
+      dividerTheme: DividerThemeData(
+        color: palette.border,
+        thickness: 1,
+        space: 1,
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: brand,
+        linearTrackColor: palette.elevated,
+        circularTrackColor: palette.elevated,
+      ),
+      sliderTheme: SliderThemeData(
+        activeTrackColor: brand,
+        inactiveTrackColor: palette.elevated,
+        thumbColor: brand,
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) =>
+              states.contains(WidgetState.selected)
+                  ? Colors.white
+                  : palette.textMuted,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) =>
+              states.contains(WidgetState.selected) ? brand : palette.elevated,
+        ),
+        trackOutlineColor: WidgetStatePropertyAll(palette.border),
+      ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: palette.elevated,
+          borderRadius: radiusSm,
+          border: Border.all(color: palette.border),
+        ),
+        textStyle: textTheme.labelMedium?.copyWith(color: palette.textPrimary),
+      ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: surfaceElevated,
-        contentTextStyle: const TextStyle(color: textPrimary),
+        backgroundColor: palette.elevated,
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: palette.textPrimary,
+        ),
+        actionTextColor: brand,
         shape: RoundedRectangleBorder(borderRadius: radiusMd),
         behavior: SnackBarBehavior.floating,
+        elevation: 0,
+      ),
+      listTileTheme: ListTileThemeData(
+        iconColor: palette.textSecondary,
+        textColor: palette.textPrimary,
+        shape: RoundedRectangleBorder(borderRadius: radiusMd),
       ),
     );
   }
+
+  static AppBarTheme _appBarTheme(
+    AppPalette palette,
+    TextTheme textTheme,
+    bool isDark,
+  ) {
+    return AppBarTheme(
+      backgroundColor: palette.background,
+      foregroundColor: palette.textPrimary,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: true,
+      titleTextStyle: textTheme.titleLarge,
+      iconTheme: IconThemeData(color: palette.textPrimary, size: 22),
+      systemOverlayStyle:
+          isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+    );
+  }
+
+  static TextTheme _textTheme(AppPalette p) => TextTheme(
+    displayLarge: TextStyle(
+      fontSize: 34,
+      fontWeight: FontWeight.w700,
+      color: p.textPrimary,
+      letterSpacing: -1.1,
+      height: 1.15,
+    ),
+    displayMedium: TextStyle(
+      fontSize: 28,
+      fontWeight: FontWeight.w700,
+      color: p.textPrimary,
+      letterSpacing: -0.7,
+      height: 1.2,
+    ),
+    headlineLarge: TextStyle(
+      fontSize: 24,
+      fontWeight: FontWeight.w700,
+      color: p.textPrimary,
+      letterSpacing: -0.5,
+    ),
+    headlineMedium: TextStyle(
+      fontSize: 20,
+      fontWeight: FontWeight.w600,
+      color: p.textPrimary,
+      letterSpacing: -0.3,
+    ),
+    titleLarge: TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.w600,
+      color: p.textPrimary,
+      letterSpacing: -0.2,
+    ),
+    titleMedium: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+      color: p.textPrimary,
+    ),
+    titleSmall: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      color: p.textSecondary,
+    ),
+    bodyLarge: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w400,
+      color: p.textPrimary,
+      height: 1.6,
+    ),
+    bodyMedium: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+      color: p.textSecondary,
+      height: 1.55,
+    ),
+    bodySmall: TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w400,
+      color: p.textMuted,
+      height: 1.45,
+    ),
+    labelLarge: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+      color: p.textPrimary,
+      letterSpacing: 0.3,
+    ),
+    labelMedium: TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+      color: p.textSecondary,
+    ),
+    labelSmall: TextStyle(
+      fontSize: 10,
+      fontWeight: FontWeight.w500,
+      color: p.textMuted,
+      letterSpacing: 0.4,
+    ),
+  );
+}
+
+/// Brightness-dependent design tokens.
+///
+/// Registered on both [AppTheme.lightTheme] and [AppTheme.darkTheme] so
+/// any widget can resolve the correct surface, text or border colour for
+/// the active theme via `context.palette`.
+@immutable
+class AppPalette extends ThemeExtension<AppPalette> {
+  const AppPalette({
+    required this.background,
+    required this.card,
+    required this.elevated,
+    required this.glass,
+    required this.border,
+    required this.borderStrong,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.textMuted,
+    required this.brandText,
+    required this.chartGrid,
+    required this.scrim,
+    required this.heroTint,
+    required this.shadowColor,
+    required this.shadowOpacity,
+  });
+
+  /// Page background, behind every scaffold.
+  final Color background;
+
+  /// Primary card / panel surface.
+  final Color card;
+
+  /// One step above [card] — chips, rows, inputs, meter tracks.
+  final Color elevated;
+
+  /// Translucent fill for glassmorphism overlays.
+  final Color glass;
+
+  /// Hairline separator and card outline.
+  final Color border;
+
+  /// Higher-contrast outline for focused or emphasised edges.
+  final Color borderStrong;
+
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textMuted;
+
+  /// Brand hue tuned for legibility as *text* on [card] / [elevated].
+  final Color brandText;
+
+  /// Grid-line colour for fl_chart axes.
+  final Color chartGrid;
+
+  /// Colour used to fade imagery back into the page.
+  final Color scrim;
+
+  /// Tinted colour behind hero headers when no image is available.
+  final Color heroTint;
+
+  final Color shadowColor;
+  final double shadowOpacity;
+
+  /// Soft ambient shadow for raised cards.
+  List<BoxShadow> get cardShadow => [
+    BoxShadow(
+      color: shadowColor.withValues(alpha: shadowOpacity),
+      blurRadius: 28,
+      offset: const Offset(0, 12),
+      spreadRadius: -8,
+    ),
+  ];
+
+  /// Tighter shadow for small floating elements.
+  List<BoxShadow> get softShadow => [
+    BoxShadow(
+      color: shadowColor.withValues(alpha: shadowOpacity * 0.7),
+      blurRadius: 16,
+      offset: const Offset(0, 6),
+      spreadRadius: -6,
+    ),
+  ];
+
+  /// Coloured glow used behind the brand mark.
+  List<BoxShadow> get glowShadow => [
+    BoxShadow(
+      color: AppTheme.primary.withValues(alpha: 0.32),
+      blurRadius: 32,
+      offset: const Offset(0, 10),
+      spreadRadius: -6,
+    ),
+  ];
+
+  /// Subtle top-left → bottom-right sheen used on the biography card.
+  LinearGradient get cardGradient => LinearGradient(
+    colors: [card, Color.alphaBlend(glass, card)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  /// Glassmorphism decoration for translucent overlays.
+  BoxDecoration get glassDecoration => BoxDecoration(
+    color: glass,
+    borderRadius: AppTheme.radiusLg,
+    border: Border.all(color: border),
+  );
+
+  @override
+  AppPalette copyWith({
+    Color? background,
+    Color? card,
+    Color? elevated,
+    Color? glass,
+    Color? border,
+    Color? borderStrong,
+    Color? textPrimary,
+    Color? textSecondary,
+    Color? textMuted,
+    Color? brandText,
+    Color? chartGrid,
+    Color? scrim,
+    Color? heroTint,
+    Color? shadowColor,
+    double? shadowOpacity,
+  }) {
+    return AppPalette(
+      background: background ?? this.background,
+      card: card ?? this.card,
+      elevated: elevated ?? this.elevated,
+      glass: glass ?? this.glass,
+      border: border ?? this.border,
+      borderStrong: borderStrong ?? this.borderStrong,
+      textPrimary: textPrimary ?? this.textPrimary,
+      textSecondary: textSecondary ?? this.textSecondary,
+      textMuted: textMuted ?? this.textMuted,
+      brandText: brandText ?? this.brandText,
+      chartGrid: chartGrid ?? this.chartGrid,
+      scrim: scrim ?? this.scrim,
+      heroTint: heroTint ?? this.heroTint,
+      shadowColor: shadowColor ?? this.shadowColor,
+      shadowOpacity: shadowOpacity ?? this.shadowOpacity,
+    );
+  }
+
+  @override
+  AppPalette lerp(ThemeExtension<AppPalette>? other, double t) {
+    if (other is! AppPalette) return this;
+    return AppPalette(
+      background: Color.lerp(background, other.background, t)!,
+      card: Color.lerp(card, other.card, t)!,
+      elevated: Color.lerp(elevated, other.elevated, t)!,
+      glass: Color.lerp(glass, other.glass, t)!,
+      border: Color.lerp(border, other.border, t)!,
+      borderStrong: Color.lerp(borderStrong, other.borderStrong, t)!,
+      textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
+      textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
+      textMuted: Color.lerp(textMuted, other.textMuted, t)!,
+      brandText: Color.lerp(brandText, other.brandText, t)!,
+      chartGrid: Color.lerp(chartGrid, other.chartGrid, t)!,
+      scrim: Color.lerp(scrim, other.scrim, t)!,
+      heroTint: Color.lerp(heroTint, other.heroTint, t)!,
+      shadowColor: Color.lerp(shadowColor, other.shadowColor, t)!,
+      shadowOpacity: shadowOpacity + (other.shadowOpacity - shadowOpacity) * t,
+    );
+  }
+}
+
+/// Convenient access to the active [AppPalette].
+extension AppPaletteX on BuildContext {
+  /// The surface/text/border tokens for the currently active theme.
+  ///
+  /// Falls back to the dark palette if a widget is built outside an
+  /// app-level [Theme] (e.g. in a bare widget test).
+  AppPalette get palette =>
+      Theme.of(this).extension<AppPalette>() ?? AppTheme.darkPalette;
 }
