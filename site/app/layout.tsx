@@ -1,7 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const SITE = "https://crititrack.app";
+// The Firebase Hosting target for this project. Deliberately not a
+// custom domain: `crititrack.app` is not registered, and a canonical
+// URL pointing at a domain that does not resolve is worse than no
+// custom domain at all — it tells crawlers the real page is a dead
+// host and breaks every link preview. Change this one constant if a
+// domain is registered later.
+const SITE = "https://crititrack-f7430.web.app";
 const DESCRIPTION =
   "CritiTrack turns scattered news, video and social coverage into a " +
   "structured, evidence-linked record of what a public figure has been " +
