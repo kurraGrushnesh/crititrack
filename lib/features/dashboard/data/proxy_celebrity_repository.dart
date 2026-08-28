@@ -140,6 +140,7 @@ class ProxyCelebrityRepository extends CelebrityRepository {
     );
 
     final image = (json['image'] as Map?)?.cast<String, dynamic>();
+    final entity = (json['entity'] as Map?)?.cast<String, dynamic>();
 
     return Celebrity(
       slug: json['slug'] as String? ?? '',
@@ -151,6 +152,8 @@ class ProxyCelebrityRepository extends CelebrityRepository {
           DateTime.tryParse(json['fetchedAt'] as String? ?? '') ??
           DateTime.now(),
       imageUrl: image?['url'] as String?,
+      wikidataId: entity?['qid'] as String?,
+      verified: json['verified'] as bool? ?? false,
     );
   }
 

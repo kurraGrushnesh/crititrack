@@ -22,7 +22,7 @@ const {
   defaultSentiment,
   ApiError,
 } = require("./groq");
-const {fetchNews, fetchVideos} = require("./media");
+const {fetchNews, fetchVideos, fetchGdelt, dedupe} = require("./media");
 const {fetchWikiSummary} = require("./wiki");
 
 /**
@@ -33,17 +33,21 @@ const {fetchWikiSummary} = require("./wiki");
  */
 async function assembleCelebrity(keys, name, slug) {
   // ── Parallel: biography + media + portrait ──────────────────────
-  const [bioResult, news, videos, wiki] = await Promise.all([
+  const [bioResult, news, gdelt, videos, wiki] = await Promise.all([
     fetchBiography(keys.groq, name).then(
         (v) => ({ok: true, value: v}),
         (e) => ({ok: false, error: e}),
     ),
     fetchNews(keys.news, name),
+    fetchGdelt(name),
     fetchVideos(keys.youtube, name),
     fetchWikiSummary(name),
   ]);
 
-  const media = [...news, ...videos];
+  // GDELT first: it is the broader, unmetered source, so when the two
+  // overlap the deduper keeps its copy and NewsAPI's quota goes further.
+  const articles = dedupe([...gdelt, ...news]);
+  const media = dedupe([...articles, ...videos]);
 
   if (!bioResult.ok && media.length === 0) {
     const e = bioResult.error;
@@ -64,7 +68,7 @@ async function assembleCelebrity(keys, name, slug) {
   };
 
   // ── Sentiment over combined headlines ───────────────────────────
-  const newsHeadlines = news.map((m) => m.title).filter(Boolean);
+  const newsHeadlines = articles.map((m) => m.title).filter(Boolean);
   const ytTitles = videos.map((m) => m.title).filter(Boolean);
   const allHeadlines = [...newsHeadlines, ...ytTitles];
   const sourceLabels = [

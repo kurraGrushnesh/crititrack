@@ -159,6 +159,7 @@ class _DashboardContent extends StatelessWidget {
                           biography: celebrity.biography,
                           name: celebrity.name,
                           imageUrl: celebrity.imageUrl,
+                          verified: celebrity.verified,
                         ),
                         const SizedBox(height: 16),
                         MediaFeedSection(
@@ -197,6 +198,7 @@ class _DashboardContent extends StatelessWidget {
                 biography: celebrity.biography,
                 name: celebrity.name,
                 imageUrl: celebrity.imageUrl,
+                verified: celebrity.verified,
               ),
             ),
           ),

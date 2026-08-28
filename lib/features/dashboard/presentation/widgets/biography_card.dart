@@ -12,6 +12,7 @@ class BiographyCard extends StatefulWidget {
     required this.biography,
     required this.name,
     this.imageUrl,
+    this.verified = false,
   });
 
   final Biography biography;
@@ -19,6 +20,9 @@ class BiographyCard extends StatefulWidget {
 
   /// Portrait image URL, when available.
   final String? imageUrl;
+
+  /// Whether the subject resolved to a documented person on Wikidata.
+  final bool verified;
 
   @override
   State<BiographyCard> createState() => _BiographyCardState();
@@ -100,23 +104,33 @@ class _BiographyCardState extends State<BiographyCard>
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: AppTheme.radiusSm,
-                        ),
-                        child: Text(
-                          bio.profession,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: AppTheme.radiusSm,
+                            ),
+                            child: Text(
+                              bio.profession,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           ),
-                        ),
+                          // An unverified subject must not look as
+                          // authoritative as a confirmed one.
+                          _VerificationChip(verified: widget.verified),
+                        ],
                       ),
                     ],
                   ),
@@ -286,6 +300,57 @@ class _Portrait extends StatelessWidget {
           fit: BoxFit.cover,
           placeholder: (_, __) => fallback,
           errorWidget: (_, __, ___) => fallback,
+        ),
+      ),
+    );
+  }
+}
+
+/// Says whether the subject was resolved to a documented person.
+///
+/// Deliberately quiet when verified — a badge on everything is noise. The
+/// unverified state is the one worth surfacing, because it tells the
+/// reader the profile could not be tied to a known public figure.
+class _VerificationChip extends StatelessWidget {
+  const _VerificationChip({required this.verified});
+
+  final bool verified;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = verified ? 'Verified figure' : 'Unverified';
+    final icon = verified ? Icons.verified_rounded : Icons.help_outline_rounded;
+
+    return Tooltip(
+      message:
+          verified
+              ? 'Matched to a documented person on Wikidata.'
+              : 'This name could not be matched to a documented public figure, '
+                  'so treat the profile below with extra caution.',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: verified ? 0.2 : 0.28),
+          borderRadius: AppTheme.radiusSm,
+          border:
+              verified
+                  ? null
+                  : Border.all(color: Colors.white.withValues(alpha: 0.55)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 11, color: Colors.white),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );

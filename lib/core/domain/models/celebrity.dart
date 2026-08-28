@@ -21,6 +21,8 @@ class Celebrity extends Equatable {
     required this.mediaItems,
     required this.fetchedAt,
     this.imageUrl,
+    this.wikidataId,
+    this.verified = false,
     this.cacheVersion = 1,
   });
 
@@ -32,6 +34,17 @@ class Celebrity extends Equatable {
 
   /// Portrait image URL (Wikipedia), when one could be found.
   final String? imageUrl;
+
+  /// Wikidata item id for the resolved person, e.g. `Q189489`. Null when
+  /// the name could not be resolved to a documented human.
+  final String? wikidataId;
+
+  /// Whether the name resolved to a person Wikidata lists as human.
+  ///
+  /// False does not mean the data is wrong — it means we could not confirm
+  /// the subject is a documented public figure, so the UI says so rather
+  /// than presenting everything as equally well sourced.
+  final bool verified;
 
   /// Structured biography data.
   final Biography biography;
@@ -63,6 +76,8 @@ class Celebrity extends Equatable {
     List<MediaItem>? mediaItems,
     DateTime? fetchedAt,
     String? imageUrl,
+    String? wikidataId,
+    bool? verified,
     int? cacheVersion,
   }) {
     return Celebrity(
@@ -73,6 +88,8 @@ class Celebrity extends Equatable {
       mediaItems: mediaItems ?? this.mediaItems,
       fetchedAt: fetchedAt ?? this.fetchedAt,
       imageUrl: imageUrl ?? this.imageUrl,
+      wikidataId: wikidataId ?? this.wikidataId,
+      verified: verified ?? this.verified,
       cacheVersion: cacheVersion ?? this.cacheVersion,
     );
   }
@@ -91,6 +108,8 @@ class Celebrity extends Equatable {
       'fetchedAt': fetchedAt.toIso8601String(),
       'cacheVersion': cacheVersion,
       if (imageUrl != null) 'imageUrl': imageUrl,
+      if (wikidataId != null) 'wikidataId': wikidataId,
+      'verified': verified,
       // Phase 2: Evidence fragments
       'evidence': sentimentData.evidence.map((e) => e.toMap()).toList(),
       // Phase 4: Forecast
@@ -150,6 +169,8 @@ class Celebrity extends Equatable {
           DateTime.tryParse(data['fetchedAt'] as String? ?? '') ??
           DateTime.now(),
       imageUrl: data['imageUrl'] as String?,
+      wikidataId: data['wikidataId'] as String?,
+      verified: data['verified'] as bool? ?? false,
       cacheVersion: data['cacheVersion'] as int? ?? 1,
     );
   }

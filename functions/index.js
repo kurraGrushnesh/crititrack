@@ -21,7 +21,8 @@ const logger = require("firebase-functions/logger");
 const {initializeApp} = require("firebase-admin/app");
 
 const {assembleCelebrity, ApiError} = require("./lib/assemble");
-const {validateName, ValidationError} = require("./lib/validate");
+const {validateName, toSlug, ValidationError} = require("./lib/validate");
+const {resolvePerson} = require("./lib/entity");
 const {writeCelebrity, markRequested, listTracked} = require("./lib/store");
 const {
   requireUser,
@@ -107,13 +108,31 @@ exports.getCelebrity = onRequest(
       }
 
       try {
-        const payload = await assembleCelebrity(readKeys(), name, slug);
+        // Phase 2: resolve to a canonical person before spending anything.
+        // Every spelling of one name then shares a cache entry, and the
+        // upstream calls are made with the canonical label rather than
+        // whatever the user typed — "ntr" becomes "N. T. Rama Rao".
+        const entity = await resolvePerson(name);
+        const canonicalName = entity ? entity.label : name;
+        const canonicalSlug = entity ? toSlug(entity.label) : slug;
+
+        const payload = await assembleCelebrity(
+            readKeys(),
+            canonicalName,
+            canonicalSlug,
+        );
+        payload.entity = entity;
+        // A figure Wikidata does not list as a human is not one we can
+        // corroborate, so the app is told rather than left to imply that
+        // everything shown is equally well sourced.
+        payload.verified = entity !== null;
+        payload.query = name;
 
         try {
           await writeCelebrity(payload, {trigger: "request"});
-          await markRequested(slug, name);
+          await markRequested(canonicalSlug, canonicalName);
         } catch (e) {
-          logger.warn(`Firestore write failed for ${slug}: ${e.message}`);
+          logger.warn(`Firestore write failed for ${canonicalSlug}: ${e.message}`);
         }
 
         res.set("Cache-Control", "private, max-age=1800");
