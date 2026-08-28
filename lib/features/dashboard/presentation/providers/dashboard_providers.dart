@@ -1,8 +1,10 @@
 /// Riverpod providers for the dashboard feature.
 ///
-/// Uses [ProxyCelebrityRepository], which makes a single call to the
-/// CritiTrack Cloud Functions backend. All third-party API keys live
-/// server-side; the app never holds them.
+/// Reads are Firestore-first: the scheduled refresher keeps recently-viewed
+/// figures warm, so a hit renders instantly instead of waiting on Groq,
+/// NewsAPI and YouTube. A miss or a stale document falls through to
+/// [ProxyCelebrityRepository], the single call to the Cloud Functions
+/// backend. All third-party API keys live server-side.
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,13 +13,18 @@ import 'package:crititrack/core/domain/models/celebrity.dart';
 import 'package:crititrack/core/error/result.dart';
 import 'package:crititrack/core/utils/helpers.dart';
 import 'package:crititrack/features/dashboard/data/celebrity_repository.dart';
+import 'package:crititrack/features/dashboard/data/firestore_celebrity_repository.dart';
 import 'package:crititrack/features/dashboard/data/proxy_celebrity_repository.dart';
 
-/// Singleton [ProxyCelebrityRepository] — one call to the backend proxy.
+/// Firestore-first repository layered over the backend proxy.
+///
+/// Every Firestore problem — offline, rules, an unsigned-in user, or the
+/// database simply not being enabled yet — is treated as a cache miss, so
+/// this is strictly an optimisation over the proxy path.
 final celebrityRepositoryProvider = Provider<CelebrityRepository>((ref) {
-  final repo = ProxyCelebrityRepository();
-  ref.onDispose(repo.dispose);
-  return repo;
+  final proxy = ProxyCelebrityRepository();
+  ref.onDispose(proxy.dispose);
+  return FirestoreCelebrityRepository(remote: proxy);
 });
 
 /// Celebrity data keyed by slug. Triggers real API calls on first watch.

@@ -1,29 +1,28 @@
 "use strict";
 
 /**
- * CritiTrack API — server-side proxy for all third-party keys.
+ * CritiTrack API.
  *
- * The Flutter app calls only this function; Groq / NewsAPI / YouTube
- * keys never leave the server. Keys are stored as Firebase secrets
- * (Google Secret Manager) and, for the local emulator, read from
- * functions/.env.local.
+ * The Flutter app calls only these functions; Groq, NewsAPI and YouTube
+ * keys never leave the server. Keys live in Secret Manager and, for the
+ * local emulator, in functions/.secret.local.
+ *
+ * Two entry points share one assembler:
+ *   getCelebrity              — on demand, serves the app and caches
+ *   refreshTrackedCelebrities — on a timer, keeps recently-viewed figures
+ *                               warm and records dated history
  */
 
 const {onRequest} = require("firebase-functions/v2/https");
+const {onSchedule} = require("firebase-functions/v2/scheduler");
 const {defineSecret} = require("firebase-functions/params");
 const {setGlobalOptions} = require("firebase-functions/v2");
 const logger = require("firebase-functions/logger");
+const {initializeApp} = require("firebase-admin/app");
 
-const {
-  fetchBiography,
-  analyzeSentiment,
-  analyzeSourceSentiment,
-  defaultSentiment,
-  ApiError,
-} = require("./lib/groq");
-const {fetchNews, fetchVideos} = require("./lib/media");
-const {fetchWikiSummary} = require("./lib/wiki");
+const {assembleCelebrity, ApiError} = require("./lib/assemble");
 const {validateName, ValidationError} = require("./lib/validate");
+const {writeCelebrity, markRequested, listTracked} = require("./lib/store");
 const {
   requireUser,
   requireAppCheck,
@@ -32,7 +31,6 @@ const {
   GuardError,
   IS_EMULATOR,
 } = require("./lib/guard");
-const {initializeApp} = require("firebase-admin/app");
 
 initializeApp();
 
@@ -52,13 +50,26 @@ const GROQ_API_KEY = defineSecret("GROQ_API_KEY");
 const NEWS_API_KEY = defineSecret("NEWS_API_KEY");
 const YOUTUBE_API_KEY = defineSecret("YOUTUBE_API_KEY");
 
+const ALL_SECRETS = [GROQ_API_KEY, NEWS_API_KEY, YOUTUBE_API_KEY];
+
+/** @return {{groq: string, news: string, youtube: string}} */
+function readKeys() {
+  return {
+    groq: GROQ_API_KEY.value(),
+    news: NEWS_API_KEY.value(),
+    youtube: YOUTUBE_API_KEY.value(),
+  };
+}
+
 /**
  * GET /getCelebrity?name=Zendaya
- * Returns the assembled biography + sentiment + media payload.
+ *
+ * Persisting to Firestore is a side effect and deliberately non-fatal: a
+ * storage outage degrades caching, not the response.
  */
 exports.getCelebrity = onRequest(
     {
-      secrets: [GROQ_API_KEY, NEWS_API_KEY, YOUTUBE_API_KEY],
+      secrets: ALL_SECRETS,
       timeoutSeconds: 120,
       cors: ALLOWED_ORIGINS,
     },
@@ -95,85 +106,18 @@ exports.getCelebrity = onRequest(
         throw e;
       }
 
-      const groqKey = GROQ_API_KEY.value();
-      const newsKey = NEWS_API_KEY.value();
-      const ytKey = YOUTUBE_API_KEY.value();
-
       try {
-        // ── Parallel: biography + media + portrait ─────────────────────
-        const [bioResult, news, videos, wiki] = await Promise.all([
-          fetchBiography(groqKey, name).then(
-              (v) => ({ok: true, value: v}),
-              (e) => ({ok: false, error: e}),
-          ),
-          fetchNews(newsKey, name),
-          fetchVideos(ytKey, name),
-          fetchWikiSummary(name),
-        ]);
+        const payload = await assembleCelebrity(readKeys(), name, slug);
 
-        const media = [...news, ...videos];
-
-        if (!bioResult.ok && media.length === 0) {
-          const e = bioResult.error;
-          const status = e instanceof ApiError ? e.status : 502;
-          res.status(status).json({
-            error: (e && e.code) || "biography_failed",
-            message: (e && e.message) || "Biography generation failed",
-          });
-          return;
-        }
-
-        const biography = bioResult.ok ? bioResult.value : {
-          profession: "Public Figure",
-          summary: `${name} — biography generation is temporarily unavailable. ` +
-            "Live media is shown below.",
-          background: "",
-          notableWorks: [],
-          controversies: [],
-        };
-
-        // ── Sentiment over combined headlines ──────────────────────────
-        const newsHeadlines = news.map((m) => m.title).filter(Boolean);
-        const ytTitles = videos.map((m) => m.title).filter(Boolean);
-        const allHeadlines = [...newsHeadlines, ...ytTitles];
-        const sourceLabels = [
-          ...newsHeadlines.map(() => "news"),
-          ...ytTitles.map(() => "youtube"),
-        ];
-
-        let sentiment;
         try {
-          sentiment = allHeadlines.length ?
-            await analyzeSentiment(groqKey, name, allHeadlines, sourceLabels) :
-            defaultSentiment("No media coverage found for sentiment analysis.");
+          await writeCelebrity(payload, {trigger: "request"});
+          await markRequested(slug, name);
         } catch (e) {
-          logger.warn(`sentiment failed: ${e.message}`);
-          sentiment = defaultSentiment("Sentiment analysis is temporarily unavailable.");
+          logger.warn(`Firestore write failed for ${slug}: ${e.message}`);
         }
-
-        // ── Per-source decomposition (best effort) ─────────────────────
-        const [scoreNews, scoreYoutube] = await Promise.all([
-          analyzeSourceSentiment(groqKey, name, newsHeadlines, "news"),
-          analyzeSourceSentiment(groqKey, name, ytTitles, "YouTube"),
-        ]);
 
         res.set("Cache-Control", "private, max-age=1800");
-        res.status(200).json({
-          name,
-          slug,
-          fetchedAt: new Date().toISOString(),
-          image: wiki && wiki.imageUrl ?
-            {url: wiki.imageUrl, source: "Wikipedia"} :
-            null,
-          biography,
-          sentiment: {
-            ...sentiment,
-            scoreNews,
-            scoreYoutube,
-            scoreInstagram: null,
-          },
-          media,
-        });
+        res.status(200).json(payload);
       } catch (e) {
         logger.error("getCelebrity failed", e);
         const status = e instanceof ApiError ? e.status : 500;
@@ -182,5 +126,68 @@ exports.getCelebrity = onRequest(
           message: (e && e.message) || "Unexpected error",
         });
       }
+    },
+);
+
+// ── Scheduled refresh ────────────────────────────────────────────────
+// REFRESH_LIMIT bounds the per-run spend on Groq, NewsAPI and YouTube: at
+// most this many figures are re-fetched per tick, no matter how large the
+// collection grows.
+const REFRESH_LIMIT = 10;
+const TRACK_WINDOW_DAYS = 7;
+
+/**
+ * Re-fetches the figures users looked at recently and updates their
+ * Firestore documents, so the data is already warm when someone opens the
+ * dashboard — and, more importantly, so each run records one dated
+ * snapshot. That accumulating history is what turns an invented trend line
+ * into a measured one.
+ *
+ * Runs sequentially rather than in parallel: the upstream APIs rate-limit
+ * per key, and a timer job has no latency budget to protect.
+ */
+exports.refreshTrackedCelebrities = onSchedule(
+    {
+      schedule: "every 30 minutes",
+      timeZone: "Etc/UTC",
+      secrets: ALL_SECRETS,
+      timeoutSeconds: 540,
+      memory: "512MiB",
+      retryCount: 0,
+    },
+    async () => {
+      const tracked = await listTracked({
+        withinDays: TRACK_WINDOW_DAYS,
+        limit: REFRESH_LIMIT,
+      });
+
+      if (tracked.length === 0) {
+        logger.info("refresh: nothing tracked, skipping");
+        return;
+      }
+
+      logger.info(`refresh: ${tracked.length} tracked`, {
+        slugs: tracked.map((t) => t.slug),
+      });
+
+      const keys = readKeys();
+      let ok = 0;
+      const failed = [];
+
+      for (const {slug, name} of tracked) {
+        try {
+          const payload = await assembleCelebrity(keys, name, slug);
+          await writeCelebrity(payload, {trigger: "schedule"});
+          ok++;
+        } catch (e) {
+          // One bad figure must not abort the rest of the run.
+          failed.push(slug);
+          logger.warn(`refresh failed for ${slug}: ${e.message}`);
+        }
+      }
+
+      logger.info(`refresh complete: ${ok} ok, ${failed.length} failed`, {
+        failed,
+      });
     },
 );

@@ -13,6 +13,12 @@ abstract final class AppConstants {
   /// regardless of the 24-hour TTL. Prevents API hammering.
   static const Duration rateLimitWindow = Duration(minutes: 5);
 
+  /// How long a server-written celebrity document counts as current.
+  /// Kept in step with the `schedule` option on refreshTrackedCelebrities
+  /// in functions/index.js: anything older means the timer has not covered
+  /// this figure, so a live fetch is warranted.
+  static const Duration serverRefreshInterval = Duration(minutes: 30);
+
   // ── Search ────────────────────────────────────────────────────────
   /// Debounce duration for the search bar input.
   static const Duration searchDebounce = Duration(milliseconds: 400);

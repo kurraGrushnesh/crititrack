@@ -1,45 +1,39 @@
 rules_version = '2';
 
-// Firestore Security Rules for Celeb-Sentiment-Tracker
+// Firestore Security Rules for CritiTrack
 //
-// Since all API calls are made directly from the Flutter client
-// (no Cloud Functions), the client writes cached celebrity data.
+// All third-party API calls now run in Cloud Functions, and the
+// `getCelebrity` / `refreshTrackedCelebrities` functions write celebrity
+// data with the Admin SDK -- which bypasses these rules entirely.
+// The client therefore only ever READS celebrity data.
+//
+// This matters because the app signs in anonymously: anyone can obtain a
+// uid, so `request.auth != null` is not a meaningful write restriction on
+// shared data. Celebrity documents are read-only to every client.
 // Rules ensure:
-//   1. Only authenticated users (anonymous or signed-in) can read/write.
-//   2. Users can only access their own search history.
-//   3. Celebrity data is readable by all authenticated users but
-//      writable only with valid structure.
+//   1. Only authenticated users (anonymous or signed-in) can read.
+//   2. Celebrity data is server-owned: no client may write it.
+//   3. Users can only access their own search history.
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Celebrity Profiles ────────────────────────────────────────
-    // Any authenticated user can read celebrity data.
-    // Writes are allowed for authenticated users (the client caches
-    // fresh API responses here).
+    // ── Celebrity Profiles (server-owned, read-only to clients) ───
+    // Written exclusively by Cloud Functions via the Admin SDK, which
+    // is not subject to these rules. Denying client writes stops an
+    // anonymous user from poisoning the cache every other user reads.
     match /celebrities/{slug} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null
-        && request.resource.data.keys().hasAll(['name', 'fetchedAt'])
-        && request.resource.data.name is string
-        && request.resource.data.name.size() > 0;
+      allow write: if false;
 
-      // Media items sub-collection
       match /media_items/{itemId} {
         allow read: if request.auth != null;
-        allow write: if request.auth != null
-          && request.resource.data.keys().hasAll(['type', 'title', 'url'])
-          && request.resource.data.type in ['news', 'youtube', 'instagram'];
+        allow write: if false;
       }
 
-      // Sentiment snapshots sub-collection
       match /sentiment_snapshots/{date} {
         allow read: if request.auth != null;
-        allow write: if request.auth != null
-          && request.resource.data.keys().hasAll([
-               'positiveCount', 'negativeCount', 'neutralCount',
-               'totalMentions', 'dominantEmotion', 'timestamp'
-             ]);
+        allow write: if false;
       }
     }
 
@@ -48,6 +42,16 @@ service cloud.firestore {
     match /search_history/{userId} {
       allow read, write: if request.auth != null
         && request.auth.uid == userId;
+    }
+
+    // ── Rate-limit and budget counters (SEC-02) ───────────────────
+    // Written by Cloud Functions with the Admin SDK. A client that could
+    // write these could reset its own quota, so nothing may touch them.
+    match /usage/{uid} {
+      allow read, write: if false;
+    }
+    match /counters/{counterId} {
+      allow read, write: if false;
     }
 
     // ── Deny everything else by default ─────────────────────────
