@@ -22,6 +22,7 @@ import 'package:crititrack/core/constants/app_constants.dart';
 import 'package:crititrack/core/domain/models/celebrity.dart';
 import 'package:crititrack/core/error/failures.dart';
 import 'package:crititrack/core/export/celebrity_export.dart';
+import 'package:crititrack/features/share/data/card_renderer.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
 import 'package:crititrack/core/theme/theme_toggle.dart';
 import 'package:crititrack/core/utils/helpers.dart';
@@ -551,6 +552,28 @@ class _ExportButton extends StatelessWidget {
 
   final Celebrity celebrity;
 
+  Future<void> _shareCard(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('Preparing image…'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+
+    final ok = await ShareCardRenderer.share(context, celebrity);
+    if (ok) return;
+
+    // Saying nothing would look like the share sheet simply never opened.
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(content: Text('Could not create the image.')),
+      );
+  }
+
   Future<void> _copy(BuildContext context, String data, String what) async {
     await Clipboard.setData(ClipboardData(text: data));
     if (!context.mounted) return;
@@ -571,6 +594,8 @@ class _ExportButton extends StatelessWidget {
       tooltip: 'Export this profile',
       onSelected: (value) {
         switch (value) {
+          case 'card':
+            _shareCard(context);
           case 'json':
             _copy(context, CelebrityExport.toJson(celebrity), 'Full record');
           case 'controversies':
