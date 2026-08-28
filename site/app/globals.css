@@ -1,0 +1,458 @@
+/*
+ * The site commits to a single dark look rather than following the
+ * viewer's theme. It is a product page for an app whose own identity is
+ * dark, and a light variant of a page built around a glowing globe would
+ * be a different design rather than the same one inverted.
+ *
+ * Because it commits, every colour is painted explicitly — nothing is
+ * borrowed from the host.
+ */
+
+:root {
+  --bg: #0e1119;
+  --bg-alt: #12161f;
+  --surface: #181c29;
+  --border: #262c3d;
+  --border-strong: #333b52;
+
+  --text: #f2f4fa;
+  --text-soft: #a6aec4;
+  --text-muted: #7c859b;
+
+  --brand: #8b7cff;
+  --brand-ink: #a99dff;
+
+  --good: #3fd5a0;
+  --mid: #e3be5c;
+  --bad: #ff7a66;
+
+  --wrap: 1120px;
+  --radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0 0 1rem;
+}
+
+a {
+  color: var(--brand-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.wrap {
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--brand);
+  color: #fff;
+  padding: 12px 18px;
+  z-index: 100;
+  border-radius: 0 0 8px 0;
+  text-decoration: none;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+/* ── Hero ───────────────────────────────────────────────────────── */
+
+.hero {
+  border-bottom: 1px solid var(--border);
+  background:
+    radial-gradient(
+      900px 500px at 78% 32%,
+      rgba(139, 124, 255, 0.13),
+      transparent 65%
+    ),
+    var(--bg);
+}
+
+.hero-inner {
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding: 84px 24px 72px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 56px;
+  align-items: center;
+}
+
+.eyebrow {
+  font-size: 0.76rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brand-ink);
+  margin: 0 0 1.4rem;
+  font-weight: 600;
+}
+
+.hero h1 {
+  font-size: clamp(2.2rem, 1.2rem + 3.6vw, 3.5rem);
+  font-weight: 800;
+  margin-bottom: 1.2rem;
+}
+
+.lede {
+  font-size: 1.1rem;
+  color: var(--text-soft);
+  max-width: 56ch;
+}
+
+.cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 1.8rem 0 2rem;
+}
+
+.btn {
+  display: inline-block;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  border: 1px solid transparent;
+  /* Comfortably past the 44px minimum touch target. */
+  min-height: 46px;
+  line-height: 22px;
+}
+
+.btn-primary {
+  background: var(--brand);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--brand-ink);
+}
+
+.btn-ghost {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+.btn-ghost:hover {
+  border-color: var(--brand);
+  color: var(--brand-ink);
+}
+
+.figure-list {
+  list-style: none;
+  margin: 0;
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.figure-list li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.88rem;
+  color: var(--text-soft);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.figure-name {
+  flex: 1;
+}
+
+.figure-score {
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.figure-note {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 10px 0 0;
+}
+
+.hero-visual {
+  height: 460px;
+  position: relative;
+}
+
+.globe-fade {
+  width: 100%;
+  height: 100%;
+  animation: fade-in 900ms ease-out both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Shown instead of the canvas on small screens, where a WebGL context is
+   the most expensive thing on the page and the least legible. */
+.globe-static {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 38% 32%,
+      rgba(139, 124, 255, 0.32),
+      transparent 58%
+    ),
+    radial-gradient(circle at 62% 68%, rgba(63, 213, 160, 0.16), transparent 55%),
+    var(--surface);
+  border: 1px solid var(--border);
+  max-width: 340px;
+  max-height: 340px;
+  margin: 0 auto;
+}
+
+/* ── Sections ───────────────────────────────────────────────────── */
+
+.band {
+  padding: 76px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.band-alt {
+  background: var(--bg-alt);
+}
+
+.section-label {
+  font-size: 0.74rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 0.7rem;
+  font-weight: 600;
+}
+
+.band h2 {
+  font-size: clamp(1.6rem, 1.1rem + 2vw, 2.3rem);
+  font-weight: 700;
+  margin-bottom: 0.9rem;
+}
+
+.section-lede {
+  color: var(--text-soft);
+  max-width: 66ch;
+  margin-bottom: 2rem;
+}
+
+/* ── Pillars ────────────────────────────────────────────────────── */
+
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 16px;
+}
+
+.pillar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 22px;
+}
+
+.pillar-n {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--brand-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.pillar h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0.5rem 0 0.6rem;
+}
+
+.pillar p {
+  font-size: 0.94rem;
+  color: var(--text-soft);
+  margin: 0;
+}
+
+/* ── Steps ──────────────────────────────────────────────────────── */
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+  counter-reset: step;
+}
+
+.steps li {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+}
+
+.step-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 0.5rem;
+}
+
+.step-i {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(139, 124, 255, 0.16);
+  color: var(--brand-ink);
+  display: grid;
+  place-items: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  flex: none;
+}
+
+.steps h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.steps p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.94rem;
+  max-width: 78ch;
+}
+
+/* ── Honesty ────────────────────────────────────────────────────── */
+
+.honesty {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--mid);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 24px 26px;
+  max-width: 74ch;
+}
+
+.honesty p {
+  color: var(--text-soft);
+}
+
+.honesty p:last-child {
+  margin-bottom: 0;
+}
+
+.honesty strong {
+  color: var(--text);
+}
+
+.cta-band {
+  text-align: center;
+}
+
+.cta-band .section-lede {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cta-band .cta-row {
+  justify-content: center;
+  margin-bottom: 0;
+}
+
+/* ── Footer ─────────────────────────────────────────────────────── */
+
+.site-footer {
+  padding: 40px 0 64px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.site-footer strong {
+  color: var(--text-soft);
+}
+
+.fine {
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .hero-inner {
+    grid-template-columns: 1fr;
+    gap: 36px;
+    padding-top: 56px;
+  }
+
+  .hero-visual {
+    height: 300px;
+    order: -1;
+  }
+}
