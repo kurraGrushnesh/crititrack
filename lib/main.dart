@@ -2,7 +2,7 @@ library;
 
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -23,8 +23,8 @@ Future<void> main() async {
   // The app ships with no secrets: every upstream call is made by the
   // backend proxy, and the only client-side configuration is the backend
   // origin, supplied at compile time via --dart-define. See [ApiConfig].
-  if (ApiConfig.isOverridden) {
-    debugPrint('Backend override active: ${ApiConfig.baseUrl}');
+  if (ApiConfig.isLocal) {
+    debugPrint('Using local backend: ${ApiConfig.baseUrl}');
   }
 
   // ── Firebase ───────────────────────────────────────────────────────
@@ -38,18 +38,33 @@ Future<void> main() async {
 
     // SEC-02: App Check proves a call came from a build we published
     // rather than a script, which is what stands between our API budget
-    // and anyone who finds the endpoint URL. Debug providers are used in
-    // debug builds so local development needs no real attestation.
-    await FirebaseAppCheck.instance.activate(
-      providerAndroid:
-          kDebugMode ? AndroidDebugProvider() : AndroidPlayIntegrityProvider(),
-      providerApple:
-          kDebugMode ? AppleDebugProvider() : AppleAppAttestProvider(),
-      providerWeb:
-          kDebugMode || _recaptchaSiteKey.isEmpty
-              ? null
-              : ReCaptchaV3Provider(_recaptchaSiteKey),
-    );
+    // and anyone who finds the endpoint URL.
+    //
+    // Web and native are activated separately because the web SDK has no
+    // debug provider to fall back on: passing a null providerWeb makes it
+    // call `initialize` on nothing and throw. Without a site key there is
+    // simply nothing to activate on web, so we skip it rather than crash.
+    if (kIsWeb) {
+      if (_recaptchaSiteKey.isNotEmpty) {
+        await FirebaseAppCheck.instance.activate(
+          providerWeb: ReCaptchaV3Provider(_recaptchaSiteKey),
+        );
+      } else {
+        debugPrint(
+          'App Check skipped on web: no RECAPTCHA_SITE_KEY supplied. '
+          'Deployed calls will be rejected until one is provided.',
+        );
+      }
+    } else {
+      await FirebaseAppCheck.instance.activate(
+        providerAndroid:
+            kDebugMode
+                ? AndroidDebugProvider()
+                : AndroidPlayIntegrityProvider(),
+        providerApple:
+            kDebugMode ? AppleDebugProvider() : AppleAppAttestProvider(),
+      );
+    }
   } catch (e, st) {
     // A missing console configuration must not stop the app from starting:
     // the backend answers 401 and the UI renders a typed failure instead.

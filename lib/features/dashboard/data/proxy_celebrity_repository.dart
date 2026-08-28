@@ -92,7 +92,21 @@ class ProxyCelebrityRepository extends CelebrityRepository {
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       return Success(_parseCelebrity(json));
     } on http.ClientException {
-      return const Error(NetworkFailure());
+      // The device may be online while the backend is simply unreachable —
+      // during development that is almost always a stopped emulator, and
+      // "check your internet connection" would send the user hunting in
+      // the wrong place.
+      return Error(
+        NetworkFailure(
+          message:
+              ApiConfig.isLocal
+                  ? 'Could not reach the local backend at '
+                      '${ApiConfig.baseUrl}. Start it with: '
+                      'firebase emulators:start --only functions'
+                  : 'Could not reach the CritiTrack backend. Check your '
+                      'internet connection and try again.',
+        ),
+      );
     } on FormatException catch (e, st) {
       return Error(
         ParseFailure(

@@ -19,6 +19,7 @@ import 'package:shimmer/shimmer.dart';
 
 import 'package:crititrack/core/constants/app_constants.dart';
 import 'package:crititrack/core/domain/models/celebrity.dart';
+import 'package:crititrack/core/error/failures.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
 import 'package:crititrack/core/theme/theme_toggle.dart';
 import 'package:crititrack/core/utils/helpers.dart';
@@ -417,45 +418,59 @@ class _ErrorContent extends StatelessWidget {
     );
   }
 
+  /// Maps a failure to an icon, a headline and a body.
+  ///
+  /// Matches on the sealed [Failure] hierarchy rather than sniffing
+  /// `toString()`, and shows the failure's own message. The previous
+  /// version discarded that message and substituted generic advice, so a
+  /// backend that was simply unreachable was reported as "check your
+  /// internet connection" — sending the user to look in the wrong place.
   (IconData, String, String) _classifyError(Object error) {
-    // The error object from Riverpod wraps the Failure toString()
-    final errorStr = error.toString();
+    if (error is Failure) {
+      return switch (error) {
+        NetworkFailure() => (
+          Icons.wifi_off_rounded,
+          'Cannot reach the server',
+          error.message,
+        ),
+        RateLimitFailure() => (
+          Icons.hourglass_top_rounded,
+          'Too many requests',
+          error.message,
+        ),
+        ApiKeyFailure() => (
+          Icons.lock_person_rounded,
+          'Not signed in',
+          error.message,
+        ),
+        ModelNotFoundFailure() => (
+          Icons.model_training_rounded,
+          'AI model unavailable',
+          error.message,
+        ),
+        NotFoundFailure() => (
+          Icons.person_search_rounded,
+          'Nothing found',
+          error.message,
+        ),
+        ParseFailure() => (
+          Icons.data_object_rounded,
+          'Unexpected response',
+          error.message,
+        ),
+        FirebaseFailure() => (
+          Icons.cloud_off_rounded,
+          'Storage unavailable',
+          error.message,
+        ),
+        ServerFailure() => (
+          Icons.error_outline_rounded,
+          'Something went wrong',
+          error.message,
+        ),
+      };
+    }
 
-    if (errorStr.contains('ModelNotFoundFailure') ||
-        errorStr.contains('model configuration needs updating')) {
-      return (
-        Icons.model_training_rounded,
-        'AI Model Unavailable',
-        'The AI model has been deprecated or is not available. '
-            'The developer needs to update the model configuration.',
-      );
-    }
-    if (errorStr.contains('ApiKeyFailure') ||
-        errorStr.contains('Invalid') && errorStr.contains('API key')) {
-      return (
-        Icons.vpn_key_off_rounded,
-        'API Key Error',
-        'The Groq API key is invalid or expired. '
-            'Update it in the .env file.',
-      );
-    }
-    if (errorStr.contains('RateLimitFailure') ||
-        errorStr.contains('Too many requests')) {
-      return (
-        Icons.speed_rounded,
-        'Rate Limited',
-        'Too many requests. Please wait a moment and try again.',
-      );
-    }
-    if (errorStr.contains('NetworkFailure') ||
-        errorStr.contains('No internet')) {
-      return (
-        Icons.wifi_off_rounded,
-        'No Connection',
-        'Please check your internet connection and try again.',
-      );
-    }
-
-    return (Icons.error_outline_rounded, 'Couldn\'t Load Data', errorStr);
+    return (Icons.error_outline_rounded, 'Could not load data', '$error');
   }
 }
