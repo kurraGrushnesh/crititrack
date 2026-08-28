@@ -6,6 +6,7 @@
 /// below with the user's own Hive-cached queries as chips.
 library;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +15,8 @@ import 'package:crititrack/core/theme/app_theme.dart';
 import 'package:crititrack/core/theme/theme_toggle.dart';
 import 'package:crititrack/core/utils/helpers.dart';
 import 'package:crititrack/features/search/presentation/providers/search_providers.dart';
+import 'package:crititrack/features/watchlist/domain/watched_figure.dart';
+import 'package:crititrack/features/watchlist/presentation/providers/watchlist_providers.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -191,6 +194,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                     const SizedBox(height: 32),
 
+                    // ── Watchlist ─────────────────────────────────────
+                    // Above recents: someone who has followed a figure
+                    // came back for them, not for their search history.
+                    const _WatchlistSection(),
+
                     // ── Recent Searches ───────────────────────────────
                     if (recents.isNotEmpty) ...[
                       Container(
@@ -271,5 +279,172 @@ class AnimatedBuilder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(listenable: animation, builder: builder);
+  }
+}
+
+/// The figures the user follows, shown on the home screen.
+///
+/// Renders nothing at all when empty rather than an empty-state box —
+/// a first-time user has not failed at anything, and the search field is
+/// already the obvious next action.
+class _WatchlistSection extends ConsumerWidget {
+  const _WatchlistSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+    final figures = ref.watch(watchlistProvider);
+
+    if (figures.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 500),
+      margin: const EdgeInsets.only(bottom: 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.bookmark_rounded, size: 16, color: palette.brandText),
+              const SizedBox(width: 8),
+              Text('Watchlist', style: theme.textTheme.labelLarge),
+              const Spacer(),
+              Text('${figures.length}', style: theme.textTheme.labelSmall),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ...figures.map((f) => _WatchRow(figure: f)),
+        ],
+      ),
+    );
+  }
+}
+
+class _WatchRow extends ConsumerWidget {
+  const _WatchRow({required this.figure});
+
+  final WatchedFigure figure;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+    final score = figure.lastScore;
+
+    return Semantics(
+      button: true,
+      label: 'Open ${figure.name}',
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          color: palette.elevated,
+          borderRadius: AppTheme.radiusMd,
+          border: Border.all(color: palette.border),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: AppTheme.radiusMd,
+            onTap: () => context.go('/dashboard/${figure.slug}'),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Row(
+                children: [
+                  _Avatar(imageUrl: figure.imageUrl, name: figure.name),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      figure.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: palette.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  if (score != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: sentimentColor(score).withValues(alpha: 0.15),
+                        borderRadius: AppTheme.radiusSm,
+                      ),
+                      child: Text(
+                        score.toStringAsFixed(0),
+                        style: TextStyle(
+                          color: sentimentColor(score),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 16),
+                    tooltip: 'Remove ${figure.name} from watchlist',
+                    visualDensity: VisualDensity.compact,
+                    onPressed:
+                        () => ref
+                            .read(watchlistProvider.notifier)
+                            .remove(figure.slug),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Avatar extends StatelessWidget {
+  const _Avatar({required this.name, this.imageUrl});
+
+  final String name;
+  final String? imageUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+
+    final fallback = Container(
+      width: 32,
+      height: 32,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppTheme.primary.withValues(alpha: 0.15),
+        shape: BoxShape.circle,
+      ),
+      child: Text(
+        name.isNotEmpty ? name.characters.first.toUpperCase() : '?',
+        style: TextStyle(
+          color: palette.brandText,
+          fontWeight: FontWeight.w700,
+          fontSize: 13,
+        ),
+      ),
+    );
+
+    if (imageUrl == null || imageUrl!.isEmpty) return fallback;
+
+    return ClipOval(
+      child: SizedBox(
+        width: 32,
+        height: 32,
+        child: CachedNetworkImage(
+          imageUrl: imageUrl!,
+          fit: BoxFit.cover,
+          placeholder: (_, __) => fallback,
+          errorWidget: (_, __, ___) => fallback,
+        ),
+      ),
+    );
   }
 }

@@ -10,6 +10,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'app.dart';
 import 'core/constants/api_config.dart';
 import 'core/theme/theme_controller.dart';
+import 'features/watchlist/data/watchlist_repository.dart';
 import 'firebase_options.dart';
 
 /// reCAPTCHA v3 site key for App Check on the web. Public by design — it
@@ -76,6 +77,8 @@ Future<void> main() async {
   await Hive.openBox<List<String>>('search_recents');
   // Holds the user's appearance choice (system / light / dark).
   await Hive.openBox<dynamic>(settingsBoxName);
+  // The watchlist is local-first, so it must be open before first paint.
+  await Hive.openBox<dynamic>(watchlistBoxName);
 
   runApp(const ProviderScope(child: CritiTrackApp()));
 }

@@ -28,6 +28,8 @@ import 'package:crititrack/features/controversy/presentation/widgets/controversy
 import 'package:crititrack/features/dashboard/presentation/widgets/biography_card.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/media_feed_section.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/sentiment_section.dart';
+import 'package:crititrack/features/watchlist/domain/watched_figure.dart';
+import 'package:crititrack/features/watchlist/presentation/providers/watchlist_providers.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key, required this.slug});
@@ -55,12 +57,12 @@ class DashboardScreen extends ConsumerWidget {
 
 // ── Dashboard Content ────────────────────────────────────────────
 
-class _DashboardContent extends StatelessWidget {
+class _DashboardContent extends ConsumerWidget {
   const _DashboardContent({required this.celebrity});
   final Celebrity celebrity;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isWide = screenWidth >= AppConstants.mobileBreakpoint;
     final palette = context.palette;
@@ -139,6 +141,7 @@ class _DashboardContent extends StatelessWidget {
                 ],
               ),
             ),
+            _WatchButton(celebrity: celebrity),
             const ThemeToggle(compact: true),
             const SizedBox(width: 4),
           ],
@@ -474,5 +477,56 @@ class _ErrorContent extends StatelessWidget {
     }
 
     return (Icons.error_outline_rounded, 'Could not load data', '$error');
+  }
+}
+
+/// Star control that adds or removes the figure from the watchlist.
+///
+/// The watchlist is local-first, so this is instant and works offline;
+/// the cloud mirror happens in the background.
+class _WatchButton extends ConsumerWidget {
+  const _WatchButton({required this.celebrity});
+
+  final Celebrity celebrity;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final watched = ref
+        .watch(watchlistProvider)
+        .any((f) => f.slug == celebrity.slug);
+
+    return IconButton(
+      icon: Icon(
+        watched ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+      ),
+      tooltip: watched ? 'Remove from watchlist' : 'Add to watchlist',
+      onPressed: () async {
+        final added = await ref
+            .read(watchlistProvider.notifier)
+            .toggle(
+              WatchedFigure(
+                slug: celebrity.slug,
+                name: celebrity.name,
+                addedAt: DateTime.now(),
+                imageUrl: celebrity.imageUrl,
+                lastScore: celebrity.sentimentData.overallScore,
+              ),
+            );
+
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(
+                added
+                    ? '${celebrity.name} added to your watchlist'
+                    : '${celebrity.name} removed from your watchlist',
+              ),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+      },
+    );
   }
 }
