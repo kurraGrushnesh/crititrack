@@ -105,6 +105,11 @@ class Celebrity extends Equatable {
       'neutralRatio': sentimentData.neutralRatio,
       'trendDirection': sentimentData.trendDirection,
       'sentimentExplanation': sentimentData.explanation,
+      // fromFirestore reads this, so it must be written. Omitting it meant
+      // every cached profile came back with its emotion reset to
+      // "neutral" — silently, because a missing field defaults rather
+      // than throwing.
+      'dominantEmotion': sentimentData.dominantEmotion,
       'fetchedAt': fetchedAt.toIso8601String(),
       'cacheVersion': cacheVersion,
       if (imageUrl != null) 'imageUrl': imageUrl,

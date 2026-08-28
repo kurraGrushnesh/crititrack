@@ -34,7 +34,14 @@ jobs:
       - name: Run tests with coverage
         run: flutter test --coverage
 
+      # A floor that holds, rather than a number that was true once.
+      # lib/core/ is held to a higher bar than the whole project: it holds
+      # the deterministic logic where a regression is silent.
+      - name: Coverage gate
+        run: dart run tool/check_coverage.dart
+
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: coverage-lcov
           path: coverage/lcov.info
