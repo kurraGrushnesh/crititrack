@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 11 and below (android:fullBackupContent).
+
+  The watchlist and search history are excluded from cloud backup. They are
+  small and easily rebuilt, and a backup would carry a record of who someone
+  has been reading about off the device and into an account we do not
+  control — which the privacy policy says we do not do.
+
+  The appearance preference is excluded for the same reason it is included
+  in "delete my data": it is a preference the user expressed, and the
+  promise should mean the same thing everywhere.
+-->
+<full-backup-content>
+    <exclude domain="file" path="watchlist.hive"/>
+    <exclude domain="file" path="watchlist.lock"/>
+    <exclude domain="file" path="search_recents.hive"/>
+    <exclude domain="file" path="search_recents.lock"/>
+    <exclude domain="file" path="settings.hive"/>
+    <exclude domain="file" path="settings.lock"/>
+    <exclude domain="sharedpref" path="FlutterSharedPreferences.xml"/>
+</full-backup-content>

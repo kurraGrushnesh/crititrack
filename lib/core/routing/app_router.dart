@@ -39,6 +39,16 @@ final GoRouter appRouter = GoRouter(
       name: 'home',
       builder: (context, state) => const HomeScreen(),
     ),
+    // Short public URL, used by App Links and by shared cards:
+    // https://crititrack.app/c/<slug>. Redirects rather than duplicating
+    // the screen, so there is one canonical in-app location for a figure
+    // and back-navigation behaves the same however you arrived.
+    GoRoute(
+      path: '/c/:slug',
+      name: 'figureLink',
+      redirect:
+          (context, state) => '/dashboard/${state.pathParameters['slug']}',
+    ),
     GoRoute(
       path: '/dashboard/:slug',
       name: 'dashboard',

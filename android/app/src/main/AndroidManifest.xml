@@ -1,8 +1,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- usesCleartextTraffic="false": the app talks only to its own HTTPS
+         backend, and SafeUrl already refuses any non-https link (SEC-06).
+         This closes the platform-level route as well.
+
+         Backup and data-extraction rules keep the watchlist and search
+         history off cloud backup and device transfer — a backup would
+         carry a record of who someone has been reading about into an
+         account we do not control. -->
     <application
         android:label="CritiTrack"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:enableOnBackInvokedCallback="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:usesCleartextTraffic="false">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -23,6 +35,21 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+            <!-- Verified App Links: a shared crititrack.app/c/<slug> URL
+                 opens the right dashboard instead of a browser. Requires
+                 assetlinks.json served at
+                 https://crititrack.app/.well-known/assetlinks.json with
+                 this app's signing certificate fingerprint; without it
+                 Android silently falls back to a chooser. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https"
+                      android:host="crititrack.app"
+                      android:pathPrefix="/c/"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

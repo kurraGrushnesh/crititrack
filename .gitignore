@@ -57,6 +57,11 @@ app.*.map.json
 *.env
 !.env.example
 
+# Release signing — anyone holding these can sign builds as you
+android/key.properties
+*.jks
+*.keystore
+
 # Firebase
 # firebase_options.dart holds only public client config (project id, sender id,
 # app id, and a Firebase API key that is NOT a secret — access is controlled by
