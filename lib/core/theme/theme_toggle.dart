@@ -34,6 +34,10 @@ class ThemeToggle extends ConsumerWidget {
                 final selected = value == mode;
                 return PopupMenuItem<ThemeMode>(
                   value: value,
+                  // The default PopupMenuItem height is 48 minus padding,
+                  // which leaves the row under the 48dp minimum touch
+                  // target on both Android and iOS.
+                  height: 48,
                   child: Row(
                     children: [
                       Icon(
@@ -72,11 +76,13 @@ class ThemeToggle extends ConsumerWidget {
               }).toList(),
       child:
           compact
-              ? Padding(
-                padding: const EdgeInsets.all(10),
-                child: Icon(mode.icon, size: 20, color: palette.textPrimary),
-              )
+              // 48dp square: the minimum touch target on both Android and
+              // iOS. Padding alone left this at 40 and failed the
+              // guideline, which the accessibility test now catches.
+              ? const SizedBox(width: 48, height: 48, child: _CompactIcon())
               : Container(
+                constraints: const BoxConstraints(minHeight: 48),
+                alignment: Alignment.center,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 8,
@@ -105,6 +111,22 @@ class ThemeToggle extends ConsumerWidget {
                   ],
                 ),
               ),
+    );
+  }
+}
+
+/// The compact toggle's glyph, sized inside a 48dp touch target.
+///
+/// A separate widget so the parent can stay `const` while still reading
+/// the current mode and palette from context.
+class _CompactIcon extends ConsumerWidget {
+  const _CompactIcon();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(themeModeProvider);
+    return Center(
+      child: Icon(mode.icon, size: 20, color: context.palette.textPrimary),
     );
   }
 }

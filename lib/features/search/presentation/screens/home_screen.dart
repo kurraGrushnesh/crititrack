@@ -162,6 +162,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   Icons.clear_rounded,
                                   color: palette.textMuted,
                                 ),
+                                tooltip: 'Clear search',
                                 onPressed: () {
                                   _controller.clear();
                                   _focusNode.requestFocus();

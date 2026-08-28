@@ -123,6 +123,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
         ),
         leading: IconButton(
           icon: const Icon(Icons.close_rounded),
+          tooltip: 'Close',
           onPressed: () => GoRouter.of(context).pop(),
         ),
         actions: [

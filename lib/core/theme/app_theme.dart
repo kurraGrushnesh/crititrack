@@ -71,7 +71,9 @@ abstract final class AppTheme {
     borderStrong: Color(0xFF39405A),
     textPrimary: Color(0xFFECEEF7),
     textSecondary: Color(0xFF9AA2B8),
-    textMuted: Color(0xFF656C82),
+    // Lightened from 0xFF656C82, which sat at a 3.17 contrast ratio
+    // against the elevated surface — below the WCAG AA floor of 4.5.
+    textMuted: Color(0xFF8A92A8),
     brandText: primaryLight,
     chartGrid: Color(0xFF272B3B),
     scrim: Color(0xFF0A0B12),
@@ -89,7 +91,8 @@ abstract final class AppTheme {
     borderStrong: Color(0xFFCBD2E2),
     textPrimary: Color(0xFF10121A),
     textSecondary: Color(0xFF545C71),
-    textMuted: Color(0xFF8A92A6),
+    // Darkened from 0xFF8A92A6, which sat at a 2.76 contrast ratio.
+    textMuted: Color(0xFF636A7C),
     brandText: primaryDeep,
     chartGrid: Color(0xFFD9DFEC),
     scrim: Color(0xFFF5F6FB),

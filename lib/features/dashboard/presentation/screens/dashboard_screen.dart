@@ -13,6 +13,7 @@ import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
@@ -20,6 +21,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:crititrack/core/constants/app_constants.dart';
 import 'package:crititrack/core/domain/models/celebrity.dart';
 import 'package:crititrack/core/error/failures.dart';
+import 'package:crititrack/core/export/celebrity_export.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
 import 'package:crititrack/core/theme/theme_toggle.dart';
 import 'package:crititrack/core/utils/helpers.dart';
@@ -77,6 +79,7 @@ class _DashboardContent extends ConsumerWidget {
           backgroundColor: palette.background,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
+            tooltip: 'Back to search',
             onPressed: () => GoRouter.of(context).go('/'),
           ),
           flexibleSpace: FlexibleSpaceBar(
@@ -142,6 +145,7 @@ class _DashboardContent extends ConsumerWidget {
               ),
             ),
             _WatchButton(celebrity: celebrity),
+            _ExportButton(celebrity: celebrity),
             const ThemeToggle(compact: true),
             const SizedBox(width: 4),
           ],
@@ -311,6 +315,7 @@ class _ShimmerSkeleton extends StatelessWidget {
         title: Text(fromSlug(slug)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
+          tooltip: 'Back to search',
           onPressed: () => GoRouter.of(context).go('/'),
         ),
         actions: const [ThemeToggle(compact: true), SizedBox(width: 4)],
@@ -380,6 +385,7 @@ class _ErrorContent extends StatelessWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
+          tooltip: 'Back to search',
           onPressed: () => GoRouter.of(context).go('/'),
         ),
       ),
@@ -527,6 +533,86 @@ class _WatchButton extends ConsumerWidget {
             ),
           );
       },
+    );
+  }
+}
+
+/// Copies the figure's full record out of the app.
+///
+/// A score you cannot inspect is a score you have to take on trust, so the
+/// underlying records go with it: every controversy with its severity and
+/// sources, every media item with its URL.
+///
+/// Clipboard rather than a file download: it needs no extra permission, no
+/// platform-specific plumbing, and behaves identically on web, Android and
+/// iOS. A file export can layer on top later without changing this.
+class _ExportButton extends StatelessWidget {
+  const _ExportButton({required this.celebrity});
+
+  final Celebrity celebrity;
+
+  Future<void> _copy(BuildContext context, String data, String what) async {
+    await Clipboard.setData(ClipboardData(text: data));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('$what copied to clipboard'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.ios_share_rounded),
+      tooltip: 'Export this profile',
+      onSelected: (value) {
+        switch (value) {
+          case 'json':
+            _copy(context, CelebrityExport.toJson(celebrity), 'Full record');
+          case 'controversies':
+            _copy(
+              context,
+              CelebrityExport.controversiesCsv(celebrity),
+              'Controversies CSV',
+            );
+          case 'media':
+            _copy(context, CelebrityExport.mediaCsv(celebrity), 'Media CSV');
+        }
+      },
+      itemBuilder:
+          (context) => const [
+            PopupMenuItem(
+              value: 'json',
+              child: ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.data_object_rounded, size: 18),
+                title: Text('Copy full record (JSON)'),
+              ),
+            ),
+            PopupMenuItem(
+              value: 'controversies',
+              child: ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.gavel_rounded, size: 18),
+                title: Text('Copy controversies (CSV)'),
+              ),
+            ),
+            PopupMenuItem(
+              value: 'media',
+              child: ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.newspaper_rounded, size: 18),
+                title: Text('Copy media coverage (CSV)'),
+              ),
+            ),
+          ],
     );
   }
 }
