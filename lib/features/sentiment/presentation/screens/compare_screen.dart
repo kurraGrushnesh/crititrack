@@ -13,6 +13,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:crititrack/core/domain/models/celebrity.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
+import 'package:crititrack/core/utils/controversy_index.dart';
 import 'package:crititrack/core/utils/correlation.dart';
 import 'package:crititrack/core/utils/helpers.dart';
 import 'package:crititrack/features/dashboard/presentation/providers/dashboard_providers.dart';
@@ -145,6 +146,14 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
             // ── Overlay Chart ───────────────────────────────────
             if (celebrities.length >= 2) ...[
               _buildOverlayChart(celebrities, theme),
+              const SizedBox(height: 20),
+
+              // ── Controversy comparison ───────────────────────
+              // Sentiment is how coverage feels this week; the index is
+              // the accumulated record. Two figures can diverge sharply
+              // on one while matching on the other, and seeing both side
+              // by side is the point of comparing at all.
+              _ControversyComparison(celebrities: celebrities),
               const SizedBox(height: 20),
 
               // ── Correlation Matrix ────────────────────────────
@@ -412,19 +421,23 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
         final a = celebrities[i];
         final b = celebrities[j];
 
-        // Extract score series
-        final scoresA = a.sentimentData.trendData.map((s) => s.score).toList();
-        final scoresB = b.sentimentData.trendData.map((s) => s.score).toList();
-
-        // Align by index (both should have same length from LLM)
-        final minLen =
-            scoresA.length < scoresB.length ? scoresA.length : scoresB.length;
+        // Align by date, not by position.
+        //
+        // Truncating both series to the shorter length correlates
+        // whatever happens to sit at the same index — Monday against
+        // Wednesday when two figures were first tracked on different
+        // days. That was harmless while the series was invented with a
+        // fixed seven entries, but the scheduler now writes real dated
+        // snapshots from whenever each figure was first requested, so
+        // positions no longer line up and the result would be noise
+        // presented as a finding.
+        final (alignedA, alignedB) = alignByDate(_seriesOf(a), _seriesOf(b));
 
         double r = 0.0;
-        String label = 'Insufficient data';
-        if (minLen >= 2) {
-          final alignedA = scoresA.sublist(0, minLen);
-          final alignedB = scoresB.sublist(0, minLen);
+        String label = 'Not enough overlapping days';
+        final overlap = alignedA.length;
+
+        if (overlap >= 2) {
           r = pearsonCorrelation(alignedA, alignedB);
           label = correlationLabel(r);
         }
@@ -520,5 +533,133 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
     if (r > 0.5) return AppTheme.sentimentPositive;
     if (r < -0.5) return AppTheme.sentimentNegative;
     return AppTheme.sentimentNeutral;
+  }
+}
+
+/// A figure's trend as a date-keyed map, for [alignByDate].
+///
+/// Snapshots written by the scheduler are keyed by ISO date; the older
+/// weekday labels ("Mon") still key correctly against each other, so a
+/// cached document from before the change still compares sensibly.
+Map<String, double> _seriesOf(Celebrity c) {
+  return {
+    for (final s in c.sentimentData.trendData)
+      if (s.date.isNotEmpty) s.date: s.score,
+  };
+}
+
+/// Controversy indexes side by side, as proportional bars.
+///
+/// Bars rather than another line chart: the index is a standing figure,
+/// not a time series, and drawing it as one would imply movement the data
+/// does not contain.
+class _ControversyComparison extends StatelessWidget {
+  const _ControversyComparison({required this.celebrities});
+
+  final List<Celebrity> celebrities;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+
+    final rows =
+        celebrities.asMap().entries.map((e) {
+            final index = computeControversyIndex(
+              e.value.biography.controversies,
+            );
+            return (
+              name: e.value.name,
+              index: index,
+              color: _chartColors[e.key % _chartColors.length],
+            );
+          }).toList()
+          ..sort((a, b) => b.index.score.compareTo(a.index.score));
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: palette.card,
+        borderRadius: AppTheme.radiusLg,
+        border: Border.all(color: palette.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Controversy Index', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 4),
+          Text(
+            'Severity, recency and how much is unresolved — not a count',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: palette.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 14),
+          for (final row in rows) ...[
+            Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: row.color,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    row.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: palette.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Text(
+                  '${row.index.rounded}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: palette.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 5),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: Stack(
+                children: [
+                  Container(height: 6, color: palette.elevated),
+                  FractionallySizedBox(
+                    // Never zero-width: a figure with no controversies
+                    // should read as "nothing found", not as a missing bar
+                    // that looks like missing data.
+                    widthFactor: (row.index.score / 100).clamp(0.015, 1.0),
+                    child: Container(height: 6, color: row.color),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              row.index.total == 0
+                  ? 'No documented episodes'
+                  : '${row.index.label} · ${row.index.total} '
+                      '${row.index.total == 1 ? "episode" : "episodes"}'
+                      '${row.index.ongoingCount > 0 ? ", ${row.index.ongoingCount} ongoing" : ""}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: palette.textMuted,
+                fontSize: 10,
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
+        ],
+      ),
+    );
   }
 }
