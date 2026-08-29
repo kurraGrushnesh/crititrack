@@ -152,13 +152,23 @@ Optional, and off unless configured. The app is fully usable on the
 anonymous session created at first launch; signing in exists only so a
 watchlist can follow someone to a second device.
 
-Two things are needed, neither of which requires the Blaze plan:
+**It is not enabled, and enabling it costs money.** This section was
+originally written saying neither step needed the Blaze plan, on the
+grounds that Firebase Authentication is free. That is wrong: the current
+console routes additional sign-in providers through Identity Platform,
+which is billed, and it asks for an upgrade. Anonymous sign-in being free
+does not extend to turning on new providers.
 
-1. **Enable the Google provider** in Firebase console → Authentication →
-   Sign-in method. This project has never had it enabled —
-   `google-services.json` contains no `oauth_client` entries at all.
-2. **Pass the web OAuth client id** at build time. The web plugin cannot
-   start a sign-in without one:
+Two things would be needed:
+
+1. **Enable the Google provider** in Firebase console → Build →
+   Authentication → Sign-in method → Google. This project has never had
+   it enabled — `google-services.json` contains no `oauth_client` entries
+   at all — and the toggle prompts for Blaze.
+2. **Pass the web OAuth client id** at build time. It only exists once
+   the provider above is enabled — it appears in that provider's panel
+   under "Web SDK configuration". The web plugin cannot start a sign-in
+   without one:
 
    ```bash
    flutter build web --release --base-href /app/ \
@@ -171,6 +181,10 @@ That is deliberate. It previously offered one, and every tap produced
 "Could not reach Google to sign in" — blaming the network for something
 that was never configured, which is the same mistake as an error screen
 blaming your connection for a backend that was never deployed.
+
+Nothing about the app needs changing to leave it off. The watchlist is
+local-first and fully functional without it; the only thing missing is
+cross-device sync.
 
 On Android and iOS the client id comes from `google-services.json` /
 `GoogleService-Info.plist`, so `isAvailable` is true there once the
