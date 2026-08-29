@@ -14,7 +14,7 @@
  */
 
 const {getFirestore, FieldValue} = require("firebase-admin/firestore");
-const logger = require("firebase-functions/logger");
+const logger = require("./logger");
 
 const CELEBRITIES = "celebrities";
 const MEDIA_ITEMS = "media_items";

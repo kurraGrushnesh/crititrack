@@ -21,7 +21,7 @@
  * never the product.
  */
 
-const logger = require("firebase-functions/logger");
+const logger = require("./logger");
 const {fetchWithTimeout} = require("./httpUtil");
 
 const API = "https://www.wikidata.org/w/api.php";

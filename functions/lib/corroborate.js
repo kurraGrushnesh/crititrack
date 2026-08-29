@@ -20,7 +20,7 @@
  * wrong the other way costs someone their reputation.
  */
 
-const logger = require("firebase-functions/logger");
+const logger = require("./logger");
 
 /** Severity at or above which corroboration is required. */
 const CORROBORATION_REQUIRED_AT = 4;

@@ -13,7 +13,7 @@
  * no media to fall back on, which has nothing left to show and throws.
  */
 
-const logger = require("firebase-functions/logger");
+const logger = require("./logger");
 
 const {
   fetchBiography,

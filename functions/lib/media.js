@@ -1,7 +1,7 @@
 "use strict";
 
 const {fetchWithTimeout} = require("./httpUtil");
-const logger = require("firebase-functions/logger");
+const logger = require("./logger");
 
 /**
  * Latest news articles about a name (NewsAPI /v2/everything).

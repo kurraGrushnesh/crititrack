@@ -23,7 +23,7 @@
 const {getAuth} = require("firebase-admin/auth");
 const {getAppCheck} = require("firebase-admin/app-check");
 const {getFirestore, FieldValue} = require("firebase-admin/firestore");
-const logger = require("firebase-functions/logger");
+const logger = require("./logger");
 
 /** True inside `firebase emulators:start`. */
 const IS_EMULATOR = process.env.FUNCTIONS_EMULATOR === "true";

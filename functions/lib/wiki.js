@@ -1,7 +1,7 @@
 "use strict";
 
 const {fetchWithTimeout} = require("./httpUtil");
-const logger = require("firebase-functions/logger");
+const logger = require("./logger");
 
 /**
  * Portrait image + short extract for a public figure, from the Wikipedia

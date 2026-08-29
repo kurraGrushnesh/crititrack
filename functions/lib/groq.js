@@ -1,7 +1,7 @@
 "use strict";
 
 const {fetchWithTimeout, parseLlmJson} = require("./httpUtil");
-const logger = require("firebase-functions/logger");
+const logger = require("./logger");
 
 const BASE_URL = "https://api.groq.com/openai/v1/chat/completions";
 const PRIMARY_MODEL = "openai/gpt-oss-120b";

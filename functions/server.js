@@ -1,0 +1,164 @@
+"use strict";
+
+/**
+ * CritiTrack API — plain Node entry point.
+ *
+ * Cloud Functions needs a billed Firebase plan, so the backend runs as an
+ * ordinary Express service on a generic host instead. The request logic
+ * is shared with the Cloud Functions entry point (index.js) via
+ * lib/handlers.js, so the two cannot drift.
+ *
+ * Configuration, all from the environment:
+ *
+ *   PORT                       assigned by the host
+ *   FIREBASE_SERVICE_ACCOUNT   the service-account JSON, as a single
+ *                              string — this is what lets the Admin SDK
+ *                              reach Firestore, Auth and App Check from
+ *                              off-platform
+ *   GROQ_API_KEY               \
+ *   NEWS_API_KEY                }  upstream keys, never sent to the client
+ *   YOUTUBE_API_KEY            /
+ *   REFRESH_SECRET             shared secret the cron must present to
+ *                              POST /refresh (the scheduled job has no
+ *                              App Check token to offer)
+ *   ALLOWED_ORIGIN_EXTRA       optional, comma-separated, added to the
+ *                              CORS allow-list for local testing
+ */
+
+const express = require("express");
+const cors = require("cors");
+const {initializeApp, cert} = require("firebase-admin/app");
+
+const logger = require("./lib/logger");
+const {handleGetCelebrity, runScheduledRefresh} = require("./lib/handlers");
+
+// ── Admin SDK credentials ──────────────────────────────────────────────
+
+function loadServiceAccount() {
+  const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (!raw) {
+    throw new Error(
+        "FIREBASE_SERVICE_ACCOUNT is not set. Paste the full " +
+        "service-account JSON into that environment variable.",
+    );
+  }
+  try {
+    return JSON.parse(raw);
+  } catch {
+    // Some hosts mangle newlines in multi-line values; base64 sidesteps
+    // that, so accept either form.
+    try {
+      return JSON.parse(Buffer.from(raw, "base64").toString("utf8"));
+    } catch {
+      throw new Error("FIREBASE_SERVICE_ACCOUNT is not valid JSON or base64 JSON.");
+    }
+  }
+}
+
+const serviceAccount = loadServiceAccount();
+initializeApp({credential: cert(serviceAccount)});
+
+// ── Keys ───────────────────────────────────────────────────────────────
+
+function readKeys() {
+  const keys = {
+    groq: process.env.GROQ_API_KEY || "",
+    news: process.env.NEWS_API_KEY || "",
+    youtube: process.env.YOUTUBE_API_KEY || "",
+  };
+  const missing = Object.entries(keys)
+      .filter(([, v]) => !v)
+      .map(([k]) => k.toUpperCase() + "_API_KEY");
+  if (missing.length) {
+    logger.warn(`missing upstream keys: ${missing.join(", ")}`);
+  }
+  return keys;
+}
+
+// ── CORS ───────────────────────────────────────────────────────────────
+
+const ALLOWED_ORIGINS = [
+  "https://crititrack-f7430.web.app",
+  "https://crititrack-f7430.firebaseapp.com",
+  ...(process.env.ALLOWED_ORIGIN_EXTRA || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
+];
+
+const corsMiddleware = cors({
+  origin(origin, cb) {
+    // No Origin header: a same-origin request, a health check, or the
+    // cron. Allowed; the routes that matter have their own auth.
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    cb(new Error(`origin not allowed: ${origin}`));
+  },
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Firebase-AppCheck",
+    "X-Refresh-Secret",
+  ],
+  maxAge: 3600,
+});
+
+// ── App ────────────────────────────────────────────────────────────────
+
+const app = express();
+app.disable("x-powered-by");
+app.set("trust proxy", true);
+app.use(corsMiddleware);
+app.options("*", corsMiddleware);
+
+app.get("/health", (_req, res) => res.json({ok: true}));
+
+app.get("/getCelebrity", (req, res) => {
+  // handlers.js reads req.query.name / req.query.qid, exactly as under
+  // Cloud Functions.
+  handleGetCelebrity(readKeys(), req, res).catch((e) => {
+    logger.error("unhandled in /getCelebrity", {message: e && e.message});
+    if (!res.headersSent) {
+      res.status(500).json({error: "internal", message: "Unexpected error"});
+    }
+  });
+});
+
+/**
+ * POST /refresh — the scheduled job, triggered by an external cron.
+ *
+ * A cron cannot present an App Check token, so this route is gated on a
+ * shared secret instead. Everything the cron can spend is already bounded
+ * inside runScheduledRefresh (REFRESH_LIMIT figures per call), so the
+ * secret only needs to stop idle traffic, not a determined attacker.
+ */
+app.post("/refresh", async (req, res) => {
+  const expected = process.env.REFRESH_SECRET;
+  const given = req.get("X-Refresh-Secret") || req.query.secret;
+
+  if (!expected) {
+    return res.status(503).json({
+      error: "not-configured",
+      message: "REFRESH_SECRET is not set, so the refresh route is disabled.",
+    });
+  }
+  if (given !== expected) {
+    return res.status(403).json({error: "forbidden"});
+  }
+
+  try {
+    const result = await runScheduledRefresh(readKeys());
+    res.json(result);
+  } catch (e) {
+    logger.error("refresh failed", {message: e && e.message});
+    res.status(500).json({error: "internal", message: e && e.message});
+  }
+});
+
+const port = process.env.PORT || 8080;
+app.listen(port, () => {
+  logger.info(`CritiTrack API listening on ${port}`, {
+    origins: ALLOWED_ORIGINS,
+    project: serviceAccount.project_id,
+  });
+});

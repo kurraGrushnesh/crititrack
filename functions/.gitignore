@@ -6,3 +6,10 @@ node_modules/
 .env.*
 .secret.local
 !.env.example
+
+# Service-account keys — the Admin SDK credential for off-platform hosting.
+# This goes into the host's env as a single value, never into the repo.
+*-firebase-adminsdk-*.json
+*service-account*.json
+serviceAccount*.json
+crititrack-*.json
