@@ -15,6 +15,7 @@ import 'package:crititrack/core/theme/app_theme.dart';
 import 'package:crititrack/core/theme/theme_toggle.dart';
 import 'package:crititrack/core/utils/helpers.dart';
 import 'package:crititrack/features/search/presentation/providers/search_providers.dart';
+import 'package:crititrack/features/account/presentation/widgets/account_tile.dart';
 import 'package:crititrack/features/privacy/presentation/widgets/delete_data_tile.dart';
 import 'package:crititrack/features/watchlist/domain/watched_figure.dart';
 import 'package:crititrack/features/watchlist/presentation/providers/watchlist_providers.dart';
@@ -547,6 +548,11 @@ class _PrivacySection extends StatelessWidget {
                       ),
                     ),
                   ),
+                  // Above the delete control, because it is the
+                  // additive choice and the destructive one should not be
+                  // the first thing offered.
+                  const AccountTile(),
+                  Divider(height: 1, color: palette.border),
                   const DeleteDataTile(),
                 ],
               ),

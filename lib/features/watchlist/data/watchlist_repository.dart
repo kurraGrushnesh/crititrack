@@ -124,6 +124,14 @@ class WatchlistRepository {
     }
   }
 
+  /// Pushes the local list to the cloud under the current uid.
+  ///
+  /// Awaited, unlike the fire-and-forget mirror below, because the one
+  /// caller is the account upgrade: when signing in moved the session to
+  /// a different uid, this is what stops the watchlist looking like it
+  /// vanished at the moment the user signed in to sync it.
+  Future<void> pushToCloud() => _mirrorToCloud();
+
   /// Best-effort mirror. Never awaited by callers, never throws outward.
   Future<void> _mirrorToCloud() async {
     final db = _firestore;
