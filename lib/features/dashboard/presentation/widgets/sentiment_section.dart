@@ -52,16 +52,42 @@ class _SentimentSectionState extends State<SentimentSection>
   Timer? _typewriterTimer;
   int _charIdx = 0;
 
+  bool _typewriterStarted = false;
+
   @override
   void initState() {
     super.initState();
     _chartTabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Not initState: MediaQuery is not available there, and whether to
+    // animate at all depends on it.
+    if (_typewriterStarted) return;
+    _typewriterStarted = true;
     _startTypewriter();
   }
 
   void _startTypewriter() {
     final text = widget.sentimentData.explanation;
     if (text.isEmpty) return;
+
+    // Reduced motion: show the whole explanation at once.
+    //
+    // A character-by-character reveal is exactly the kind of continuous
+    // movement the preference exists to switch off, and it is also the
+    // one animation here that withholds information while it runs — a
+    // screen reader announces a paragraph that is still being written,
+    // and anyone who reads faster than the timer is made to wait.
+    if (MediaQuery.of(context).disableAnimations) {
+      setState(() {
+        _displayedExplanation = text;
+        _charIdx = text.length;
+      });
+      return;
+    }
     _typewriterTimer = Timer.periodic(AppConstants.typewriterInterval, (t) {
       if (_charIdx < text.length) {
         setState(() {

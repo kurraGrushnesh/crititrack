@@ -336,7 +336,12 @@ class _ShimmerSkeleton extends StatelessWidget {
         ),
         actions: const [ThemeToggle(compact: true), SizedBox(width: 4)],
       ),
-      body: Shimmer.fromColors(
+      // The sweeping highlight is decorative and continuous, so under
+      // reduced motion the skeleton is drawn as plain blocks. The layout
+      // is identical either way — what is removed is the movement, not
+      // the indication that something is loading.
+      body: _Maybe(
+        animate: !MediaQuery.of(context).disableAnimations,
         baseColor: palette.elevated,
         highlightColor: Color.alphaBlend(palette.glass, palette.elevated),
         child: SingleChildScrollView(
@@ -653,6 +658,36 @@ class _ExportButton extends StatelessWidget {
               ),
             ),
           ],
+    );
+  }
+}
+
+
+/// Wraps its child in a [Shimmer] only when motion is wanted.
+///
+/// Exists so the skeleton's layout is written once rather than twice:
+/// duplicating it for the reduced-motion path is how the two versions
+/// drift apart.
+class _Maybe extends StatelessWidget {
+  const _Maybe({
+    required this.animate,
+    required this.baseColor,
+    required this.highlightColor,
+    required this.child,
+  });
+
+  final bool animate;
+  final Color baseColor;
+  final Color highlightColor;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!animate) return child;
+    return Shimmer.fromColors(
+      baseColor: baseColor,
+      highlightColor: highlightColor,
+      child: child,
     );
   }
 }
