@@ -7,7 +7,9 @@
 library;
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:crititrack/features/search/domain/search_suggestions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -31,8 +33,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
 
+  /// Long enough that typing a name does not recompute on every
+  /// keystroke, short enough that the list feels attached to the field.
+  static const _debounceWindow = Duration(milliseconds: 220);
+
+  Timer? _debounce;
+  List<SearchSuggestion> _suggestions = const [];
+
+  void _onQueryChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(_debounceWindow, () {
+      if (!mounted) return;
+      setState(() {
+        _suggestions = suggestionsFor(
+          query: value,
+          watched: ref.read(watchlistProvider).map((f) => f.name),
+          recent: ref.read(recentSearchesProvider),
+        );
+      });
+    });
+  }
+
+  void _acceptSuggestion(String name) {
+    _debounce?.cancel();
+    setState(() => _suggestions = const []);
+    _controller.text = name;
+    _focusNode.unfocus();
+    _search();
+  }
+
   @override
   void dispose() {
+    _debounce?.cancel();
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -147,6 +179,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: TextField(
                         controller: _controller,
                         focusNode: _focusNode,
+                        onChanged: _onQueryChanged,
                         onSubmitted: (_) => _search(),
                         textInputAction: TextInputAction.search,
                         style: theme.textTheme.bodyLarge,
@@ -187,6 +220,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                       ),
                     ),
+                    if (_suggestions.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      _Suggestions(
+                        suggestions: _suggestions,
+                        onSelected: _acceptSuggestion,
+                      ),
+                    ],
                     const SizedBox(height: 16),
 
                     // ── Search Button ─────────────────────────────────
@@ -559,6 +599,91 @@ class _PrivacySection extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+
+/// Names the device already knows, offered as you type.
+///
+/// Drawn from the watchlist and this device's own search history — both
+/// local, so the list costs nothing and works offline. There is no
+/// "trending" row: producing one honestly needs a backend ranking what
+/// people are actually looking up, and a hard-coded list of famous names
+/// dressed as trending would be a claim about other users that nothing
+/// measured.
+class _Suggestions extends StatelessWidget {
+  const _Suggestions({required this.suggestions, required this.onSelected});
+
+  final List<SearchSuggestion> suggestions;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 500),
+      decoration: BoxDecoration(
+        color: palette.card,
+        borderRadius: AppTheme.radiusMd,
+        border: Border.all(color: palette.border),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final suggestion in suggestions)
+            Semantics(
+              button: true,
+              label: suggestion.kind == SuggestionKind.watched
+                  ? 'Search ${suggestion.name}, on your watchlist'
+                  : 'Search ${suggestion.name}, a recent search',
+              excludeSemantics: true,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => onSelected(suggestion.name),
+                  child: Container(
+                    // 48dp minimum tap target, matching the guards in
+                    // accessibility_test.dart.
+                    constraints: const BoxConstraints(minHeight: 48),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Row(
+                      children: [
+                        Icon(
+                          suggestion.kind == SuggestionKind.watched
+                              ? Icons.star_rounded
+                              : Icons.history_rounded,
+                          size: 16,
+                          color: suggestion.kind == SuggestionKind.watched
+                              ? AppTheme.warning
+                              : palette.textMuted,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            suggestion.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: palette.textPrimary,
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.north_west_rounded,
+                          size: 14,
+                          color: palette.textMuted,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
