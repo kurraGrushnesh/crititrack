@@ -134,8 +134,7 @@ class AlertSettingsScreen extends ConsumerWidget {
 String _initial(String name) =>
     name.trim().isEmpty ? '?' : name.trim()[0].toUpperCase();
 
-String _countLabel(int n) =>
-    n == 1 ? '1 figure' : '$n figures';
+String _countLabel(int n) => n == 1 ? '1 figure' : '$n figures';
 
 /// Minutes since midnight as a 24-hour clock time.
 String _fmt(int minutes) {
@@ -268,6 +267,12 @@ class _PermissionWarning extends StatelessWidget {
             height: 48,
             child: TextButton(
               onPressed: onRetry,
+              // The default foreground is the theme's primary, which is a
+              // dark violet and all but unreadable on the error container
+              // this sits inside.
+              style: TextButton.styleFrom(
+                foregroundColor: theme.colorScheme.onErrorContainer,
+              ),
               child: const Text('Ask again'),
             ),
           ),

@@ -604,7 +604,6 @@ class _PrivacySection extends StatelessWidget {
   }
 }
 
-
 /// Names the device already knows, offered as you type.
 ///
 /// Drawn from the watchlist and this device's own search history — both
@@ -637,9 +636,10 @@ class _Suggestions extends StatelessWidget {
           for (final suggestion in suggestions)
             Semantics(
               button: true,
-              label: suggestion.kind == SuggestionKind.watched
-                  ? 'Search ${suggestion.name}, on your watchlist'
-                  : 'Search ${suggestion.name}, a recent search',
+              label:
+                  suggestion.kind == SuggestionKind.watched
+                      ? 'Search ${suggestion.name}, on your watchlist'
+                      : 'Search ${suggestion.name}, a recent search',
               excludeSemantics: true,
               child: Material(
                 color: Colors.transparent,
@@ -657,9 +657,10 @@ class _Suggestions extends StatelessWidget {
                               ? Icons.star_rounded
                               : Icons.history_rounded,
                           size: 16,
-                          color: suggestion.kind == SuggestionKind.watched
-                              ? AppTheme.warning
-                              : palette.textMuted,
+                          color:
+                              suggestion.kind == SuggestionKind.watched
+                                  ? AppTheme.warning
+                                  : palette.textMuted,
                         ),
                         const SizedBox(width: 10),
                         Expanded(

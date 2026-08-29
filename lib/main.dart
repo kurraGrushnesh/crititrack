@@ -10,6 +10,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'app.dart';
 import 'core/constants/api_config.dart';
+import 'core/platform/url_strategy.dart';
 import 'core/theme/theme_controller.dart';
 import 'features/alerts/data/alert_preferences_store.dart';
 import 'features/alerts/data/push_service.dart';
@@ -23,6 +24,10 @@ const String _recaptchaSiteKey = String.fromEnvironment('RECAPTCHA_SITE_KEY');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Real paths instead of hash URLs on the web, so a deep link
+  // arrives with its route intact. A no-op everywhere else.
+  configureUrlStrategy();
 
   // The app ships with no secrets: every upstream call is made by the
   // backend proxy, and the only client-side configuration is the backend
@@ -75,9 +80,7 @@ Future<void> main() async {
     // happened, so a cold-start tap has nothing to route from. Not on
     // web, which has no background isolate.
     if (!kIsWeb) {
-      FirebaseMessaging.onBackgroundMessage(
-        firebaseMessagingBackgroundHandler,
-      );
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     }
   } catch (e, st) {
     // A missing console configuration must not stop the app from starting:

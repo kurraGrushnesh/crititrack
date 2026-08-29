@@ -29,12 +29,7 @@ class DemoBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!ApiConfig.isDemo) return child;
 
-    return Column(
-      children: [
-        const _Bar(),
-        Expanded(child: child),
-      ],
-    );
+    return Column(children: [const _Bar(), Expanded(child: child)]);
   }
 }
 

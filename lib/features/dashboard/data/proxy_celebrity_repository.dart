@@ -110,6 +110,13 @@ class ProxyCelebrityRepository extends CelebrityRepository {
                   ? 'Could not reach the local backend at '
                       '${ApiConfig.baseUrl}. Start it with: '
                       'firebase emulators:start --only functions'
+                  : ApiConfig.isDemo
+                  // The same reasoning as the local branch above: in the
+                  // published demo the connection is fine and there is
+                  // simply no backend, so blaming the network sends the
+                  // reader to check a router that is working.
+                  ? 'This is the public demo, which is published without '
+                      'a backend, so profiles cannot load.'
                   : 'Could not reach the CritiTrack backend. Check your '
                       'internet connection and try again.',
         ),
@@ -188,8 +195,7 @@ class ProxyCelebrityRepository extends CelebrityRepository {
             negativeCount: (d['negativeCount'] as num?)?.toInt() ?? 0,
             neutralCount: (d['neutralCount'] as num?)?.toInt() ?? 0,
             totalMentions: (d['totalMentions'] as num?)?.toInt() ?? 0,
-            dominantEmotion:
-                d['dominantEmotion'] as String? ?? dominantEmotion,
+            dominantEmotion: d['dominantEmotion'] as String? ?? dominantEmotion,
             score: (d['score'] as num?)?.toDouble() ?? 50.0,
           );
         }).toList();

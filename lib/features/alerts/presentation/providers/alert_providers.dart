@@ -126,6 +126,5 @@ class AlertPreferencesController extends Notifier<AlertPreferences> {
   }
 
   /// Removes this device's registration. Used by the delete-my-data flow.
-  Future<void> forgetDevice() =>
-      _registrar.unregister(_store.installId());
+  Future<void> forgetDevice() => _registrar.unregister(_store.installId());
 }

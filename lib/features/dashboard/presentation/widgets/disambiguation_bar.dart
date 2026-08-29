@@ -155,9 +155,10 @@ class _CandidateChip extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: candidate.description.isEmpty
-          ? 'Show ${candidate.label}'
-          : 'Show ${candidate.label}, ${candidate.description}',
+      label:
+          candidate.description.isEmpty
+              ? 'Show ${candidate.label}'
+              : 'Show ${candidate.label}, ${candidate.description}',
       excludeSemantics: true,
       child: Material(
         color: Colors.transparent,
@@ -169,9 +170,10 @@ class _CandidateChip extends StatelessWidget {
             constraints: const BoxConstraints(minHeight: 48, maxWidth: 260),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: selected
-                  ? AppTheme.primary.withValues(alpha: 0.14)
-                  : palette.card,
+              color:
+                  selected
+                      ? AppTheme.primary.withValues(alpha: 0.14)
+                      : palette.card,
               borderRadius: AppTheme.radiusSm,
               border: Border.all(
                 color: selected ? AppTheme.primary : palette.border,

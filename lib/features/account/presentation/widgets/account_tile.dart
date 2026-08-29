@@ -17,9 +17,8 @@ class AccountTile extends ConsumerWidget {
   const AccountTile({super.key});
 
   Future<void> _upgrade(BuildContext context, WidgetRef ref) async {
-    final result = await ref
-        .read(accountControllerProvider.notifier)
-        .upgradeWithGoogle();
+    final result =
+        await ref.read(accountControllerProvider.notifier).upgradeWithGoogle();
 
     if (!context.mounted) return;
 
@@ -29,16 +28,14 @@ class AccountTile extends ConsumerWidget {
     final messenger = ScaffoldMessenger.maybeOf(context);
     messenger?.showSnackBar(
       SnackBar(
-        content: Text(
-          switch (result.outcome) {
-            AccountUpgradeOutcome.linked =>
-              'Signed in. Your watchlist will sync across your devices.',
-            AccountUpgradeOutcome.switched =>
-              'Signed in to your existing account. Your watchlists have '
-                  'been merged.',
-            _ => result.message ?? 'Could not complete sign-in.',
-          },
-        ),
+        content: Text(switch (result.outcome) {
+          AccountUpgradeOutcome.linked =>
+            'Signed in. Your watchlist will sync across your devices.',
+          AccountUpgradeOutcome.switched =>
+            'Signed in to your existing account. Your watchlists have '
+                'been merged.',
+          _ => result.message ?? 'Could not complete sign-in.',
+        }),
       ),
     );
   }
@@ -46,24 +43,25 @@ class AccountTile extends ConsumerWidget {
   Future<void> _signOut(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Sign out?'),
-        content: const Text(
-          'The app keeps working and your watchlist stays on this device. '
-          'It just stops syncing to your other ones.\n\n'
-          'To remove your data entirely, use Delete my data instead.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Sign out?'),
+            content: const Text(
+              'The app keeps working and your watchlist stays on this device. '
+              'It just stops syncing to your other ones.\n\n'
+              'To remove your data entirely, use Delete my data instead.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Sign out'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Sign out'),
-          ),
-        ],
-      ),
     );
 
     if (confirmed != true) return;
@@ -97,24 +95,26 @@ class AccountTile extends ConsumerWidget {
         signedIn
             ? (status.email ?? 'Signed in')
             : 'Optional. Sign in with Google to carry your watchlist to '
-                  'another device. Nothing else changes.',
+                'another device. Nothing else changes.',
         style: theme.textTheme.bodySmall?.copyWith(color: palette.textMuted),
       ),
-      trailing: busy
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : SizedBox(
-              height: 48,
-              child: TextButton(
-                onPressed: signedIn
-                    ? () => _signOut(context, ref)
-                    : () => _upgrade(context, ref),
-                child: Text(signedIn ? 'Sign out' : 'Sign in'),
+      trailing:
+          busy
+              ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+              : SizedBox(
+                height: 48,
+                child: TextButton(
+                  onPressed:
+                      signedIn
+                          ? () => _signOut(context, ref)
+                          : () => _upgrade(context, ref),
+                  child: Text(signedIn ? 'Sign out' : 'Sign in'),
+                ),
               ),
-            ),
     );
   }
 }

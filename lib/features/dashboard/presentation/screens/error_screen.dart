@@ -74,7 +74,7 @@ class ErrorScreen extends StatelessWidget {
   String _titleForType(String type) => switch (type) {
     'notFound' => 'Celebrity Not Found',
     'apiKey' => 'API Key Error',
-    'modelNotFound' => 'AI Model Unavailable',
+    'modelNotFound' => 'Analysis Unavailable',
     'network' => 'No Connection',
     _ => 'Something Went Wrong',
   };

@@ -477,7 +477,7 @@ class _ErrorContent extends StatelessWidget {
         ),
         ModelNotFoundFailure() => (
           Icons.model_training_rounded,
-          'AI model unavailable',
+          'Analysis unavailable',
           error.message,
         ),
         NotFoundFailure() => (
@@ -661,7 +661,6 @@ class _ExportButton extends StatelessWidget {
     );
   }
 }
-
 
 /// Wraps its child in a [Shimmer] only when motion is wanted.
 ///

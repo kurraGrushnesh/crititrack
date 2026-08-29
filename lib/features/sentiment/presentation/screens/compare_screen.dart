@@ -282,8 +282,8 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
     // defect and was fixed; this is the copy of it people actually look
     // at.
     final windowed = [for (final c in celebrities) _windowedSeries(c)];
-    final dates = <String>{for (final w in windowed) ...w.keys}.toList()
-      ..sort();
+    final dates =
+        <String>{for (final w in windowed) ...w.keys}.toList()..sort();
 
     if (dates.isEmpty) {
       return _EmptyCard(
@@ -655,7 +655,6 @@ class _ControversyComparison extends StatelessWidget {
   }
 }
 
-
 /// Colour for a coefficient, muted when it is not yet trustworthy.
 Color _rColor(PairCorrelation pair) {
   if (!pair.hasEnoughData) return AppTheme.sentimentNeutral;
@@ -777,11 +776,13 @@ class _CategoryRadar extends StatelessWidget {
                   fontSize: 9,
                   color: palette.textSecondary,
                 ),
-                getTitle: (index, angle) => RadarChartTitle(
-                  text:
-                      _categoryShortLabels[ControversyCategory.all[index]] ??
-                      '',
-                ),
+                getTitle:
+                    (index, angle) => RadarChartTitle(
+                      text:
+                          _categoryShortLabels[ControversyCategory
+                              .all[index]] ??
+                          '',
+                    ),
                 dataSets: [
                   for (var i = 0; i < profiles.length; i++)
                     RadarDataSet(

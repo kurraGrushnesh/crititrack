@@ -258,7 +258,6 @@ class _StatusTag extends StatelessWidget {
   }
 }
 
-
 /// The citations behind one record.
 ///
 /// A source that is a URL is tappable; one that is only a publication

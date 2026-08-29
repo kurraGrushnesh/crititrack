@@ -57,8 +57,10 @@ abstract final class ApiConfig {
   /// ```
   /// flutter build web --release --base-href /app/   ///   --dart-define=DEMO_MODE=true
   /// ```
-  static const bool isDemo =
-      bool.fromEnvironment('DEMO_MODE', defaultValue: false);
+  static const bool isDemo = bool.fromEnvironment(
+    'DEMO_MODE',
+    defaultValue: false,
+  );
 
   /// Whether the app is pointed at a local emulator rather than the
   /// deployed backend. Useful for surfacing a "local backend" hint when a

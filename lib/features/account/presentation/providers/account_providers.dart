@@ -20,8 +20,9 @@ final accountStatusProvider = Provider<({bool anonymous, String? email})>((
   return (anonymous: service.isAnonymous, email: service.email);
 });
 
-final accountControllerProvider =
-    NotifierProvider<AccountController, bool>(AccountController.new);
+final accountControllerProvider = NotifierProvider<AccountController, bool>(
+  AccountController.new,
+);
 
 /// `state` is whether an upgrade is in flight.
 class AccountController extends Notifier<bool> {

@@ -41,7 +41,8 @@ enum CompareWindow {
 }
 
 /// One figure's dated score series, as the compare screen holds it.
-typedef CompareSeries = ({String slug, String name, Map<String, double> scores});
+typedef CompareSeries =
+    ({String slug, String name, Map<String, double> scores});
 
 /// Narrows a date-keyed score series to [window].
 ///
@@ -131,9 +132,7 @@ class PairCorrelation {
   bool get hasEnoughData => overlap >= minOverlapForCorrelation;
 
   String get label =>
-      hasEnoughData
-          ? correlationLabel(r)
-          : 'Not enough overlapping days yet';
+      hasEnoughData ? correlationLabel(r) : 'Not enough overlapping days yet';
 
   /// How many days of shared history are still needed. Zero once there
   /// are enough — used to tell the user what is missing rather than

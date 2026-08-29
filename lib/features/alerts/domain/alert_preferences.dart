@@ -145,15 +145,15 @@ class AlertPreferences extends Equatable {
       // the corrupt-record case failed until these became `is` checks.
       enabled: map['enabled'] is bool ? map['enabled'] as bool : true,
       mutedSlugs: {
-        for (final s in (map['mutedSlugs'] is List
-            ? map['mutedSlugs'] as List<dynamic>
-            : const <dynamic>[]))
+        for (final s
+            in (map['mutedSlugs'] is List
+                ? map['mutedSlugs'] as List<dynamic>
+                : const <dynamic>[]))
           if (s is String && s.isNotEmpty) s,
       },
       quietEnabled:
           map['quietEnabled'] is bool ? map['quietEnabled'] as bool : false,
-      quietStartMin:
-          _asMinute(map['quietStartMin']) ?? defaultQuietStart,
+      quietStartMin: _asMinute(map['quietStartMin']) ?? defaultQuietStart,
       quietEndMin: _asMinute(map['quietEndMin']) ?? defaultQuietEnd,
     );
   }

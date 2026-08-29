@@ -87,9 +87,10 @@ class AccountUpgrade extends Equatable {
     }
 
     return AccountUpgrade(
-      outcome: previousUid == currentUid
-          ? AccountUpgradeOutcome.linked
-          : AccountUpgradeOutcome.switched,
+      outcome:
+          previousUid == currentUid
+              ? AccountUpgradeOutcome.linked
+              : AccountUpgradeOutcome.switched,
       previousUid: previousUid,
       currentUid: currentUid,
     );

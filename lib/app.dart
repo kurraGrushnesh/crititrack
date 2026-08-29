@@ -43,15 +43,20 @@ class _CritiTrackAppState extends ConsumerState<CritiTrackApp> {
   Future<void> _attachPush() async {
     if (!mounted) return;
 
-    await ref.read(pushServiceProvider).start(
-      onOpened: _openFigure,
-      onForeground: _showForegroundBanner,
-      // A rotated token is useless to the server until it is told, and
-      // rotation is silent — so this is the difference between alerts
-      // working for a week and working indefinitely.
-      onToken: (_) => ref.read(alertPreferencesProvider.notifier)
-          .syncRegistration(),
-    );
+    await ref
+        .read(pushServiceProvider)
+        .start(
+          onOpened: _openFigure,
+          onForeground: _showForegroundBanner,
+          // A rotated token is useless to the server until it is told, and
+          // rotation is silent — so this is the difference between alerts
+          // working for a week and working indefinitely.
+          onToken:
+              (_) =>
+                  ref
+                      .read(alertPreferencesProvider.notifier)
+                      .syncRegistration(),
+        );
 
     if (!mounted) return;
 
@@ -120,8 +125,9 @@ class _CritiTrackAppState extends ConsumerState<CritiTrackApp> {
       // Above the navigator rather than on one screen, so the notice
       // holds wherever the reader lands — including on a deep link
       // straight into a dashboard.
-      builder: (context, child) =>
-          DemoBanner(child: child ?? const SizedBox.shrink()),
+      builder:
+          (context, child) =>
+              DemoBanner(child: child ?? const SizedBox.shrink()),
     );
   }
 }

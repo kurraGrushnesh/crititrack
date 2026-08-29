@@ -267,7 +267,7 @@ class _SentimentSectionState extends State<SentimentSection>
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'AI Analysis',
+                    'Generated analysis',
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: palette.brandText,
                     ),
@@ -930,7 +930,6 @@ class _ConfidenceBand extends StatelessWidget {
   }
 }
 
-
 /// An empty chart state that reads as "nothing yet", not as a failure.
 class _ChartNotice extends StatelessWidget {
   const _ChartNotice(this.title, this.detail);
@@ -949,11 +948,7 @@ class _ChartNotice extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.timeline_rounded,
-              size: 28,
-              color: palette.textMuted,
-            ),
+            Icon(Icons.timeline_rounded, size: 28, color: palette.textMuted),
             const SizedBox(height: 10),
             Text(
               title,

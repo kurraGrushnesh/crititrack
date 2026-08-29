@@ -81,9 +81,11 @@ List<SearchSuggestion> suggestionsFor({
 
   // Exactly what was typed is not a suggestion — offering it back is a
   // row that does nothing.
-  final ranked = [...prefix, ...contains]
-      .where((s) => s.name.toLowerCase() != needle)
-      .toList();
+  final ranked =
+      [
+        ...prefix,
+        ...contains,
+      ].where((s) => s.name.toLowerCase() != needle).toList();
 
   return ranked.length > limit ? ranked.sublist(0, limit) : ranked;
 }

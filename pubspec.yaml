@@ -9,6 +9,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Web-only, and imported only from the web branch of
+  # lib/core/platform/url_strategy.dart. Declared so the analyzer
+  # stops flagging it as an undeclared dependency.
+  flutter_web_plugins:
+    sdk: flutter
 
   # State Management
   flutter_riverpod: ^2.6.1

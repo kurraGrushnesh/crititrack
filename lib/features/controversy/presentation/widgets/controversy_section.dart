@@ -120,7 +120,8 @@ class ControversySection extends StatelessWidget {
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  'Index and severities are AI-assessed from public reporting',
+                  'Index and severities are algorithmically assessed from public '
+                  'reporting',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: palette.textMuted,
                     fontSize: 9,
@@ -134,7 +135,6 @@ class ControversySection extends StatelessWidget {
       ),
     );
   }
-
 }
 
 // ── Index panel ───────────────────────────────────────────────────
@@ -266,7 +266,6 @@ class _Shell extends StatelessWidget {
   }
 }
 
-
 /// How the timeline is ordered.
 enum _Order {
   /// Ongoing first, then severity, then recency. The default, because
@@ -301,9 +300,7 @@ class _TimelineState extends State<_Timeline> {
 
   List<Controversy> get _sorted {
     final list = [...widget.controversies];
-    list.sort(
-      _order == _Order.severity ? _bySeverityThenRecency : _byDate,
-    );
+    list.sort(_order == _Order.severity ? _bySeverityThenRecency : _byDate);
     return list;
   }
 
@@ -390,14 +387,12 @@ class _OrderButton extends StatelessWidget {
             height: 48,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 9,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
-                  color: selected
-                      ? AppTheme.primary.withValues(alpha: 0.14)
-                      : Colors.transparent,
+                  color:
+                      selected
+                          ? AppTheme.primary.withValues(alpha: 0.14)
+                          : Colors.transparent,
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
                     color: selected ? AppTheme.primary : palette.border,

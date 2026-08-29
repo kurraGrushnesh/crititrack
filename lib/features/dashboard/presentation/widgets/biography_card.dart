@@ -369,7 +369,6 @@ class _VerificationChip extends StatelessWidget {
   }
 }
 
-
 /// Hard facts, read from Wikidata rather than generated.
 ///
 /// Rendered at whatever precision Wikidata actually asserts. A profile
@@ -406,9 +405,10 @@ class _FactsStrip extends StatelessWidget {
               if (died != null) _Fact(label: 'Died', value: died),
               if (facts.citizenship.isNotEmpty)
                 _Fact(
-                  label: facts.citizenship.length == 1
-                      ? 'Citizenship'
-                      : 'Citizenships',
+                  label:
+                      facts.citizenship.length == 1
+                          ? 'Citizenship'
+                          : 'Citizenships',
                   value: facts.citizenship.join(', '),
                 ),
             ],

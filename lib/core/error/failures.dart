@@ -73,7 +73,7 @@ final class ParseFailure extends Failure {
 final class ModelNotFoundFailure extends Failure {
   const ModelNotFoundFailure({
     super.message =
-        'The AI model configuration needs updating. '
+        'The model configuration needs updating. '
             'Please contact the developer or check the Groq console.',
     super.stackTrace,
   });
