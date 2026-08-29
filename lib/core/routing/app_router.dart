@@ -17,12 +17,14 @@ import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/media_feed/presentation/screens/webview_screen.dart';
 import '../../features/dashboard/presentation/screens/error_screen.dart';
 import '../../features/sentiment/presentation/screens/compare_screen.dart';
+import '../../features/alerts/presentation/screens/alert_settings_screen.dart';
 
 /// Named route constants to avoid magic strings.
 abstract final class AppRoutes {
   static const String home = '/';
   static const String dashboard = '/dashboard/:slug';
   static const String mediaWebView = '/dashboard/:slug/media';
+  static const String alerts = '/alerts';
   static const String error = '/error';
 }
 
@@ -72,6 +74,11 @@ final GoRouter appRouter = GoRouter(
       path: '/compare',
       name: 'compare',
       builder: (context, state) => const CompareScreen(),
+    ),
+    GoRoute(
+      path: '/alerts',
+      name: 'alerts',
+      builder: (context, state) => const AlertSettingsScreen(),
     ),
     GoRoute(
       path: '/error',

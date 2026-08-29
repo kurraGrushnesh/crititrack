@@ -42,6 +42,7 @@ class _DeleteDataTileState extends ConsumerState<DeleteDataTile> {
                 _Bullet('Your watchlist, on this device and on our servers'),
                 _Bullet('Your recent searches'),
                 _Bullet('Your appearance preference'),
+                _Bullet('Your alert settings and notification registration'),
                 _Bullet('Your anonymous account and its usage counters'),
                 SizedBox(height: 12),
                 Text(

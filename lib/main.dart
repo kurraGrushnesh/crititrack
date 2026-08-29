@@ -2,6 +2,7 @@ library;
 
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'app.dart';
 import 'core/constants/api_config.dart';
 import 'core/theme/theme_controller.dart';
+import 'features/alerts/data/alert_preferences_store.dart';
+import 'features/alerts/data/push_service.dart';
 import 'features/watchlist/data/watchlist_repository.dart';
 import 'firebase_options.dart';
 
@@ -66,6 +69,16 @@ Future<void> main() async {
             kDebugMode ? AppleDebugProvider() : AppleAppAttestProvider(),
       );
     }
+    // Registering this is what makes Flutter wake for a notification
+    // delivered while the app is not running. Without it the message
+    // is handed to the system tray and the app never learns it
+    // happened, so a cold-start tap has nothing to route from. Not on
+    // web, which has no background isolate.
+    if (!kIsWeb) {
+      FirebaseMessaging.onBackgroundMessage(
+        firebaseMessagingBackgroundHandler,
+      );
+    }
   } catch (e, st) {
     // A missing console configuration must not stop the app from starting:
     // the backend answers 401 and the UI renders a typed failure instead.
@@ -79,6 +92,8 @@ Future<void> main() async {
   await Hive.openBox<dynamic>(settingsBoxName);
   // The watchlist is local-first, so it must be open before first paint.
   await Hive.openBox<dynamic>(watchlistBoxName);
+  // Alert preferences and this install's push identity.
+  await Hive.openBox<dynamic>(alertPrefsBoxName);
 
   runApp(const ProviderScope(child: CritiTrackApp()));
 }

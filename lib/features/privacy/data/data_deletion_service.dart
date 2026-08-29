@@ -18,6 +18,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:crititrack/core/theme/theme_controller.dart';
+import 'package:crititrack/features/alerts/data/alert_preferences_store.dart';
 import 'package:crititrack/features/watchlist/data/watchlist_repository.dart';
 
 /// What actually happened, so the UI can be honest about it.
@@ -57,13 +58,21 @@ class DataDeletionService {
     'search_recents',
     watchlistBoxName,
     settingsBoxName,
+    alertPrefsBoxName,
   ];
 
   Future<DeletionResult> deleteEverything() async {
     final problems = <String>[];
 
+    // Read before anything is cleared. The id addressing this device's
+    // push registration lives in local storage, and _clearLocal runs
+    // first — reading it afterwards would strand the server-side row,
+    // leaving a token behind on a server the user has just asked to
+    // forget them.
+    final installId = AlertPreferencesStore().installId();
+
     final localCleared = await _clearLocal(problems);
-    final remoteCleared = await _clearRemote(problems);
+    final remoteCleared = await _clearRemote(problems, installId);
     // Last: deleting the account first would remove the authorisation the
     // server-side deletes above depend on.
     final accountDeleted = await _deleteAccount(problems);
@@ -92,7 +101,7 @@ class DataDeletionService {
     return ok;
   }
 
-  Future<bool> _clearRemote(List<String> problems) async {
+  Future<bool> _clearRemote(List<String> problems, String installId) async {
     final db = _firestore;
     final uid = _uid;
 
@@ -112,6 +121,19 @@ class DataDeletionService {
         debugPrint('Failed deleting $collection/$uid: $e');
       }
     }
+
+    // The push registration is keyed by install rather than by uid, so
+    // the loop above does not reach it.
+    if (installId.isNotEmpty) {
+      try {
+        await db.collection('devices').doc(installId).delete();
+      } catch (e) {
+        ok = false;
+        problems.add('Could not delete your notification registration.');
+        debugPrint('Failed deleting devices/$installId: $e');
+      }
+    }
+
     return ok;
   }
 

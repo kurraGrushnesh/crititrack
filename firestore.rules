@@ -54,6 +54,26 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // ── Push registrations (F07) ──────────────────────────────────
+    // Keyed by a random per-install id rather than by uid, because one
+    // account can have several devices whose quiet hours differ.
+    //
+    // Update requires the uid to match on BOTH the stored row and the
+    // incoming one. Checking only the incoming one would let anybody who
+    // guessed an install id take over that row by rewriting its uid,
+    // which would silently stop the real owner's alerts.
+    match /devices/{installId} {
+      allow read, delete: if request.auth != null
+        && resource.data.uid == request.auth.uid;
+
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid;
+
+      allow update: if request.auth != null
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == request.auth.uid;
+    }
+
     // ── Deny everything else by default ─────────────────────────
     match /{document=**} {
       allow read, write: if false;

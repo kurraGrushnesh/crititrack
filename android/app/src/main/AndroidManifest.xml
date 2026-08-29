@@ -1,4 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Android 13+ requires this at runtime before any notification is
+         shown. Requested when the user follows their first figure, not at
+         launch: a prompt with nothing to justify it is the reliable way
+         to be denied permanently. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- usesCleartextTraffic="false": the app talks only to its own HTTPS
          backend, and SafeUrl already refuses any non-https link (SEC-06).
          This closes the platform-level route as well.
@@ -57,6 +63,15 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Used for any message that does not name a channel or icon
+             of its own. Ours always do, but a default keeps a future
+             message from silently failing to display. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="crititrack_alerts" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_crititrack" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

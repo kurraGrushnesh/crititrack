@@ -19,6 +19,7 @@ const logger = require("firebase-functions/logger");
 const CELEBRITIES = "celebrities";
 const MEDIA_ITEMS = "media_items";
 const SENTIMENT_SNAPSHOTS = "sentiment_snapshots";
+const DEVICES = "devices";
 
 /** Firestore rejects `undefined`; the SDK's ignoreUndefinedProperties is
  * not enabled here, so normalise to null explicitly.
@@ -267,6 +268,56 @@ async function markAlerted(slug, spike) {
   );
 }
 
+/**
+ * Devices that have asked to hear about this figure.
+ *
+ * The document id is a per-install identifier rather than the FCM token
+ * itself. Tokens rotate — on reinstall, on restore to a new phone, and
+ * periodically for no visible reason — and keying on one would leave a
+ * dead row behind on every rotation. Keying on the install means a
+ * rotation is an update to a field the app already owns.
+ *
+ * @param {string} slug
+ * @return {Promise<Array<object>>} device rows, each carrying its own id
+ */
+async function readDevicesForSlug(slug) {
+  const snap = await getFirestore()
+      .collection(DEVICES)
+      .where("slugs", "array-contains", slug)
+      .get();
+
+  return snap.docs.map((d) => ({id: d.id, ...d.data()}));
+}
+
+/**
+ * Removes device rows whose tokens FCM has told us are permanently dead.
+ *
+ * Deleting the whole row rather than blanking the token is deliberate: a
+ * row with no token is a row that will be read on every future alert and
+ * filtered out every time, which is a slow leak in both cost and latency.
+ *
+ * @param {string[]} ids
+ * @return {Promise<number>} how many were removed
+ */
+async function deleteDevices(ids) {
+  const unique = [...new Set((ids || []).filter(Boolean))];
+  if (unique.length === 0) return 0;
+
+  const db = getFirestore();
+
+  // Firestore caps a batch at 500 writes.
+  for (let i = 0; i < unique.length; i += 500) {
+    const batch = db.batch();
+    for (const id of unique.slice(i, i + 500)) {
+      batch.delete(db.collection(DEVICES).doc(id));
+    }
+    await batch.commit();
+  }
+
+  logger.info(`pruned ${unique.length} dead device(s)`);
+  return unique.length;
+}
+
 module.exports = {
   writeCelebrity,
   markRequested,
@@ -275,4 +326,6 @@ module.exports = {
   readSnapshotHistory,
   readLastAlertedAt,
   markAlerted,
+  readDevicesForSlug,
+  deleteDevices,
 };

@@ -83,7 +83,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               alignment: Alignment.topRight,
               child: Padding(
                 padding: const EdgeInsets.all(12),
-                child: const ThemeToggle(),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    _AlertsButton(),
+                    SizedBox(width: 2),
+                    ThemeToggle(),
+                  ],
+                ),
               ),
             ),
             Center(
@@ -451,6 +458,33 @@ class _Avatar extends StatelessWidget {
           placeholder: (_, __) => fallback,
           errorWidget: (_, __, ___) => fallback,
         ),
+      ),
+    );
+  }
+}
+
+/// Entry point to alert settings.
+///
+/// In the header rather than inside the collapsed privacy section,
+/// because a control the user is expected to find has to be visible
+/// without opening anything.
+class _AlertsButton extends StatelessWidget {
+  const _AlertsButton();
+
+  @override
+  Widget build(BuildContext context) {
+    // 48dp explicitly: the icon alone is 40dp, which fails the tap-target
+    // guard in the accessibility tests.
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: IconButton(
+        icon: Icon(
+          Icons.notifications_none_rounded,
+          color: context.palette.textSecondary,
+        ),
+        tooltip: 'Alert settings',
+        onPressed: () => context.push('/alerts'),
       ),
     );
   }

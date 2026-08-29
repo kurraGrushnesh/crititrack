@@ -19,6 +19,7 @@ const {defineSecret} = require("firebase-functions/params");
 const {setGlobalOptions} = require("firebase-functions/v2");
 const logger = require("firebase-functions/logger");
 const {initializeApp} = require("firebase-admin/app");
+const {getMessaging} = require("firebase-admin/messaging");
 
 const {assembleCelebrity, ApiError} = require("./lib/assemble");
 const {validateName, toSlug, ValidationError} = require("./lib/validate");
@@ -30,8 +31,16 @@ const {
   readSnapshotHistory,
   readLastAlertedAt,
   markAlerted,
+  readDevicesForSlug,
+  deleteDevices,
 } = require("./lib/store");
 const {detectSpike, shouldAlert, buildAlertMessage} = require("./lib/alerts");
+const {
+  selectRecipients,
+  buildPushPayload,
+  chunkTokens,
+  deadTokensFrom,
+} = require("./lib/push");
 const {
   requireUser,
   requireAppCheck,
@@ -271,6 +280,80 @@ async function maybeAlert(slug, name, history, payload) {
     samples: history.length,
   });
 
+  // Marked before sending, not after. If delivery throws, the cooldown
+  // has still been recorded — otherwise a persistently failing FCM call
+  // would re-detect the same spike every thirty minutes and deliver a
+  // burst the moment it recovered.
   await markAlerted(slug, spike);
+
+  await deliverPush({slug, message, spike, score: current});
   return true;
+}
+
+/**
+ * Sends the alert to every device that asked for it and is not inside its
+ * quiet hours.
+ *
+ * Never throws. A push failure must not fail the scheduled refresh: the
+ * snapshot has already been written and is the more valuable half of the
+ * job. Failures are logged and the run continues.
+ *
+ * @param {object} args
+ * @param {string} args.slug
+ * @param {{title: string, body: string}} args.message
+ * @param {object} args.spike
+ * @param {number} args.score
+ * @return {Promise<number>} messages accepted by FCM
+ */
+async function deliverPush({slug, message, spike, score}) {
+  let devices;
+  try {
+    devices = await readDevicesForSlug(slug);
+  } catch (err) {
+    logger.error(`${slug}: could not read devices for push`, err);
+    return 0;
+  }
+
+  const tokens = selectRecipients(devices, slug, Date.now());
+  if (tokens.length === 0) {
+    logger.info(`${slug}: alert raised, no eligible devices`);
+    return 0;
+  }
+
+  const payload = buildPushPayload({slug, message, spike, score});
+  // FCM reports failures by token; deleting needs the install id.
+  const idByToken = new Map(devices.map((d) => [d.token, d.id]));
+
+  let accepted = 0;
+  const dead = [];
+
+  for (const batch of chunkTokens(tokens)) {
+    try {
+      const res = await getMessaging().sendEachForMulticast({
+        ...payload,
+        tokens: batch,
+      });
+      accepted += res.successCount;
+      for (const token of deadTokensFrom(res, batch)) {
+        const id = idByToken.get(token);
+        if (id) dead.push(id);
+      }
+    } catch (err) {
+      logger.error(`${slug}: FCM batch of ${batch.length} failed`, err);
+    }
+  }
+
+  if (dead.length > 0) {
+    try {
+      await deleteDevices(dead);
+    } catch (err) {
+      logger.error(`${slug}: could not prune dead devices`, err);
+    }
+  }
+
+  logger.info(
+      `${slug}: push accepted ${accepted}/${tokens.length}` +
+      (dead.length ? `, pruned ${dead.length}` : ""),
+  );
+  return accepted;
 }
