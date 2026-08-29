@@ -22,6 +22,7 @@ class MediaItem extends Equatable {
     this.publishedAt,
     this.description,
     this.sentimentTag,
+    this.sentimentScore,
     this.videoId,
     this.channelTitle,
     this.mediaUrl,
@@ -55,6 +56,15 @@ class MediaItem extends Equatable {
   /// AI-assigned sentiment: "positive", "negative", or "neutral".
   final String? sentimentTag;
 
+  /// This item's own blended sentiment, 0-100.
+  ///
+  /// Distinct from the figure's overall score: it is what the
+  /// ensemble made of this one headline, and it is what the tag
+  /// above is derived from. Null for anything the ensemble did not
+  /// score, which renders without a chip rather than as neutral --
+  /// neutral is a measurement, and absence is not.
+  final int? sentimentScore;
+
   // ── YouTube-specific ──────────────────────────────────────────────
   final String? videoId;
   final String? channelTitle;
@@ -79,6 +89,7 @@ class MediaItem extends Equatable {
     'publishedAt': publishedAt?.toIso8601String(),
     'description': description,
     'sentimentTag': sentimentTag,
+    'sentimentScore': sentimentScore,
     'videoId': videoId,
     'channelTitle': channelTitle,
     'mediaUrl': mediaUrl,
@@ -102,6 +113,7 @@ class MediaItem extends Equatable {
               : null,
       description: data['description'] as String?,
       sentimentTag: data['sentimentTag'] as String?,
+      sentimentScore: (data['sentimentScore'] as num?)?.toInt(),
       videoId: data['videoId'] as String?,
       channelTitle: data['channelTitle'] as String?,
       mediaUrl: data['mediaUrl'] as String?,

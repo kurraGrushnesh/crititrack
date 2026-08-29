@@ -183,6 +183,7 @@ class ProxyCelebrityRepository extends CelebrityRepository {
               return SentimentEvidence(
                 fragment: d['fragment'] as String? ?? '',
                 source: d['source'] as String? ?? 'news',
+                mediaId: d['mediaId'] as String?,
               );
             })
             .where((e) => e.fragment.isNotEmpty)

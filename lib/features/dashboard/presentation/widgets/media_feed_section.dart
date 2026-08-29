@@ -9,15 +9,17 @@ library;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:crititrack/core/domain/models/media_item.dart';
 import 'package:crititrack/core/security/safe_url.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
+import 'package:crititrack/features/dashboard/presentation/providers/media_focus.dart';
 import 'package:crititrack/core/utils/helpers.dart';
 
-class MediaFeedSection extends StatefulWidget {
+class MediaFeedSection extends ConsumerStatefulWidget {
   const MediaFeedSection({
     super.key,
     required this.mediaItems,
@@ -28,11 +30,11 @@ class MediaFeedSection extends StatefulWidget {
   final String slug;
 
   @override
-  State<MediaFeedSection> createState() => _MediaFeedSectionState();
+  ConsumerState<MediaFeedSection> createState() => _MediaFeedSectionState();
 }
 
 /// `null` = show everything; otherwise restrict to one [MediaType].
-class _MediaFeedSectionState extends State<MediaFeedSection> {
+class _MediaFeedSectionState extends ConsumerState<MediaFeedSection> {
   MediaType? _filter;
 
   int _count(MediaType type) =>
@@ -58,6 +60,18 @@ class _MediaFeedSectionState extends State<MediaFeedSection> {
     final theme = Theme.of(context);
     final palette = context.palette;
     final items = widget.mediaItems;
+    final focused = ref.watch(mediaFocusProvider);
+
+    // A fragment can cite an article that the active type filter is
+    // hiding. Scrolling to a row that is not being built would do
+    // nothing at all and look like a dead link, so the filter gives way
+    // to the more specific request.
+    ref.listen<String?>(mediaFocusProvider, (_, id) {
+      if (id == null || _filter == null) return;
+      final known = widget.mediaItems.any((i) => i.id == id);
+      final shown = _visible.any((i) => i.id == id);
+      if (known && !shown) setState(() => _filter = null);
+    });
 
     if (items.isEmpty) {
       return _Shell(
@@ -155,7 +169,16 @@ class _MediaFeedSectionState extends State<MediaFeedSection> {
               ),
             )
           else
-            ...visible.map((item) => _MediaRow(item: item, slug: widget.slug)),
+            ...visible.map(
+              (item) => _MediaRow(
+                item: item,
+                slug: widget.slug,
+                anchorKey: ref
+                    .read(mediaFocusProvider.notifier)
+                    .anchorFor(item.id),
+                highlighted: item.id == focused,
+              ),
+            ),
         ],
       ),
     );
@@ -165,10 +188,20 @@ class _MediaFeedSectionState extends State<MediaFeedSection> {
 // ── Media row ─────────────────────────────────────────────────────
 
 class _MediaRow extends StatelessWidget {
-  const _MediaRow({required this.item, required this.slug});
+  const _MediaRow({
+    required this.item,
+    required this.slug,
+    required this.anchorKey,
+    required this.highlighted,
+  });
 
   final MediaItem item;
   final String slug;
+
+  /// Scroll target for a cited fragment pointing at this item.
+  final GlobalKey anchorKey;
+
+  final bool highlighted;
 
   Future<void> _open(BuildContext context) async {
     // SEC-06: links come from third-party APIs, so the scheme is checked
@@ -201,12 +234,21 @@ class _MediaRow extends StatelessWidget {
     final palette = context.palette;
     final color = _typeColor(item.type);
 
-    return Container(
+    return AnimatedContainer(
+      key: anchorKey,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: palette.elevated,
+        color:
+            highlighted
+                ? AppTheme.primary.withValues(alpha: 0.10)
+                : palette.elevated,
         borderRadius: AppTheme.radiusMd,
-        border: Border.all(color: palette.border),
+        border: Border.all(
+          color: highlighted ? AppTheme.primary : palette.border,
+          width: highlighted ? 2 : 1,
+        ),
       ),
       child: Material(
         color: Colors.transparent,
@@ -268,6 +310,17 @@ class _MediaRow extends StatelessWidget {
                               style: theme.textTheme.labelSmall,
                             ),
                           ],
+                          // Absent for anything the ensemble did not
+                          // score, which renders without a chip rather
+                          // than as neutral -- neutral is a measurement,
+                          // and absence is not.
+                          if (item.sentimentScore != null) ...[
+                            const SizedBox(width: 8),
+                            _SentimentChip(
+                              score: item.sentimentScore!,
+                              tag: item.sentimentTag,
+                            ),
+                          ],
                         ],
                       ),
                     ],
@@ -281,6 +334,48 @@ class _MediaRow extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// This item's own blended sentiment.
+///
+/// The number is shown, not just a colour: a coloured dot alone cannot be
+/// read by anyone with a colour vision deficiency, and the guards in
+/// accessibility_test.dart exist to stop exactly that from creeping in.
+class _SentimentChip extends StatelessWidget {
+  const _SentimentChip({required this.score, required this.tag});
+
+  final int score;
+  final String? tag;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = switch (tag) {
+      'positive' => AppTheme.sentimentPositive,
+      'negative' => AppTheme.sentimentNegative,
+      _ => AppTheme.sentimentNeutral,
+    };
+
+    return Semantics(
+      label: 'Coverage sentiment ${tag ?? "unrated"}, $score out of 100',
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          '$score',
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: color,
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
       ),

@@ -163,8 +163,36 @@ function confidenceLabel(c) {
   return "Very low confidence";
 }
 
+/** Score at or above which an item counts as positive coverage. */
+const POSITIVE_AT = 65;
+
+/** Score below which an item counts as negative coverage. */
+const NEGATIVE_BELOW = 40;
+
+/**
+ * The band a blended item score falls in.
+ *
+ * Centralised so the per-item tag shown on a card in the feed and the
+ * positive/negative ratios shown in the sentiment panel are computed from
+ * one definition. They were separate inline comparisons, which is the
+ * kind of duplication that stays correct right up until one of them is
+ * tuned.
+ *
+ * @param {number} score
+ * @return {string|null} "positive" | "neutral" | "negative"
+ */
+function tagFor(score) {
+  if (typeof score !== "number" || !Number.isFinite(score)) return null;
+  if (score >= POSITIVE_AT) return "positive";
+  if (score < NEGATIVE_BELOW) return "negative";
+  return "neutral";
+}
+
 module.exports = {
   blendItem,
+  tagFor,
+  POSITIVE_AT,
+  NEGATIVE_BELOW,
   aggregate,
   confidenceOf,
   confidenceLabel,

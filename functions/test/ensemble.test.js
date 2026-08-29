@@ -167,3 +167,27 @@ test("hostOf normalises URLs and bare domains alike", () => {
   assert.equal(hostOf("WWW.Variety.com"), "variety.com");
   assert.equal(hostOf("not a domain"), "");
 });
+
+// ── tagFor: the band shown on a card in the feed ───────────────────────
+
+test("tagFor bands a score at the documented thresholds", () => {
+  const {tagFor, POSITIVE_AT, NEGATIVE_BELOW} = require("../lib/sentiment/ensemble");
+
+  assert.equal(tagFor(POSITIVE_AT), "positive");
+  assert.equal(tagFor(POSITIVE_AT - 0.1), "neutral");
+  assert.equal(tagFor(NEGATIVE_BELOW), "neutral");
+  assert.equal(tagFor(NEGATIVE_BELOW - 0.1), "negative");
+  assert.equal(tagFor(0), "negative");
+  assert.equal(tagFor(100), "positive");
+});
+
+test("tagFor returns null for a score that is not a number", () => {
+  // A card with no tag renders without a chip; a card tagged "neutral"
+  // asserts something we did not measure.
+  const {tagFor} = require("../lib/sentiment/ensemble");
+
+  assert.equal(tagFor(null), null);
+  assert.equal(tagFor(undefined), null);
+  assert.equal(tagFor("70"), null);
+  assert.equal(tagFor(NaN), null);
+});

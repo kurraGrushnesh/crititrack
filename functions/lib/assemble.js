@@ -24,10 +24,16 @@ const {
   ApiError,
 } = require("./groq");
 const lexicon = require("./sentiment/lexicon");
-const {blendItem, aggregate, confidenceLabel} = require("./sentiment/ensemble");
+const {
+  blendItem,
+  aggregate,
+  confidenceLabel,
+  tagFor,
+} = require("./sentiment/ensemble");
 const {weightFor} = require("./sentiment/reach");
 const {corroborate} = require("./corroborate");
 const {fetchNews, fetchVideos, fetchGdelt, dedupe} = require("./media");
+const {linkEvidence} = require("./evidence");
 const {fetchWikiSummary} = require("./wiki");
 
 /**
@@ -120,8 +126,25 @@ async function assembleCelebrity(keys, name, slug) {
 
     // Ratios are now counted from the per-item scores rather than asked
     // from the model, so they describe the coverage we actually retrieved.
-    const positive = blended.filter((b) => b.score >= 65).length;
-    const negative = blended.filter((b) => b.score < 40).length;
+    // ── Per-item tags (F05) ───────────────────────────────────
+    // The blend already scores every item; until now that score was
+    // aggregated and thrown away, so `sentimentTag` was a field the
+    // prompt, the store and the client all handled and nothing ever
+    // wrote. Every card in the feed carried a null.
+    //
+    // `scorable` holds the same object references as `media`, so
+    // tagging here tags the items that actually get persisted.
+    for (const b of blended) {
+      const item = scorable[b.index];
+      if (!item) continue;
+      item.sentimentScore = Math.round(b.score);
+      item.sentimentTag = tagFor(b.score);
+    }
+
+    const positive =
+      blended.filter((b) => tagFor(b.score) === "positive").length;
+    const negative =
+      blended.filter((b) => tagFor(b.score) === "negative").length;
     const total = blended.length || 1;
 
     sentiment = {
@@ -138,6 +161,19 @@ async function assembleCelebrity(keys, name, slug) {
       neutralRatio: (total - positive - negative) / total,
     };
   }
+
+  // ── Evidence → article (F05) ────────────────────────────────────
+  // The model cites a fragment and a source *type* — "news",
+  // "youtube" — which identifies no particular article, so a reader
+  // could see a quote and see the coverage and have no way to get
+  // from one to the other. Matching it back to a single item is what
+  // makes the fragment tappable. An ambiguous match resolves to null
+  // and the fragment stays inert, rather than pointing somewhere
+  // plausible and wrong.
+  sentiment = {
+    ...sentiment,
+    evidence: linkEvidence(sentiment.evidence, media),
+  };
 
   // ── Per-source decomposition (best effort) ──────────────────────
   const [scoreNews, scoreYoutube] = await Promise.all([

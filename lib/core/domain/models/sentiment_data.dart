@@ -15,7 +15,11 @@ import 'package:equatable/equatable.dart';
 
 /// A single evidence fragment cited by the model (Phase 2).
 class SentimentEvidence extends Equatable {
-  const SentimentEvidence({required this.fragment, required this.source});
+  const SentimentEvidence({
+    required this.fragment,
+    required this.source,
+    this.mediaId,
+  });
 
   /// Short excerpt (≤ 12 words) the model pointed to.
   final String fragment;
@@ -23,14 +27,28 @@ class SentimentEvidence extends Equatable {
   /// Which data source: "news", "youtube", or "instagram".
   final String source;
 
-  @override
-  List<Object?> get props => [fragment, source];
+  /// The retrieved item this fragment was matched back to.
+  ///
+  /// Null when no single article was clearly the source. The panel
+  /// renders those fragments as plain text rather than as something
+  /// tappable, because a link that lands on the wrong article is
+  /// worse than no link: it attributes a quote to coverage that
+  /// never carried it, under that outlet's name.
+  final String? mediaId;
 
-  Map<String, dynamic> toMap() => {'fragment': fragment, 'source': source};
+  @override
+  List<Object?> get props => [fragment, source, mediaId];
+
+  Map<String, dynamic> toMap() => {
+    'fragment': fragment,
+    'source': source,
+    'mediaId': mediaId,
+  };
 
   factory SentimentEvidence.fromMap(Map<String, dynamic> map) {
     return SentimentEvidence(
       fragment: map['fragment'] as String? ?? '',
+      mediaId: map['mediaId'] as String?,
       source: map['source'] as String? ?? 'news',
     );
   }

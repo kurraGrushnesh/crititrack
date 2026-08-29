@@ -8,9 +8,11 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:crititrack/core/domain/models/sentiment_data.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
+import 'package:crititrack/features/dashboard/presentation/providers/media_focus.dart';
 
 class EvidencePanel extends StatefulWidget {
   const EvidencePanel({super.key, required this.evidence});
@@ -133,17 +135,26 @@ class _EvidencePanelState extends State<EvidencePanel>
 }
 
 /// A single evidence fragment with its source badge.
-class _EvidenceItem extends StatelessWidget {
+///
+/// Tappable when the fragment was matched back to a specific retrieved
+/// item, which scrolls the feed to that article and highlights it.
+/// Fragments that matched nothing, or matched two things equally well,
+/// render as plain text: a link that lands on the wrong article is
+/// worse than no link, because it attributes a quote to coverage that
+/// never carried it.
+class _EvidenceItem extends ConsumerWidget {
   const _EvidenceItem({required this.evidence});
 
   final SentimentEvidence evidence;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final mediaId = evidence.mediaId;
+    final linked = mediaId != null && mediaId.isNotEmpty;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+    final row = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -176,10 +187,43 @@ class _EvidenceItem extends StatelessWidget {
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontStyle: FontStyle.italic,
                 height: 1.4,
+                color: linked ? AppTheme.primary : null,
+                decoration: linked ? TextDecoration.underline : null,
+                decorationStyle: TextDecorationStyle.dotted,
               ),
             ),
           ),
+          if (linked) ...[
+            const SizedBox(width: 4),
+            Icon(
+              Icons.subdirectory_arrow_right_rounded,
+              size: 14,
+              color: AppTheme.primary,
+            ),
+          ],
         ],
+      ),
+    );
+
+    if (!linked) {
+      return Padding(padding: const EdgeInsets.only(bottom: 4), child: row);
+    }
+
+    return Semantics(
+      button: true,
+      label: 'Show the article this quote came from',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () => ref.read(mediaFocusProvider.notifier).focus(mediaId),
+          // Comfortably past the 48dp minimum once the vertical
+          // padding above is counted, matching the accessibility guards.
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: row,
+          ),
+        ),
       ),
     );
   }

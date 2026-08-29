@@ -91,3 +91,57 @@ across timezones and midnight, payload construction, token batching, dead-
 token pruning, and the parse that turns a tapped notification into a
 route. The plumbing between them — permission, token retrieval, channel
 creation — is written and analysed but unproven.
+
+## Media sources (F05)
+
+Three are wired, in this order of preference:
+
+**GDELT** is queried first and needs no key or quota, so its results are
+put ahead of NewsAPI's in the deduper — where the two overlap, GDELT's
+copy is kept and the NewsAPI quota goes further. Its timestamps are
+`20260828T164028Z`, which `Date.parse` cannot read, so `parseGdeltDate`
+handles them; that is covered by fixture tests rather than by a live call,
+because GDELT is not reachable from every network. It was unreachable from
+the machine this was written on, verified again at the time of writing:
+the endpoint times out rather than refusing, which looks identical to
+having no coverage.
+
+**NewsAPI** free tier is developer-only and delayed 24 hours, so it is a
+supplement rather than the spine.
+
+**YouTube** supplies video coverage and is reach-weighted by view count.
+
+### Deliberately not used
+
+**Reddit.** The unauthenticated JSON endpoints return `403` — confirmed
+again while writing this, with a descriptive user agent. Using it properly
+means OAuth, and Reddit's terms restrict what may then be done with the
+data. It is listed as a candidate in the feature specification; this is
+the reason it is not wired.
+
+**Google News RSS.** Its own copyright notice restricts it to personal,
+non-commercial use.
+
+### Per-item scoring
+
+Every retrieved item carries the score the ensemble gave it, and the band
+that score falls in. Both come from `tagFor`, which is also what computes
+the positive and negative ratios in the sentiment panel — one definition,
+so a card in the feed and the summary above it cannot disagree.
+
+An item the ensemble did not score has no tag and renders without a chip,
+rather than defaulting to neutral. Neutral is a measurement; absence is
+not.
+
+### Evidence to article
+
+A model-cited fragment is matched back to the single retrieved item it
+came from, and the panel then makes it tappable. The model is not asked
+for an id and would not be trusted with one: an invented id would link a
+quote to an unrelated article with complete confidence.
+
+The match is by containment first, then by share of distinctive terms,
+and **any tie resolves to null**. Two headlines can share an opening
+clause and still be different stories, so guessing would attribute a
+quote to coverage that never carried it, under that outlet's name. An
+unmatched fragment simply renders as plain text.
