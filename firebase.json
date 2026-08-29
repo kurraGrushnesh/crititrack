@@ -4,18 +4,14 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
-    "public": "build/web",
+    "public": "site/out",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
     ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
+    "trailingSlash": true,
+    "cleanUrls": false
   },
   "flutter": {
     "platforms": {
