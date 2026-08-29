@@ -29,6 +29,7 @@ import 'package:crititrack/core/utils/helpers.dart';
 import 'package:crititrack/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:crititrack/features/controversy/presentation/widgets/controversy_section.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/biography_card.dart';
+import 'package:crititrack/features/dashboard/presentation/widgets/disambiguation_bar.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/media_feed_section.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/sentiment_section.dart';
 import 'package:crititrack/features/watchlist/domain/watched_figure.dart';
@@ -151,6 +152,18 @@ class _DashboardContent extends ConsumerWidget {
             const SizedBox(width: 4),
           ],
         ),
+        // ── Which person this is ────────────────────────────────
+        // Above everything, because it governs whether the rest of
+        // the screen is about the person the reader meant.
+        SliverToBoxAdapter(
+          child: DisambiguationBar(
+            slug: celebrity.slug,
+            resolvedName: celebrity.name,
+            resolvedDescription: celebrity.biography.profession,
+            candidates: celebrity.candidates,
+          ),
+        ),
+
         // ── Content ─────────────────────────────────────────────
         if (isWide)
           SliverToBoxAdapter(
@@ -167,6 +180,7 @@ class _DashboardContent extends ConsumerWidget {
                           biography: celebrity.biography,
                           name: celebrity.name,
                           imageUrl: celebrity.imageUrl,
+                          facts: celebrity.facts,
                           verified: celebrity.verified,
                         ),
                         const SizedBox(height: 16),
@@ -206,6 +220,7 @@ class _DashboardContent extends ConsumerWidget {
                 biography: celebrity.biography,
                 name: celebrity.name,
                 imageUrl: celebrity.imageUrl,
+                facts: celebrity.facts,
                 verified: celebrity.verified,
               ),
             ),

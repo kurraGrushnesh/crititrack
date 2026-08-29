@@ -27,6 +27,17 @@ final celebrityRepositoryProvider = Provider<CelebrityRepository>((ref) {
   return FirestoreCelebrityRepository(remote: proxy);
 });
 
+/// Wikidata ids the reader has pinned, by slug.
+///
+/// Set when someone picks an alternative from the disambiguation
+/// list. Held beside the dashboard family rather than folded into
+/// its key so that every existing `dashboardProvider(slug)` call
+/// site keeps working and a pin simply changes what that slug
+/// resolves to.
+final pinnedEntityProvider = StateProvider<Map<String, String>>(
+  (ref) => const {},
+);
+
 /// Celebrity data keyed by slug. Triggers real API calls on first watch.
 /// Calling `ref.invalidate(dashboardProvider('slug'))` triggers a re-fetch.
 final dashboardProvider = FutureProvider.family<Celebrity, String>((
@@ -36,7 +47,10 @@ final dashboardProvider = FutureProvider.family<Celebrity, String>((
   final repo = ref.watch(celebrityRepositoryProvider);
   final displayName = fromSlug(slug);
 
-  final result = await repo.getCelebrity(displayName);
+  final result = await repo.getCelebrity(
+    displayName,
+    qid: ref.watch(pinnedEntityProvider)[slug],
+  );
 
   return switch (result) {
     Success(:final value) => value,

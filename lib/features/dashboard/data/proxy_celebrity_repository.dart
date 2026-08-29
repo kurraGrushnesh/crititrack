@@ -16,6 +16,7 @@ import 'package:http/http.dart' as http;
 import 'package:crititrack/core/constants/api_config.dart';
 import 'package:crititrack/core/domain/models/celebrity.dart';
 import 'package:crititrack/core/domain/models/media_item.dart';
+import 'package:crititrack/core/domain/models/person_facts.dart';
 import 'package:crititrack/core/domain/models/sentiment_data.dart';
 import 'package:crititrack/core/error/failures.dart';
 import 'package:crititrack/core/error/result.dart';
@@ -35,7 +36,8 @@ class ProxyCelebrityRepository extends CelebrityRepository {
   final ApiCredentials _credentials;
 
   @override
-  Future<Result<Celebrity>> getCelebrity(String name) => _fetch(name);
+  Future<Result<Celebrity>> getCelebrity(String name, {String? qid}) =>
+      _fetch(name, qid: qid);
 
   @override
   Future<Result<Celebrity>> forceRefresh(String name) =>
@@ -44,10 +46,15 @@ class ProxyCelebrityRepository extends CelebrityRepository {
   Future<Result<Celebrity>> _fetch(
     String name, {
     bool bustCache = false,
+    String? qid,
   }) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}/getCelebrity').replace(
       queryParameters: {
         'name': name,
+        // Pins resolution to a specific person when the reader has
+        // picked one from the disambiguation list. The server
+        // validates it as a qid rather than trusting it.
+        if (qid != null && qid.isNotEmpty) 'qid': qid,
         if (bustCache) 't': DateTime.now().millisecondsSinceEpoch.toString(),
       },
     );
@@ -153,6 +160,14 @@ class ProxyCelebrityRepository extends CelebrityRepository {
           DateTime.now(),
       imageUrl: image?['url'] as String?,
       wikidataId: entity?['qid'] as String?,
+      facts: PersonFacts.fromMap(
+        (entity?['facts'] as Map?)?.cast<String, dynamic>(),
+      ),
+      candidates: [
+        for (final c in (entity?['candidates'] as List?) ?? const [])
+          if (c is Map)
+            if (EntityCandidate.fromMap(c) case final e?) e,
+      ],
       verified: json['verified'] as bool? ?? false,
     );
   }

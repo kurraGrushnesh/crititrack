@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import 'package:crititrack/core/domain/models/celebrity.dart';
+import 'package:crititrack/core/domain/models/person_facts.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
 
 class BiographyCard extends StatefulWidget {
@@ -12,6 +13,7 @@ class BiographyCard extends StatefulWidget {
     required this.biography,
     required this.name,
     this.imageUrl,
+    this.facts = PersonFacts.empty,
     this.verified = false,
   });
 
@@ -20,6 +22,9 @@ class BiographyCard extends StatefulWidget {
 
   /// Portrait image URL, when available.
   final String? imageUrl;
+
+  /// Structured facts read from Wikidata claims.
+  final PersonFacts facts;
 
   /// Whether the subject resolved to a documented person on Wikidata.
   final bool verified;
@@ -138,6 +143,13 @@ class _BiographyCardState extends State<BiographyCard>
               ],
             ),
           ),
+
+          // ── Structured facts ────────────────────────────────────
+          // Above the prose, because that is the distinction worth
+          // making on this screen: everything here came off a
+          // Wikidata claim, and everything below it came from a
+          // model.
+          if (widget.facts.isNotEmpty) _FactsStrip(facts: widget.facts),
 
           // ── Summary ─────────────────────────────────────────────
           Padding(
@@ -353,6 +365,140 @@ class _VerificationChip extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+
+/// Hard facts, read from Wikidata rather than generated.
+///
+/// Rendered at whatever precision Wikidata actually asserts. A profile
+/// that shows "1 January 1856" for someone whose birth year is all that
+/// was ever recorded is stating something nobody knows.
+class _FactsStrip extends StatelessWidget {
+  const _FactsStrip({required this.facts});
+
+  final PersonFacts facts;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+
+    final born = facts.birthDisplay;
+    final died = facts.deathDisplay;
+    final age = facts.age;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 18,
+            runSpacing: 8,
+            children: [
+              if (born != null)
+                _Fact(
+                  label: 'Born',
+                  value: age == null ? born : '$born  ·  $age',
+                ),
+              if (died != null) _Fact(label: 'Died', value: died),
+              if (facts.citizenship.isNotEmpty)
+                _Fact(
+                  label: facts.citizenship.length == 1
+                      ? 'Citizenship'
+                      : 'Citizenships',
+                  value: facts.citizenship.join(', '),
+                ),
+            ],
+          ),
+          if (facts.occupations.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final occupation in facts.occupations)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: palette.elevated,
+                      borderRadius: AppTheme.radiusSm,
+                      border: Border.all(color: palette.border),
+                    ),
+                    child: Text(
+                      occupation,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: palette.textSecondary,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Icon(
+                Icons.fact_check_outlined,
+                size: 12,
+                color: palette.textMuted,
+              ),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  'From Wikidata. The description below is generated.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: palette.textMuted,
+                    fontSize: 10.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Fact extends StatelessWidget {
+  const _Fact({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: palette.textMuted,
+            fontSize: 9,
+            letterSpacing: 0.8,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 1),
+        Text(
+          value,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: palette.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }

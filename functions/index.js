@@ -23,7 +23,7 @@ const {getMessaging} = require("firebase-admin/messaging");
 
 const {assembleCelebrity, ApiError} = require("./lib/assemble");
 const {validateName, toSlug, ValidationError} = require("./lib/validate");
-const {resolvePerson} = require("./lib/entity");
+const {resolvePerson, resolveByQid} = require("./lib/entity");
 const {
   writeCelebrity,
   markRequested,
@@ -129,7 +129,16 @@ exports.getCelebrity = onRequest(
         // Every spelling of one name then shares a cache entry, and the
         // upstream calls are made with the canonical label rather than
         // whatever the user typed — "ntr" becomes "N. T. Rama Rao".
-        const entity = await resolvePerson(name);
+        // An explicit Wikidata id pins the lookup to the person the
+        // reader chose from the disambiguation list. Going back through
+        // search with their label would be circular: two people can share
+        // a label exactly, which is how the ambiguity arose in the first
+        // place. Validated as a qid rather than trusted, because it
+        // arrives in a query string.
+        const pinned = String(req.query.qid || "");
+        const entity = /^Q\d+$/.test(pinned) ?
+          await resolveByQid(pinned) :
+          await resolvePerson(name);
         const canonicalName = entity ? entity.label : name;
         const canonicalSlug = entity ? toSlug(entity.label) : slug;
 

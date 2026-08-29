@@ -12,7 +12,7 @@ import 'package:crititrack/core/error/result.dart';
 /// Base repository interface. Concrete implementations call real APIs.
 class CelebrityRepository {
   /// Fetches celebrity data by the user's exact entered [name].
-  Future<Result<Celebrity>> getCelebrity(String name) async {
+  Future<Result<Celebrity>> getCelebrity(String name, {String? qid}) async {
     return const Error(ServerFailure(message: 'Repository not initialized.'));
   }
 

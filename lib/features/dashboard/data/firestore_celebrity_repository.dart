@@ -44,7 +44,7 @@ class FirestoreCelebrityRepository extends CelebrityRepository {
   final Duration freshWindow;
 
   @override
-  Future<Result<Celebrity>> getCelebrity(String name) async {
+  Future<Result<Celebrity>> getCelebrity(String name, {String? qid}) async {
     final cached = await _read(toSlug(name));
 
     if (cached != null &&
@@ -53,7 +53,7 @@ class FirestoreCelebrityRepository extends CelebrityRepository {
       return Success(cached);
     }
 
-    final fresh = await _remote.getCelebrity(name);
+    final fresh = await _remote.getCelebrity(name, qid: qid);
 
     // A stale cached copy still beats an error screen when the upstream
     // APIs are down.

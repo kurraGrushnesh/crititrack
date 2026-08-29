@@ -10,6 +10,7 @@ import 'package:equatable/equatable.dart';
 
 import 'controversy.dart';
 import 'media_item.dart';
+import 'person_facts.dart';
 import 'sentiment_data.dart';
 
 class Celebrity extends Equatable {
@@ -22,6 +23,8 @@ class Celebrity extends Equatable {
     required this.fetchedAt,
     this.imageUrl,
     this.wikidataId,
+    this.facts = PersonFacts.empty,
+    this.candidates = const [],
     this.verified = false,
     this.cacheVersion = 1,
   });
@@ -38,6 +41,21 @@ class Celebrity extends Equatable {
   /// Wikidata item id for the resolved person, e.g. `Q189489`. Null when
   /// the name could not be resolved to a documented human.
   final String? wikidataId;
+
+  /// Hard facts read from Wikidata: birth, death, citizenship,
+  /// occupation.
+  ///
+  /// Structured, not generated. Everything here came from a claim on
+  /// the resolved entity; only [Biography.summary] and
+  /// [Biography.background] are model output.
+  final PersonFacts facts;
+
+  /// Other people the searched name also matched.
+  ///
+  /// Non-empty means the resolution was a pick among several, and
+  /// the UI offers the alternatives rather than presenting the
+  /// choice as the only reading.
+  final List<EntityCandidate> candidates;
 
   /// Whether the name resolved to a person Wikidata lists as human.
   ///
