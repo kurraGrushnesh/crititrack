@@ -83,3 +83,6 @@ node_modules/
 
 # Firebase CLI deploy cache — local build state, not source
 .firebase/
+
+# Assembled hosting output — built from site/out and build/web
+/dist/

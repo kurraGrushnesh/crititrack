@@ -139,3 +139,58 @@ or verification fails for every user who installed from the store.
 - [ ] Data Safety form filled in from `docs/DATA_SAFETY.md`
 - [ ] Real app icon in place
 - [ ] Internal → closed → production, with a staged rollout
+
+## Web hosting
+
+Two things share one Firebase Hosting site: the marketing site at the
+root, and the Flutter web app under `/app/`.
+
+Hosting serves a single directory, and neither build can write into the
+other's output — `next build` wipes `site/out` and `flutter build web`
+wipes `build/web`, so copying one into the other survives exactly until
+the next build of the destination. Both are copied into a third,
+disposable directory instead.
+
+```bash
+flutter build web --release --base-href /app/
+(cd site && npm run build)
+node tool/assemble_hosting.js          # -> dist/
+npx firebase deploy --only hosting
+```
+
+`--base-href /app/` is not optional: without it the app requests its
+assets from the root and every one of them 404s. On Git Bash for Windows
+the value gets rewritten into a Windows path — run that command from
+PowerShell, or prefix it with `MSYS_NO_PATHCONV=1`.
+
+### The rewrite is scoped on purpose
+
+```json
+{ "source": "/app/**", "destination": "/app/index.html" }
+```
+
+The Flutter app is a single-page app, so its client routes have no file
+on disk and must fall back to its index. The marketing site is a static
+export with real files and its own `404.html`, and a catch-all there
+would answer every wrong URL with the home page and a `200` — which is
+worse than a 404, because it tells a crawler the page exists.
+
+### What the deployed app cannot do yet
+
+It loads, routes and renders. Every search fails.
+
+A release build points `ApiConfig` at
+`us-central1-crititrack-f7430.cloudfunctions.net`, and **no functions are
+deployed** — `firebase functions:list` returns none, because the
+scheduled refresher needs the Blaze plan. Until they are deployed the app
+is a shell: the UI works, the data path returns nothing.
+
+Point it somewhere else at build time if needed:
+
+```bash
+flutter build web --release --base-href /app/ \
+  --dart-define=API_BASE_URL=https://your-backend
+```
+
+App Check is also skipped on web without `RECAPTCHA_SITE_KEY`, which is
+moot while there is no backend to attest to.
