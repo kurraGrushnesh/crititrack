@@ -22,6 +22,14 @@
   --brand: #8b7cff;
   --brand-ink: #a99dff;
 
+  /* A darker violet used only where white text sits on top of it.
+     --brand itself is 3.27:1 against white, which fails AA for text at
+     this size and weight; these are 4.88:1 and 6.36:1. --brand stays as
+     it is for borders, focus rings and icons, where the 3:1 non-text
+     threshold is the one that applies. */
+  --brand-strong: #7358e8;
+  --brand-strong-hover: #6244d6;
+
   --good: #3fd5a0;
   --mid: #e3be5c;
   --bad: #ff7a66;
@@ -186,11 +194,14 @@ a {
 }
 
 .btn-primary {
-  background: var(--brand);
+  background: var(--brand-strong);
   color: #fff;
 }
 .btn-primary:hover {
-  background: var(--brand-ink);
+  /* Darker on hover, not lighter. The old hover used --brand-ink, which
+     dropped the contrast further at exactly the moment the button is
+     being read. */
+  background: var(--brand-strong-hover);
 }
 
 .btn-ghost {
