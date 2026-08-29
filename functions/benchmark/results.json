@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-28T16:54:56.603Z",
+  "generatedAt": "2026-08-29T03:50:54.474Z",
   "dataset": {
     "path": "benchmark/labelled.json",
     "items": 40,
@@ -35,68 +35,70 @@
           "support": 13
         }
       },
-      "latencyMsTotal": 5,
-      "latencyMsPerItem": 0.125,
+      "latencyMsTotal": 4,
+      "latencyMsPerItem": 0.1,
       "costPer1000Usd": 0,
       "note": "VADER lexicon. No network, no cost."
     },
-    "llm": {
+    "domain": {
+      "accuracy": 1,
+      "macroF1": 0.667,
+      "scored": 17,
+      "skipped": 23,
+      "perClass": {
+        "positive": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 7
+        },
+        "neutral": {
+          "precision": 0,
+          "recall": 0,
+          "f1": 0,
+          "support": 0
+        },
+        "negative": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 10
+        }
+      },
+      "latencyMsTotal": 2,
+      "latencyMsPerItem": 0.05,
+      "costPer1000Usd": 0,
+      "note": "Reputation lexicon. Abstains on headlines with no reputational vocabulary, which is why its skipped count is high; the skipped rows are excluded from its accuracy rather than counted wrong."
+    },
+    "lexiconPlusDomain": {
       "accuracy": 0.85,
-      "macroF1": 0.85,
+      "macroF1": 0.849,
       "scored": 40,
       "skipped": 0,
       "perClass": {
         "positive": {
-          "precision": 0.667,
-          "recall": 1,
+          "precision": 1,
+          "recall": 0.667,
           "f1": 0.8,
           "support": 12
         },
         "neutral": {
-          "precision": 1,
-          "recall": 0.6,
-          "f1": 0.75,
-          "support": 15
-        },
-        "negative": {
-          "precision": 1,
-          "recall": 1,
-          "f1": 1,
-          "support": 13
-        }
-      },
-      "latencyMsTotal": 5470,
-      "latencyMsPerItem": 136.75,
-      "note": "Single batched Groq call scoring every item."
-    },
-    "ensemble": {
-      "accuracy": 0.975,
-      "macroF1": 0.975,
-      "scored": 40,
-      "skipped": 0,
-      "perClass": {
-        "positive": {
-          "precision": 0.923,
-          "recall": 1,
-          "f1": 0.96,
-          "support": 12
-        },
-        "neutral": {
-          "precision": 1,
+          "precision": 0.737,
           "recall": 0.933,
-          "f1": 0.966,
+          "f1": 0.824,
           "support": 15
         },
         "negative": {
-          "precision": 1,
-          "recall": 1,
-          "f1": 1,
+          "precision": 0.923,
+          "recall": 0.923,
+          "f1": 0.923,
           "support": 13
         }
       },
-      "latencyMsTotal": 5475,
-      "latencyMsPerItem": 136.875,
-      "note": "Weighted blend of lexicon and LLM."
+      "latencyMsTotal": 6,
+      "latencyMsPerItem": 0.15,
+      "costPer1000Usd": 0,
+      "note": "The two free methods blended. No network, no cost."
     }
   }
 }

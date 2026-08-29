@@ -37,7 +37,7 @@ test("lexicon preserves positions so methods stay aligned", () => {
 // ── blending ───────────────────────────────────────────────────────
 
 test("blend averages the members and reports their spread", () => {
-  const b = blendItem({lexicon: 80, transformer: 82, llm: 78});
+  const b = blendItem({lexicon: 80, domain: 82, llm: 78});
   assert.ok(b.score > 78 && b.score < 82);
   assert.equal(b.spread, 4);
   assert.equal(b.methods.length, 3);
@@ -52,7 +52,7 @@ test("blend renormalises when a member is missing", () => {
 });
 
 test("blend ignores non-numeric member scores", () => {
-  const b = blendItem({lexicon: 70, llm: null, transformer: NaN});
+  const b = blendItem({lexicon: 70, llm: null, domain: NaN});
   assert.deepEqual(b.methods, ["lexicon"]);
 });
 
@@ -67,7 +67,7 @@ const agreeing = (n) =>
   Array.from({length: n}, () => ({
     score: 78,
     spread: 2,
-    methods: ["lexicon", "transformer", "llm"],
+    methods: ["lexicon", "domain", "llm"],
   }));
 
 test("many agreeing items give a tight, high-confidence band", () => {

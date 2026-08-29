@@ -164,13 +164,17 @@ class ProxyCelebrityRepository extends CelebrityRepository {
     final snapshots =
         rawTrend.whereType<Map>().map((e) {
           final d = e.cast<String, dynamic>();
+          // Snapshots now come from the sentiment_snapshots collection
+          // rather than the model's generated series, so they carry the
+          // counts that were actually measured on the day.
           return SentimentSnapshot(
-            date: d['day'] as String? ?? d['date'] as String? ?? '',
-            positiveCount: 0,
-            negativeCount: 0,
-            neutralCount: 0,
-            totalMentions: 0,
-            dominantEmotion: dominantEmotion,
+            date: d['date'] as String? ?? d['day'] as String? ?? '',
+            positiveCount: (d['positiveCount'] as num?)?.toInt() ?? 0,
+            negativeCount: (d['negativeCount'] as num?)?.toInt() ?? 0,
+            neutralCount: (d['neutralCount'] as num?)?.toInt() ?? 0,
+            totalMentions: (d['totalMentions'] as num?)?.toInt() ?? 0,
+            dominantEmotion:
+                d['dominantEmotion'] as String? ?? dominantEmotion,
             score: (d['score'] as num?)?.toDouble() ?? 50.0,
           );
         }).toList();

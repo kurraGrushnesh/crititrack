@@ -24,6 +24,7 @@ const {
   ApiError,
 } = require("./groq");
 const lexicon = require("./sentiment/lexicon");
+const domain = require("./sentiment/domain");
 const {
   blendItem,
   aggregate,
@@ -110,11 +111,17 @@ async function assembleCelebrity(keys, name, slug) {
       scoreItemsBatch(keys.groq, allHeadlines),
     ]);
     const lexScores = lexicon.scoreAll(allHeadlines);
+    // The third method. Free, deterministic, and independent of
+    // both: it measures reputational direction rather than general
+    // valence, so it reads "cleared of all charges" as good news
+    // where a general-purpose lexicon reads it as bad.
+    const domScores = domain.scoreAll(allHeadlines);
 
     const blended = allHeadlines
         .map((_, i) => {
           const b = blendItem({
             lexicon: lexScores[i],
+            domain: domScores[i],
             llm: llmScores[i] ? llmScores[i].score : null,
           });
           if (!b) return null;
@@ -159,6 +166,12 @@ async function assembleCelebrity(keys, name, slug) {
       positiveRatio: positive / total,
       negativeRatio: negative / total,
       neutralRatio: (total - positive - negative) / total,
+      // The counts themselves, not just the ratios: today's snapshot
+      // records how many items landed in each band, and deriving that
+      // back from a ratio and a sample size loses to rounding.
+      positiveCount: positive,
+      negativeCount: negative,
+      neutralCount: total - positive - negative,
     };
   }
 

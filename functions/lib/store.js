@@ -29,40 +29,51 @@ function orNull(v) {
 }
 
 /**
- * Maps the LLM's 7-entry day trend onto the trailing 7 calendar dates,
- * oldest first, so the newest entry is today.
+ * Today's measured snapshot.
  *
- * The model returns weekday labels ("Mon", "Tue", …) which sort
- * alphabetically in Firestore and would render the chart out of order.
- * Real ISO dates as document ids fix the ordering and let successive
- * scheduled refreshes overwrite the same day rather than pile up.
+ * Replaces `toSnapshots`, which took the model's seven-entry `trendData`
+ * — a series it invents, having never seen a single historical figure —
+ * mapped it onto the trailing seven real dates, and wrote all seven into
+ * this collection with `totalMentions: 0`.
  *
- * @param {Array<{day: string, score: number}>} trendData
- * @param {string} dominantEmotion
- * @return {Array<object>}
+ * That was not merely a cosmetic problem with the chart. This collection
+ * is what `readSnapshotHistory` feeds to spike detection, so alerts were
+ * being raised against invented history; it is what the compare screen
+ * correlates, so "who moved together" was correlating fabrications; and
+ * every refresh overwrote the last seven days with a fresh invention, so
+ * the record never converged on anything.
+ *
+ * One refresh now records one day. History accumulates at the rate it
+ * actually accumulates, which is slow, and the app says so rather than
+ * drawing a confident week-long line over three hours of data.
+ *
+ * @param {object} s the assembled sentiment
+ * @param {Date} [now]
+ * @return {object} a snapshot document keyed by its own date
  */
-function toSnapshots(trendData, dominantEmotion) {
-  const entries = Array.isArray(trendData) ? trendData : [];
-  const today = new Date();
+function todaySnapshot(s, now = new Date()) {
+  const date = now.toISOString().slice(0, 10);
+  const total = Math.max(0, Math.round(numOr(s.sampleSize, 0)));
 
-  return entries.map((entry, i) => {
-    const daysAgo = entries.length - 1 - i;
-    const d = new Date(today);
-    d.setUTCDate(d.getUTCDate() - daysAgo);
-    const date = d.toISOString().slice(0, 10);
-
-    return {
-      date,
-      label: entry.day || date,
-      positiveCount: 0,
-      negativeCount: 0,
-      neutralCount: 0,
-      totalMentions: 0,
-      dominantEmotion: dominantEmotion || "neutral",
-      score: numOr(entry.score, 50),
-      timestamp: new Date().toISOString(),
-    };
-  });
+  return {
+    date,
+    label: date,
+    // Counted from the per-item blend rather than derived from ratios, so
+    // they are the actual number of items in each band.
+    positiveCount: Math.max(0, Math.round(numOr(s.positiveCount, 0))),
+    negativeCount: Math.max(0, Math.round(numOr(s.negativeCount, 0))),
+    neutralCount: Math.max(0, Math.round(numOr(s.neutralCount, 0))),
+    totalMentions: total,
+    sampleSize: total,
+    dominantEmotion: s.dominantEmotion || "neutral",
+    score: numOr(s.overallScore, 50),
+    confidence: numOr(s.confidence, 0),
+    // Marks this as an observation rather than a generated series. Rows
+    // written before this change do not carry it and are deliberately
+    // excluded from history — see readSnapshotHistory.
+    measured: true,
+    timestamp: now.toISOString(),
+  };
 }
 
 /**
@@ -146,13 +157,14 @@ async function writeCelebrity(payload, meta = {trigger: "request"}) {
     });
   }
 
-  for (const snap of toSnapshots(s.trendData, s.dominantEmotion)) {
-    batch.set(
-        docRef.collection(SENTIMENT_SNAPSHOTS).doc(snap.date),
-        snap,
-        {merge: true},
-    );
-  }
+  // Keyed by date and merged, so several refreshes in one day
+  // update that day rather than piling up.
+  const snap = todaySnapshot(s);
+  batch.set(
+      docRef.collection(SENTIMENT_SNAPSHOTS).doc(snap.date),
+      snap,
+      {merge: true},
+  );
 
   await batch.commit();
   logger.info(`stored ${payload.slug} (${meta.trigger})`);
@@ -230,7 +242,21 @@ async function readSnapshotHistory(slug, days = 14) {
   return snap.docs
       .map((d) => d.data())
       .filter((d) => d && typeof d.score === "number")
-      .map((d) => ({date: d.date, score: d.score}))
+      // Only observations. Rows written before the change that
+      // introduced this flag came from the model's invented
+      // seven-day series; including them would mean spike
+      // detection and the compare correlations kept running over
+      // fabricated history indefinitely.
+      .filter((d) => d.measured === true)
+      .map((d) => ({
+        date: d.date,
+        score: d.score,
+        positiveCount: numOr(d.positiveCount, 0),
+        negativeCount: numOr(d.negativeCount, 0),
+        neutralCount: numOr(d.neutralCount, 0),
+        totalMentions: numOr(d.totalMentions, 0),
+        dominantEmotion: d.dominantEmotion || "neutral",
+      }))
       .reverse();
 }
 
@@ -323,7 +349,7 @@ module.exports = {
   writeCelebrity,
   markRequested,
   listTracked,
-  toSnapshots,
+  todaySnapshot,
   readSnapshotHistory,
   readLastAlertedAt,
   markAlerted,

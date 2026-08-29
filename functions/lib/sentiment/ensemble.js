@@ -12,8 +12,21 @@
  * reader can weigh.
  */
 
-/** Relative trust in each method when all are present. */
-const WEIGHTS = {lexicon: 0.2, transformer: 0.4, llm: 0.4};
+/**
+ * Relative trust in each method when all are present.
+ *
+ * The middle slot used to be called `transformer` and carried 0.4,
+ * and nothing ever filled it — so the effective split was lexicon
+ * 0.33 / llm 0.67 after renormalisation, and the ensemble described
+ * three methods where it ran two. It is now a reputation lexicon
+ * (lib/sentiment/domain.js) and named for what it is.
+ *
+ * The LLM keeps the largest share because it is the only method
+ * that reads context. The two lexicons are cheap, deterministic and
+ * independent of it, which is what makes their disagreement worth
+ * measuring — that disagreement is the confidence band.
+ */
+const WEIGHTS = {lexicon: 0.2, domain: 0.25, llm: 0.55};
 
 /**
  * Spread, in score points, at which the methods are considered to
@@ -28,7 +41,7 @@ const SAMPLE_HALF_POINT = 10;
 /**
  * Combines one item's scores from each method.
  *
- * @param {{lexicon?: number|null, transformer?: number|null, llm?: number|null}} s
+ * @param {{lexicon?: number|null, domain?: number|null, llm?: number|null}} s
  * @return {{score: number, spread: number, methods: string[]}|null}
  */
 function blendItem(s) {
@@ -38,8 +51,8 @@ function blendItem(s) {
   if (present.length === 0) return null;
 
   // Renormalise over whichever methods actually produced a number, so a
-  // missing transformer shifts weight to the others rather than dragging
-  // the result toward zero.
+  // abstaining domain lexicon shifts weight to the others rather than
+  // dragging the result toward zero.
   const totalWeight = present.reduce((t, k) => t + WEIGHTS[k], 0);
   const score = present.reduce(
       (t, k) => t + s[k] * (WEIGHTS[k] / totalWeight),

@@ -18,19 +18,18 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const lexicon = require("../lib/sentiment/lexicon");
-const {blendItem} = require("../lib/sentiment/ensemble");
+const domain = require("../lib/sentiment/domain");
+const {
+  blendItem,
+  tagFor,
+  POSITIVE_AT,
+  NEGATIVE_BELOW,
+} = require("../lib/sentiment/ensemble");
 
-/** Score bands used to turn a 0-100 number into a label. */
-const POSITIVE_AT = 65;
-const NEGATIVE_BELOW = 40;
-
-/** @param {number|null} score @return {string|null} */
-function toLabel(score) {
-  if (!Number.isFinite(score)) return null;
-  if (score >= POSITIVE_AT) return "positive";
-  if (score < NEGATIVE_BELOW) return "negative";
-  return "neutral";
-}
+// The bands come from the ensemble rather than being redeclared here.
+// A benchmark that scores against its own copy of the thresholds can
+// report an improvement the product does not actually ship.
+const toLabel = tagFor;
 
 /**
  * Accuracy plus per-class precision, recall and F1.
@@ -119,6 +118,45 @@ async function main() {
     note: "VADER lexicon. No network, no cost.",
   };
 
+  // ── Reputation lexicon ──────────────────────────────────────────
+  t0 = Date.now();
+  const domScores = domain.scoreAll(texts);
+  const domMs = Date.now() - t0;
+  methods.domain = {
+    ...score(
+        items.map((it, i) => ({
+          predicted: toLabel(domScores[i]),
+          actual: it.label,
+        })),
+    ),
+    latencyMsTotal: domMs,
+    latencyMsPerItem: round3(domMs / items.length),
+    costPer1000Usd: 0,
+    note:
+      "Reputation lexicon. Abstains on headlines with no reputational " +
+      "vocabulary, which is why its skipped count is high; the skipped " +
+      "rows are excluded from its accuracy rather than counted wrong.",
+  };
+
+  // ── Offline blend ───────────────────────────────────────────────
+  // Both free methods together, measurable without a key. Not the
+  // shipped ensemble, which includes the LLM.
+  methods.lexiconPlusDomain = {
+    ...score(
+        items.map((it, i) => {
+          const b = blendItem({
+            lexicon: lexScores[i],
+            domain: domScores[i],
+          });
+          return {predicted: toLabel(b ? b.score : null), actual: it.label};
+        }),
+    ),
+    latencyMsTotal: lexMs + domMs,
+    latencyMsPerItem: round3((lexMs + domMs) / items.length),
+    costPer1000Usd: 0,
+    note: "The two free methods blended. No network, no cost.",
+  };
+
   // ── LLM and ensemble, only with a key ───────────────────────────
   const key = process.env.GROQ_API_KEY;
   if (key) {
@@ -145,14 +183,16 @@ async function main() {
           items.map((it, i) => {
             const b = blendItem({
               lexicon: lexScores[i],
+              domain: domScores[i],
               llm: llm[i] ? llm[i].score : null,
             });
             return {predicted: toLabel(b ? b.score : null), actual: it.label};
           }),
       ),
-      latencyMsTotal: llmMs + lexMs,
-      latencyMsPerItem: round3((llmMs + lexMs) / items.length),
-      note: "Weighted blend of lexicon and LLM.",
+      latencyMsTotal: llmMs + lexMs + domMs,
+      latencyMsPerItem: round3((llmMs + lexMs + domMs) / items.length),
+      note: "The shipped ensemble: general lexicon, reputation " +
+        "lexicon and LLM, weighted and blended.",
     };
   } else {
     console.warn(

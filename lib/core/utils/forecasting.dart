@@ -25,6 +25,21 @@ class ForecastResult {
   final List<double> forecast;
 }
 
+/// The shortest history a forecast may be drawn from.
+///
+/// Two points fit a line perfectly whatever their values, so a forecast
+/// from two days is an artefact of the arithmetic rather than a trend —
+/// the same degenerate case as a correlation over two shared days. Three
+/// is barely better here: the forecast is drawn as a dashed continuation
+/// of the line rather than as a range, so it reads with more authority
+/// than three points support, and a single unusual day would set the
+/// slope.
+///
+/// Below this the chart simply shows the history it has. Now that
+/// snapshots are recorded one day at a time rather than backfilled from
+/// a generated series, that is a state real figures pass through.
+const int minHistoryForForecast = 4;
+
 /// Computes a linear-trend forecast from a score history.
 ///
 /// [scores] — the trailing `m` scores (m = 7 or 14 typically).
@@ -35,9 +50,9 @@ class ForecastResult {
 ///
 /// All forecasted values are clamped to [0, 100].
 ///
-/// Returns null if fewer than 2 scores are provided (can't fit a line).
+/// Returns null below [minHistoryForForecast].
 ForecastResult? linearForecast(List<double> scores, {int horizon = 3}) {
-  if (scores.length < 2) return null;
+  if (scores.length < minHistoryForForecast) return null;
 
   final m = scores.length;
 

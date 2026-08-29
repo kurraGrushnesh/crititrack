@@ -145,9 +145,26 @@ exports.getCelebrity = onRequest(
         payload.verified = entity !== null;
         payload.query = name;
 
+        // The model still returns a seven-day series. It is dropped
+        // here rather than shipped: it is invented — the model has
+        // never seen a historical figure for this person — and the
+        // trend chart is supposed to be a query over what we measured.
+        //
+        // Cleared before the write, not after, so that if the write or
+        // the read below fails the app charts nothing, which is true,
+        // rather than a fabrication, which is not.
+        if (payload.sentiment) payload.sentiment.trendData = [];
+
         try {
           await writeCelebrity(payload, {trigger: "request"});
           await markRequested(canonicalSlug, canonicalName);
+
+          // Today's observation has just been written, so this read
+          // includes it.
+          if (payload.sentiment) {
+            payload.sentiment.trendData =
+              await readSnapshotHistory(canonicalSlug);
+          }
         } catch (e) {
           logger.warn(`Firestore write failed for ${canonicalSlug}: ${e.message}`);
         }

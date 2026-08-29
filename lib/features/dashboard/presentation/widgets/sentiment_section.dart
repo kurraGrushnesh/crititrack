@@ -22,6 +22,7 @@ import 'package:crititrack/core/constants/app_constants.dart';
 import 'package:crititrack/core/domain/models/media_item.dart';
 import 'package:crititrack/core/domain/models/sentiment_data.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
+import 'package:crititrack/core/utils/forecasting.dart';
 import 'package:crititrack/core/utils/helpers.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/evidence_panel.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/source_breakdown.dart';
@@ -161,7 +162,7 @@ class _SentimentSectionState extends State<SentimentSection>
             dividerHeight: 0,
             tabs: const [
               Tab(text: 'Sentiment Split'),
-              Tab(text: '7-Day Trend'),
+              Tab(text: 'Trend'),
               Tab(text: 'Daily Mentions'),
             ],
           ),
@@ -179,6 +180,24 @@ class _SentimentSectionState extends State<SentimentSection>
               ],
             ),
           ),
+
+          // How much history the line is actually drawn from. Without it
+          // a two-point line looks exactly like a two-week one.
+          if (data.trendData.isNotEmpty &&
+              data.trendData.length < minHistoryForForecast)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
+              child: Text(
+                '${data.trendData.length} '
+                '${data.trendData.length == 1 ? "day" : "days"} recorded '
+                'so far. A trend line and a forecast need at least '
+                '$minHistoryForForecast.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: context.palette.textMuted,
+                  fontSize: 11,
+                ),
+              ),
+            ),
 
           // ── NFR-6: Algorithmically generated indicator ─────────
           Padding(
@@ -376,8 +395,16 @@ class _SentimentSectionState extends State<SentimentSection>
   // ── Line Chart (with spikes + forecast) ────────────────────────
 
   Widget _buildLineChart(SentimentData data) {
+    // Snapshots are recorded one day per refresh rather than backfilled
+    // from a generated series, so a figure looked up for the first time
+    // genuinely has no history. That is a different statement from a
+    // failure and is worded as one.
     if (data.trendData.isEmpty) {
-      return const Center(child: Text('No trend data available'));
+      return const _ChartNotice(
+        'No history recorded yet.',
+        'The first observation is stored on the next refresh, and the '
+            'trend builds up a day at a time from there.',
+      );
     }
 
     // Actual data spots
@@ -606,7 +633,10 @@ class _SentimentSectionState extends State<SentimentSection>
 
   Widget _buildBarChart(SentimentData data) {
     if (data.trendData.isEmpty) {
-      return const Center(child: Text('No mention data available'));
+      return const _ChartNotice(
+        'No mention counts recorded yet.',
+        'Counts are stored with each daily observation.',
+      );
     }
 
     final palette = context.palette;
@@ -869,6 +899,55 @@ class _ConfidenceBand extends StatelessWidget {
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+
+/// An empty chart state that reads as "nothing yet", not as a failure.
+class _ChartNotice extends StatelessWidget {
+  const _ChartNotice(this.title, this.detail);
+
+  final String title;
+  final String detail;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.timeline_rounded,
+              size: 28,
+              color: palette.textMuted,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: palette.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              detail,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: palette.textMuted,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -69,13 +69,22 @@ void main() {
       expect(linearForecast([], horizon: 3), isNull);
     });
 
-    test('2 scores is minimum viable input', () {
-      final result = linearForecast([40.0, 60.0], horizon: 2);
+    test('refuses to extrapolate from two or three days', () {
+      // Two points fit a line perfectly whatever their values, so a
+      // forecast from them is arithmetic rather than a trend — the same
+      // degenerate case as a correlation over two shared days. Three is
+      // barely better when the result is drawn as a confident dashed
+      // continuation of the line.
+      expect(linearForecast([40.0, 60.0], horizon: 2), isNull);
+      expect(linearForecast([40.0, 50.0, 60.0], horizon: 2), isNull);
+    });
+
+    test('$minHistoryForForecast scores is the minimum viable input', () {
+      final result = linearForecast([20.0, 40.0, 60.0, 80.0], horizon: 2);
 
       expect(result, isNotNull);
       expect(result!.slope, closeTo(20.0, 0.01));
-      expect(result.forecast[0], closeTo(80.0, 0.1));
-      expect(result.forecast[1], closeTo(100.0, 0.1));
+      expect(result.forecast[0], closeTo(100.0, 0.1));
     });
 
     test('differs from naive persistence for trending data', () {
@@ -93,7 +102,7 @@ void main() {
     });
 
     test('horizon = 0 gives empty forecast', () {
-      final result = linearForecast([50.0, 60.0], horizon: 0);
+      final result = linearForecast([50.0, 60.0, 70.0, 80.0], horizon: 0);
       expect(result, isNotNull);
       expect(result!.forecast, isEmpty);
     });
