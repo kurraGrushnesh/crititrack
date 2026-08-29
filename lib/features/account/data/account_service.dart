@@ -11,6 +11,8 @@ library;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
+
+import 'package:crititrack/core/constants/api_config.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:crititrack/features/account/domain/account_upgrade.dart';
@@ -29,7 +31,21 @@ class AccountService {
     return FirebaseAuth.instance;
   }
 
-  GoogleSignIn get _google => _injectedGoogle ?? GoogleSignIn();
+  GoogleSignIn get _google =>
+      _injectedGoogle ??
+      GoogleSignIn(
+        clientId:
+            ApiConfig.googleClientId.isEmpty ? null : ApiConfig.googleClientId,
+      );
+
+  /// Whether signing in can work at all in this build.
+  ///
+  /// On the web the plugin needs an OAuth client id, and without one
+  /// every attempt throws. Offering a button that always fails is the
+  /// same mistake as an error message blaming the network for a
+  /// backend that was never deployed — so the tile hides it instead
+  /// and says why.
+  bool get isAvailable => !kIsWeb || ApiConfig.googleClientId.isNotEmpty;
 
   User? get currentUser => _auth?.currentUser;
 
@@ -48,6 +64,12 @@ class AccountService {
     final auth = _auth;
     if (auth == null) {
       return const AccountUpgrade.failed('Sign-in is unavailable right now.');
+    }
+
+    if (!isAvailable) {
+      return const AccountUpgrade.failed(
+        'Google sign-in is not configured for this build.',
+      );
     }
 
     final previousUid = auth.currentUser?.uid;

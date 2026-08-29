@@ -466,9 +466,7 @@ class _ErrorContent extends StatelessWidget {
         // problem the reader does not have. The body already explains
         // it; this stops the two from contradicting each other.
         NetworkFailure() => (
-          ApiConfig.isDemo
-              ? Icons.science_outlined
-              : Icons.wifi_off_rounded,
+          ApiConfig.isDemo ? Icons.science_outlined : Icons.wifi_off_rounded,
           ApiConfig.isDemo
               ? 'This demo has no backend'
               : 'Cannot reach the server',

@@ -90,7 +90,9 @@ Future<void> main() async {
 
   // ── Local cache & preferences ──────────────────────────────────────
   await Hive.initFlutter();
-  await Hive.openBox<List<String>>('search_recents');
+  // Untyped: Hive returns a stored list as List<dynamic>, so a
+  // Box<List<String>> throws on every read after a restart.
+  await Hive.openBox<dynamic>('search_recents');
   // Holds the user's appearance choice (system / light / dark).
   await Hive.openBox<dynamic>(settingsBoxName);
   // The watchlist is local-first, so it must be open before first paint.

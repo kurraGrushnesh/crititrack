@@ -57,6 +57,22 @@ abstract final class ApiConfig {
   /// ```
   /// flutter build web --release --base-href /app/   ///   --dart-define=DEMO_MODE=true
   /// ```
+  /// OAuth client id for Google sign-in on the web.
+  ///
+  /// The web plugin cannot start a sign-in without one, and this project
+  /// has no Google provider enabled — google-services.json contains no
+  /// oauth_client entries at all. Supplying it is what makes the feature
+  /// available:
+  ///
+  /// ```
+  /// flutter build web --dart-define=GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
+  /// ```
+  ///
+  /// Empty means sign-in is not offered, rather than offered and failing.
+  static const String googleClientId = String.fromEnvironment(
+    'GOOGLE_CLIENT_ID',
+  );
+
   static const bool isDemo = bool.fromEnvironment(
     'DEMO_MODE',
     defaultValue: false,

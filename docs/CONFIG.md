@@ -145,3 +145,33 @@ and **any tie resolves to null**. Two headlines can share an opening
 clause and still be different stories, so guessing would attribute a
 quote to coverage that never carried it, under that outlet's name. An
 unmatched fragment simply renders as plain text.
+
+## Google sign-in (F08)
+
+Optional, and off unless configured. The app is fully usable on the
+anonymous session created at first launch; signing in exists only so a
+watchlist can follow someone to a second device.
+
+Two things are needed, neither of which requires the Blaze plan:
+
+1. **Enable the Google provider** in Firebase console → Authentication →
+   Sign-in method. This project has never had it enabled —
+   `google-services.json` contains no `oauth_client` entries at all.
+2. **Pass the web OAuth client id** at build time. The web plugin cannot
+   start a sign-in without one:
+
+   ```bash
+   flutter build web --release --base-href /app/ \
+     --dart-define=GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
+   ```
+
+Without the client id, `AccountService.isAvailable` is false on web: the
+tile says sign-in is not available in this build and offers no button.
+That is deliberate. It previously offered one, and every tap produced
+"Could not reach Google to sign in" — blaming the network for something
+that was never configured, which is the same mistake as an error screen
+blaming your connection for a backend that was never deployed.
+
+On Android and iOS the client id comes from `google-services.json` /
+`GoogleService-Info.plist`, so `isAvailable` is true there once the
+provider is enabled.

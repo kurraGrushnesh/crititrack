@@ -76,6 +76,7 @@ class AccountTile extends ConsumerWidget {
     final status = ref.watch(accountStatusProvider);
 
     final signedIn = !status.anonymous;
+    final available = ref.watch(accountServiceProvider).isAvailable;
 
     return ListTile(
       // 48dp minimum, matching the accessibility guards.
@@ -94,12 +95,17 @@ class AccountTile extends ConsumerWidget {
       subtitle: Text(
         signedIn
             ? (status.email ?? 'Signed in')
-            : 'Optional. Sign in with Google to carry your watchlist to '
-                'another device. Nothing else changes.',
+            : available
+            ? 'Optional. Sign in with Google to carry your watchlist to '
+                'another device. Nothing else changes.'
+            : 'Not available in this build. Your watchlist still works — it '
+                'just stays on this device.',
         style: theme.textTheme.bodySmall?.copyWith(color: palette.textMuted),
       ),
       trailing:
-          busy
+          !signedIn && !available
+              ? null
+              : busy
               ? const SizedBox(
                 width: 20,
                 height: 20,

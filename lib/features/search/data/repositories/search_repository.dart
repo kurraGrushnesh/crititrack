@@ -4,6 +4,7 @@
 /// are stubbed out in mock mode.
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class SearchRepository {
@@ -16,16 +17,31 @@ class SearchRepository {
   // ── Local (Hive) Operations ───────────────────────────────────
 
   /// Returns the list of recent search queries from Hive local cache.
+  ///
+  /// The box is deliberately untyped and the contents are converted by
+  /// hand. It used to be a `Box<List<String>>`, and Hive reads a stored
+  /// list back as `List<dynamic>` — so the implicit cast threw on every
+  /// read after a restart, the `catch` below swallowed it, and the
+  /// recents silently never appeared. They were being written correctly
+  /// the whole time.
   List<String> getRecentSearches() {
     try {
-      final box = Hive.box<List<String>>(_hiveBoxName);
-      final recents = box.get(_hiveKey);
-      if (recents == null) return [];
-      return List<String>.from(recents);
-    } catch (_) {
+      final raw = _box?.get(_hiveKey);
+      if (raw is! List) return [];
+      return [
+        for (final entry in raw)
+          if (entry is String && entry.trim().isNotEmpty) entry,
+      ];
+    } catch (e) {
+      // Logged rather than silent. A bare `catch (_)` here is what hid
+      // the type error for as long as it existed.
+      debugPrint('Could not read recent searches: $e');
       return [];
     }
   }
+
+  Box<dynamic>? get _box =>
+      Hive.isBoxOpen(_hiveBoxName) ? Hive.box<dynamic>(_hiveBoxName) : null;
 
   /// Adds a search query to the front of the recents list.
   Future<void> addSearch(String query) async {
@@ -33,8 +49,7 @@ class SearchRepository {
     if (trimmed.isEmpty) return;
 
     try {
-      final box = Hive.box<List<String>>(_hiveBoxName);
-      final recents = List<String>.from(box.get(_hiveKey) ?? []);
+      final recents = getRecentSearches();
 
       // Remove duplicate if it already exists
       recents.remove(trimmed);
@@ -47,31 +62,29 @@ class SearchRepository {
         recents.removeRange(_maxRecents, recents.length);
       }
 
-      await box.put(_hiveKey, recents);
-    } catch (_) {
-      // Hive failures should never block the user
+      await _box?.put(_hiveKey, recents);
+    } catch (e) {
+      debugPrint('Could not save a recent search: $e');
     }
   }
 
   /// Removes a specific query from the recents list.
   Future<void> removeSearch(String query) async {
     try {
-      final box = Hive.box<List<String>>(_hiveBoxName);
-      final recents = List<String>.from(box.get(_hiveKey) ?? []);
+      final recents = getRecentSearches();
       recents.remove(query);
-      await box.put(_hiveKey, recents);
-    } catch (_) {
-      // Fail silently
+      await _box?.put(_hiveKey, recents);
+    } catch (e) {
+      debugPrint('Recent search update failed: $e');
     }
   }
 
   /// Clears all recent searches.
   Future<void> clearSearches() async {
     try {
-      final box = Hive.box<List<String>>(_hiveBoxName);
-      await box.put(_hiveKey, <String>[]);
-    } catch (_) {
-      // Fail silently
+      await _box?.put(_hiveKey, <String>[]);
+    } catch (e) {
+      debugPrint('Recent search update failed: $e');
     }
   }
 
