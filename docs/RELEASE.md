@@ -152,11 +152,16 @@ the next build of the destination. Both are copied into a third,
 disposable directory instead.
 
 ```bash
-flutter build web --release --base-href /app/
+flutter build web --release --base-href /app/ --dart-define=DEMO_MODE=true
 (cd site && npm run build)
 node tool/assemble_hosting.js          # -> dist/
 npx firebase deploy --only hosting
 ```
+
+`DEMO_MODE=true` puts a standing notice above every screen saying no
+backend is deployed and searches will return nothing. Drop the flag the
+moment a real backend is reachable — it is opt-in precisely so a genuine
+deployment cannot inherit the notice by accident.
 
 `--base-href /app/` is not optional: without it the app requests its
 assets from the root and every one of them 404s. On Git Bash for Windows
@@ -185,7 +190,11 @@ deployed** — `firebase functions:list` returns none, because the
 scheduled refresher needs the Blaze plan. Until they are deployed the app
 is a shell: the UI works, the data path returns nothing.
 
-Point it somewhere else at build time if needed:
+The Blaze plan is not going to be enabled on this project, so the route
+to a working deployed app is hosting the Node backend somewhere with a
+genuinely free tier. No code change is needed — the origin is already a
+build-time flag. Drop `DEMO_MODE` from that build and the notice goes
+with it:
 
 ```bash
 flutter build web --release --base-href /app/ \
