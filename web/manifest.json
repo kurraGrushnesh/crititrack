@@ -5,7 +5,7 @@
     "display": "standalone",
     "background_color": "#0D1117",
     "theme_color": "#6C5CE7",
-    "description": "AI-powered celebrity criticism & controversy tracker with real-time sentiment analysis.",
+    "description": "Accountability tracking for public figures: a structured, evidence-linked record of what someone has been criticised for, how serious it was, and whether sentiment is moving.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

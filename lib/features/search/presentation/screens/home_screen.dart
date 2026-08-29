@@ -154,13 +154,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                     // ── Title ─────────────────────────────────────────
                     Text(
-                      'Celeb Sentiment Tracker',
+                      'CritiTrack',
                       style: theme.textTheme.headlineLarge,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'AI-powered celebrity intelligence',
+                      'Accountability tracking for public figures',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: palette.textSecondary,
                       ),

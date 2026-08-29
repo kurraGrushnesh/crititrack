@@ -80,35 +80,48 @@ class ThemeToggle extends ConsumerWidget {
               // iOS. Padding alone left this at 40 and failed the
               // guideline, which the accessibility test now catches.
               ? const SizedBox(width: 48, height: 48, child: _CompactIcon())
-              : Container(
-                constraints: const BoxConstraints(minHeight: 48),
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: palette.card,
-                  borderRadius: AppTheme.radiusSm,
-                  border: Border.all(color: palette.border),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(mode.icon, size: 16, color: palette.textPrimary),
-                    const SizedBox(width: 6),
-                    Text(
-                      mode.label,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: palette.textPrimary,
-                      ),
+              // SizedBox for the touch target, Center(widthFactor: 1) to
+              // size the pill to its content.
+              //
+              // This was a Container with `alignment: Alignment.center`
+              // and no explicit size. A Container given an alignment
+              // expands to fill whatever bounded constraints it receives,
+              // so inside the home screen's Stack it stretched to the full
+              // height of the page and drew an empty panel down the right
+              // edge. The alignment was there only to centre a row that is
+              // already centred by its own layout.
+              : SizedBox(
+                height: 48,
+                child: Center(
+                  widthFactor: 1,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
                     ),
-                    Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      size: 16,
-                      color: palette.textMuted,
+                    decoration: BoxDecoration(
+                      color: palette.card,
+                      borderRadius: AppTheme.radiusSm,
+                      border: Border.all(color: palette.border),
                     ),
-                  ],
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(mode.icon, size: 16, color: palette.textPrimary),
+                        const SizedBox(width: 6),
+                        Text(
+                          mode.label,
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(color: palette.textPrimary),
+                        ),
+                        Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 16,
+                          color: palette.textMuted,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
     );

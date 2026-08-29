@@ -18,7 +18,7 @@
  *      shown here is also listed as text below.
  */
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -116,6 +116,28 @@ export default function SentimentGlobe({
   figures: Figure[];
   reduced: boolean;
 }) {
+  // Force one measurement after mount.
+  //
+  // react-three-fiber sizes its canvas from the parent via
+  // react-use-measure. In this configuration — a `next/dynamic` import
+  // with `ssr: false`, so the component mounts after hydration — that
+  // initial measurement does not land, and the canvas is left at the
+  // browser's default 300x150 inside a parent that is 483x460. Nothing
+  // is drawn, and the hero looks empty.
+  //
+  // It corrects itself the moment anything triggers a resize, which is
+  // why it is invisible in development the instant you touch the window
+  // and was only caught by loading the deployed page and reading the
+  // canvas attributes. Dispatching one resize after paint is blunt, but
+  // it is the same event the browser would send and it costs a single
+  // frame.
+  useEffect(() => {
+    const id = requestAnimationFrame(() =>
+      window.dispatchEvent(new Event("resize")),
+    );
+    return () => cancelAnimationFrame(id);
+  }, []);
+
   return (
     <Canvas
       camera={{ position: [0, 0, 6], fov: 45 }}

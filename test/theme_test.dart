@@ -11,6 +11,7 @@ import 'package:crititrack/core/domain/models/controversy.dart';
 import 'package:crititrack/features/search/presentation/screens/home_screen.dart';
 
 void main() {
+  _toggleSizing();
   group('AppTheme', () {
     test('both themes register an AppPalette with matching brightness', () {
       final dark = AppTheme.darkTheme;
@@ -91,7 +92,7 @@ void main() {
       await tester.pump();
 
       expect(tester.takeException(), isNull);
-      expect(find.text('Celeb Sentiment Tracker'), findsOneWidget);
+      expect(find.text('CritiTrack'), findsOneWidget);
       expect(find.byType(ThemeToggle), findsOneWidget);
     }
   });
@@ -150,5 +151,41 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(container.read(themeModeProvider), ThemeMode.dark);
+  });
+}
+
+// Regression: the non-compact toggle used to swallow the page.
+//
+// It was a Container with `alignment: Alignment.center` and no explicit
+// size. A Container given an alignment expands to fill whatever bounded
+// constraints it receives, so on the home screen it stretched to the full
+// height of the Stack and drew an empty panel down the right edge. Only
+// visible by loading the deployed app — every widget test pumped it in a
+// tight box where there was nothing to expand into.
+void _toggleSizing() {
+  testWidgets('the non-compact toggle sizes to its content', (tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(
+            // Deliberately roomy: the bug only appears when the toggle is
+            // handed constraints far larger than it needs.
+            body: SizedBox(
+              width: 900,
+              height: 700,
+              child: Align(
+                alignment: Alignment.topRight,
+                child: ThemeToggle(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final size = tester.getSize(find.byType(ThemeToggle));
+    expect(size.height, lessThanOrEqualTo(56), reason: 'must not fill height');
+    expect(size.width, lessThan(300), reason: 'must not fill width');
   });
 }
