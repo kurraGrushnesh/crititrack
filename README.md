@@ -122,8 +122,8 @@ site/                marketing site — Next 16, React 19, static export
 **Prerequisites:** Flutter 3.47+, Node 24, and the Firebase CLI.
 
 ```bash
-git clone https://github.com/kurraGrushnesh/celeb-sentiment-tracker.git
-cd celeb-sentiment-tracker
+git clone https://github.com/kurraGrushnesh/crititrack.git
+cd crititrack
 flutter pub get
 ```
 

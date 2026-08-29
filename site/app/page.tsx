@@ -150,7 +150,7 @@ export default function Home() {
             <div className="cta-row">
               <a
                 className="btn btn-primary"
-                href="https://github.com/kurraGrushnesh/celeb-sentiment-tracker"
+                href="https://github.com/kurraGrushnesh/crititrack"
                 rel="noopener noreferrer"
               >
                 View the source
