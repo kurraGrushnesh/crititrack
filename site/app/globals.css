@@ -452,7 +452,16 @@ a {
   }
 
   .hero-visual {
-    height: 300px;
-    order: -1;
+    height: 260px;
+    /* No `order: -1`.
+     *
+     * It used to hoist the visual above the copy on narrow screens, so
+     * the first thing on the page was 300px of featureless gradient
+     * before a single word. That trade is defensible on desktop, where
+     * the globe carries the sentiment points and sits beside the
+     * headline rather than in front of it — but the mobile fallback is
+     * decorative only, and a landing page should lead with what it says.
+     */
+    margin-top: 8px;
   }
 }
