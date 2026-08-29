@@ -3,7 +3,8 @@
 /// Renders:
 ///   1. A 0–100 **Controversy Index** with a severity meter and quick stats.
 ///   2. A category breakdown.
-///   3. A severity-sorted timeline of [ControversyCard]s.
+///   3. A timeline of [ControversyCard]s, orderable by severity or by
+///      date.
 ///
 /// Reads only the structured [Controversy] list already present on the
 /// biography — no additional network calls.
@@ -53,7 +54,6 @@ class ControversySection extends StatelessWidget {
     }
 
     final index = computeControversyIndex(controversies);
-    final sorted = [...controversies]..sort(_bySeverityThenRecency);
     final byCategory = <String, int>{};
     for (final c in controversies) {
       byCategory[c.category] = (byCategory[c.category] ?? 0) + 1;
@@ -107,12 +107,7 @@ class ControversySection extends StatelessWidget {
           const SizedBox(height: 16),
 
           // ── Timeline ────────────────────────────────────────────
-          Text(
-            'Timeline · ${sorted.length} ${sorted.length == 1 ? "episode" : "episodes"}',
-            style: theme.textTheme.labelLarge,
-          ),
-          const SizedBox(height: 8),
-          ...sorted.map((c) => ControversyCard(controversy: c)),
+          _Timeline(controversies: controversies),
 
           const SizedBox(height: 4),
           Row(
@@ -140,12 +135,6 @@ class ControversySection extends StatelessWidget {
     );
   }
 
-  static int _bySeverityThenRecency(Controversy a, Controversy b) {
-    // Ongoing episodes float to the top.
-    if (a.isOngoing != b.isOngoing) return a.isOngoing ? -1 : 1;
-    if (a.severity != b.severity) return b.severity.compareTo(a.severity);
-    return (b.year ?? 0).compareTo(a.year ?? 0);
-  }
 }
 
 // ── Index panel ───────────────────────────────────────────────────
@@ -275,4 +264,182 @@ class _Shell extends StatelessWidget {
       child: child,
     );
   }
+}
+
+
+/// How the timeline is ordered.
+enum _Order {
+  /// Ongoing first, then severity, then recency. The default, because
+  /// "what is this person in trouble for" is the question the screen
+  /// exists to answer.
+  severity('Most serious'),
+
+  /// Newest first. Answers a different question — how a record built up
+  /// over time — which severity ordering actively obscures.
+  chronological('By date');
+
+  const _Order(this.label);
+  final String label;
+}
+
+/// The episode list, with its ordering.
+///
+/// Held as state here rather than on the section so that switching the
+/// order does not rebuild the index panel and the category breakdown,
+/// neither of which depends on it.
+class _Timeline extends StatefulWidget {
+  const _Timeline({required this.controversies});
+
+  final List<Controversy> controversies;
+
+  @override
+  State<_Timeline> createState() => _TimelineState();
+}
+
+class _TimelineState extends State<_Timeline> {
+  _Order _order = _Order.severity;
+
+  List<Controversy> get _sorted {
+    final list = [...widget.controversies];
+    list.sort(
+      _order == _Order.severity ? _bySeverityThenRecency : _byDate,
+    );
+    return list;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+    final sorted = _sorted;
+    final n = sorted.length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Timeline · $n ${n == 1 ? "episode" : "episodes"}',
+                style: theme.textTheme.labelLarge,
+              ),
+            ),
+            // Only worth offering when there is more than one thing to
+            // order.
+            if (n > 1)
+              for (final order in _Order.values)
+                Padding(
+                  padding: const EdgeInsets.only(left: 6),
+                  child: _OrderButton(
+                    order: order,
+                    selected: order == _order,
+                    onTap: () => setState(() => _order = order),
+                  ),
+                ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (_order == _Order.chronological &&
+            sorted.any((c) => c.year == null)) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Text(
+              'Episodes with no recorded year are listed last.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: palette.textMuted,
+                fontSize: 10.5,
+              ),
+            ),
+          ),
+        ],
+        ...sorted.map((c) => ControversyCard(controversy: c)),
+      ],
+    );
+  }
+}
+
+class _OrderButton extends StatelessWidget {
+  const _OrderButton({
+    required this.order,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final _Order order;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: 'Order the timeline: ${order.label}',
+      excludeSemantics: true,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(6),
+          // 48dp minimum tap target, matching the accessibility guards.
+          child: SizedBox(
+            height: 48,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 9,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? AppTheme.primary.withValues(alpha: 0.14)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: selected ? AppTheme.primary : palette.border,
+                  ),
+                ),
+                child: Text(
+                  order.label,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    color: selected ? AppTheme.primary : palette.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Ongoing first, then severity, then recency.
+int _bySeverityThenRecency(Controversy a, Controversy b) {
+  if (a.isOngoing != b.isOngoing) return a.isOngoing ? -1 : 1;
+  if (a.severity != b.severity) return b.severity.compareTo(a.severity);
+  return (b.year ?? 0).compareTo(a.year ?? 0);
+}
+
+/// Newest first, with undated episodes last.
+///
+/// Undated ones sort last rather than as year zero: a record with no
+/// recorded year is not from antiquity, it is simply unknown, and burying
+/// it at the bottom says that more honestly than placing it before 1900.
+int _byDate(Controversy a, Controversy b) {
+  final ay = a.year;
+  final by = b.year;
+
+  if (ay == null && by == null) return _bySeverityThenRecency(a, b);
+  if (ay == null) return 1;
+  if (by == null) return -1;
+  if (ay != by) return by.compareTo(ay);
+
+  return _bySeverityThenRecency(a, b);
 }

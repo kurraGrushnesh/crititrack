@@ -131,7 +131,6 @@ const CATEGORIES = [
 const STATUSES = ["ongoing", "resolved", "historical"];
 
 /** Severity at or above which an uncited claim is dropped rather than shown. */
-const CITATION_REQUIRED_AT = 3;
 
 /**
  * Validates model-produced controversy records against a strict schema and
@@ -162,8 +161,19 @@ function sanitizeControversies(raw) {
           c.sources.map((x) => str(x, 200)).filter(Boolean).slice(0, 6) :
           [];
 
-        // Citation gate.
-        if (severity >= CITATION_REQUIRED_AT && sources.length === 0) {
+        // Citation gate, at every severity.
+        //
+        // It used to apply only from severity 3 up, so a minor episode
+        // could reach a profile with nothing behind it at all. That is
+        // the F03 rule: no record reaches the UI without a source.
+        //
+        // This is a weaker check than the corroboration gate in
+        // lib/corroborate.js, which asks whether anything we actually
+        // retrieved supports a serious claim. This only asks the model to
+        // name something — cheap, and the prompt already demands it, so a
+        // record arriving without one is a record the model could not
+        // substantiate even to itself.
+        if (sources.length === 0) {
           logger.warn(`dropped uncited severity-${severity} claim: "${title}"`);
           return null;
         }

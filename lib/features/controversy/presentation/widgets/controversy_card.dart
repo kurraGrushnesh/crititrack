@@ -5,6 +5,8 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:crititrack/core/security/safe_url.dart';
 
 import 'package:crititrack/core/domain/models/controversy.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
@@ -171,14 +173,8 @@ class _ControversyCardState extends State<ControversyCard> {
                                     ),
                                   ),
                                 if (c.sources.isNotEmpty) ...[
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Sources: ${c.sources.join(' · ')}',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: palette.textMuted,
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  ),
+                                  const SizedBox(height: 10),
+                                  _Sources(sources: c.sources),
                                 ],
                               ],
                             ),
@@ -257,6 +253,133 @@ class _StatusTag extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+
+/// The citations behind one record.
+///
+/// A source that is a URL is tappable; one that is only a publication
+/// name is a label. Both are shown, because the gate that lets a record
+/// through requires a source to be *named*, not to be linkable — and a
+/// card that quietly hid the unlinkable ones would misrepresent what is
+/// actually backing it.
+///
+/// Every URL goes through [SafeUrl] first (SEC-06). These strings come
+/// from a model, so a `javascript:` or `file:` scheme is exactly the kind
+/// of thing that must never reach a launcher.
+class _Sources extends StatelessWidget {
+  const _Sources({required this.sources});
+
+  final List<String> sources;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'SOURCES',
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: palette.textMuted,
+            fontSize: 9,
+            letterSpacing: 0.8,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [for (final s in sources) _SourceChip(source: s)],
+        ),
+      ],
+    );
+  }
+}
+
+class _SourceChip extends StatelessWidget {
+  const _SourceChip({required this.source});
+
+  final String source;
+
+  Future<void> _open(BuildContext context, Uri uri) async {
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      return;
+    }
+    if (!context.mounted) return;
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      const SnackBar(content: Text('That source could not be opened.')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+
+    final uri = SafeUrl.parse(source);
+    final label = uri == null ? source : SafeUrl.displayHost(source);
+
+    final chip = Container(
+      constraints: const BoxConstraints(maxWidth: 240),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: palette.card,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: palette.border),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            uri == null ? Icons.description_outlined : Icons.link_rounded,
+            size: 12,
+            color: uri == null ? palette.textMuted : AppTheme.primary,
+          ),
+          const SizedBox(width: 5),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: uri == null ? palette.textSecondary : AppTheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (uri == null) return chip;
+
+    return Semantics(
+      link: true,
+      label: 'Open source $label',
+      excludeSemantics: true,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(6),
+          onTap: () => _open(context, uri),
+          // 48dp minimum tap target, matching the accessibility guards.
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              widthFactor: 1,
+              child: chip,
+            ),
+          ),
+        ),
       ),
     );
   }

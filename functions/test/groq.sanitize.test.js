@@ -23,17 +23,25 @@ test("passes a well-formed record through", () => {
   assert.deepEqual(r.sources, ["Variety"]);
 });
 
-test("SEC-04: drops a serious claim with no source", () => {
+test("F03: drops an uncited claim at every severity", () => {
+  // The gate used to start at severity 3, so a minor episode could reach
+  // a profile with nothing behind it. F03's rule is that no record
+  // reaches the UI without a source.
   const out = sanitizeControversies([
-    {...base, severity: 4, sources: []},
     {...base, severity: 5, sources: undefined},
+    {...base, severity: 4, sources: []},
     {...base, severity: 3, sources: []},
+    {...base, severity: 2, sources: []},
+    {...base, severity: 1, sources: []},
   ]);
-  assert.equal(out.length, 0, "uncited severity>=3 claims must be discarded");
+  assert.equal(out.length, 0, "an uncited claim must be discarded");
 });
 
-test("SEC-04: keeps a minor uncited claim", () => {
-  const out = sanitizeControversies([{...base, severity: 2, sources: []}]);
+test("F03: keeps a minor claim that cites a source", () => {
+  // The bar is naming a source, not being serious enough to need one.
+  const out = sanitizeControversies([
+    {...base, severity: 1, sources: ["Variety"]},
+  ]);
   assert.equal(out.length, 1);
 });
 
