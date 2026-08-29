@@ -45,6 +45,21 @@ abstract final class ApiConfig {
     return kDebugMode ? _emulatorBaseUrl : _prodBaseUrl;
   }
 
+  /// Whether this build is the public demo, published with no backend
+  /// behind it.
+  ///
+  /// A build-time flag rather than something inferred. The app cannot
+  /// tell an unreachable backend from a missing one without trying, and
+  /// inferring it from the URL would mean a real deployment to the same
+  /// origin quietly kept showing a demo notice. Passing the flag is an
+  /// explicit statement by whoever published the build:
+  ///
+  /// ```
+  /// flutter build web --release --base-href /app/   ///   --dart-define=DEMO_MODE=true
+  /// ```
+  static const bool isDemo =
+      bool.fromEnvironment('DEMO_MODE', defaultValue: false);
+
   /// Whether the app is pointed at a local emulator rather than the
   /// deployed backend. Useful for surfacing a "local backend" hint when a
   /// request fails during development.

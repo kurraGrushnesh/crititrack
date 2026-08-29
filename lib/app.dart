@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/theme/app_theme.dart';
+import 'core/widgets/demo_banner.dart';
 import 'core/theme/theme_controller.dart';
 import 'core/routing/app_router.dart';
 import 'features/alerts/data/push_service.dart';
@@ -116,6 +117,11 @@ class _CritiTrackAppState extends ConsumerState<CritiTrackApp> {
       darkTheme: AppTheme.darkTheme,
       themeMode: ref.watch(themeModeProvider),
       routerConfig: appRouter,
+      // Above the navigator rather than on one screen, so the notice
+      // holds wherever the reader lands — including on a deep link
+      // straight into a dashboard.
+      builder: (context, child) =>
+          DemoBanner(child: child ?? const SizedBox.shrink()),
     );
   }
 }
