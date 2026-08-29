@@ -75,13 +75,24 @@ export default function Hero({ figures }: { figures: Figure[] }) {
           </p>
 
           <div className="cta-row">
-            <a className="btn btn-primary" href="#how">
+            <a className="btn btn-primary" href="/app/">
+              Open the demo
+            </a>
+            <a className="btn btn-ghost" href="#how">
               How it works
             </a>
             <a className="btn btn-ghost" href="#method">
               Read the method
             </a>
           </div>
+          {/* Said here as well as inside the app itself. Someone who
+              clicks through expecting a working product and finds an
+              empty result has been misled by this page, not by that
+              one. */}
+          <p className="cta-note">
+            The demo has no backend deployed, so searches return nothing.
+            Everything else is real and interactive.
+          </p>
 
           <ul className="figure-list" aria-label="Coverage areas tracked">
             {figures.map((f) => (

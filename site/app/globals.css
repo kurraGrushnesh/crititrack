@@ -158,6 +158,20 @@ a {
   margin: 1.8rem 0 2rem;
 }
 
+/* Tightened so the caveat reads as attached to the buttons above it
+   rather than as a new paragraph. */
+.hero .cta-row {
+  margin-bottom: 0.7rem;
+}
+
+.cta-note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  max-width: 46ch;
+  margin: 0 0 1.9rem;
+  line-height: 1.45;
+}
+
 .btn {
   display: inline-block;
   padding: 12px 22px;

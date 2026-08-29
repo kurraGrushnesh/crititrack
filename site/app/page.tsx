@@ -148,8 +148,11 @@ export default function Home() {
               in the repository, including the parts that are unfinished.
             </p>
             <div className="cta-row">
+              <a className="btn btn-primary" href="/app/">
+                Open the demo
+              </a>
               <a
-                className="btn btn-primary"
+                className="btn btn-ghost"
                 href="https://github.com/kurraGrushnesh/crititrack"
                 rel="noopener noreferrer"
               >
