@@ -115,8 +115,8 @@ class ProxyCelebrityRepository extends CelebrityRepository {
                   // published demo the connection is fine and there is
                   // simply no backend, so blaming the network sends the
                   // reader to check a router that is working.
-                  ? 'This is the public demo, which is published without '
-                      'a backend, so profiles cannot load.'
+                  ? 'Nothing will load until one is deployed. Every other '
+                      'part of the app is real and interactive.'
                   : 'Could not reach the CritiTrack backend. Check your '
                       'internet connection and try again.',
         ),

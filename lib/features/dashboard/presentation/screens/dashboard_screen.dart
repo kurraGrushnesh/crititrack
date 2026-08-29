@@ -20,6 +20,7 @@ import 'package:shimmer/shimmer.dart';
 
 import 'package:crititrack/core/constants/app_constants.dart';
 import 'package:crititrack/core/domain/models/celebrity.dart';
+import 'package:crititrack/core/constants/api_config.dart';
 import 'package:crititrack/core/error/failures.dart';
 import 'package:crititrack/core/export/celebrity_export.dart';
 import 'package:crititrack/features/share/data/card_renderer.dart';
@@ -460,9 +461,17 @@ class _ErrorContent extends StatelessWidget {
   (IconData, String, String) _classifyError(Object error) {
     if (error is Failure) {
       return switch (error) {
+        // In the published demo there is no server to fail to reach, so
+        // both the headline and the icon would be pointing at a network
+        // problem the reader does not have. The body already explains
+        // it; this stops the two from contradicting each other.
         NetworkFailure() => (
-          Icons.wifi_off_rounded,
-          'Cannot reach the server',
+          ApiConfig.isDemo
+              ? Icons.science_outlined
+              : Icons.wifi_off_rounded,
+          ApiConfig.isDemo
+              ? 'This demo has no backend'
+              : 'Cannot reach the server',
           error.message,
         ),
         RateLimitFailure() => (
