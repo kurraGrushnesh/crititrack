@@ -260,3 +260,9 @@ These are stated plainly because the difference matters:
 ## License
 
 MIT
+
+---
+
+## Author
+
+**kurraGrushnesh** — [GitHub](https://github.com/kurraGrushnesh)
