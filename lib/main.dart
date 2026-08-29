@@ -17,9 +17,16 @@ import 'features/alerts/data/push_service.dart';
 import 'features/watchlist/data/watchlist_repository.dart';
 import 'firebase_options.dart';
 
-/// reCAPTCHA v3 site key for App Check on the web. Public by design — it
-/// is bound to our domains and is useless from anywhere else. Supply with
-/// --dart-define=RECAPTCHA_SITE_KEY=... at build time.
+/// reCAPTCHA Enterprise site key for App Check on the web.
+///
+/// Public by design — it is bound to our domains and is useless from
+/// anywhere else. Supply with --dart-define=RECAPTCHA_SITE_KEY=... at
+/// build time.
+///
+/// Enterprise rather than the classic v3 provider because that is how
+/// App Check is registered in the Firebase console (the current
+/// reCAPTCHA console issues Enterprise keys even for "score based v3").
+/// The two must match or every attestation fails.
 const String _recaptchaSiteKey = String.fromEnvironment('RECAPTCHA_SITE_KEY');
 
 Future<void> main() async {
@@ -56,7 +63,7 @@ Future<void> main() async {
     if (kIsWeb) {
       if (_recaptchaSiteKey.isNotEmpty) {
         await FirebaseAppCheck.instance.activate(
-          providerWeb: ReCaptchaV3Provider(_recaptchaSiteKey),
+          providerWeb: ReCaptchaEnterpriseProvider(_recaptchaSiteKey),
         );
       } else {
         debugPrint(

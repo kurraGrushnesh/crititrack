@@ -61,11 +61,14 @@ site key:
 1. **google.com/recaptcha/admin** → register a site → **Score based
    (v3)** → domains `crititrack-f7430.web.app` and
    `crititrack-f7430.firebaseapp.com`. Free: 10,000 assessments/month, no
-   card.
+   card. The current console issues these as reCAPTCHA **Enterprise**
+   keys.
 2. You get a **site key** (public — it goes in the build flag above) and
    a **secret key**.
 3. Firebase console → **App Check** → register the web app → provider
-   **reCAPTCHA v3** → paste the secret key.
+   **reCAPTCHA Enterprise** → paste the secret key. The Flutter code uses
+   `ReCaptchaEnterpriseProvider` to match; the two must agree or every
+   call fails attestation.
 
 Without this the app loads and every search returns
 `attestation_required`.
