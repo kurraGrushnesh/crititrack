@@ -32,7 +32,8 @@ class Celebrity extends Equatable {
   /// Firestore document ID — URL-safe lowercase slug.
   final String slug;
 
-  /// Display name as returned by OpenAI.
+  /// Display name, canonicalised by Wikidata entity resolution where a
+  /// match was found, otherwise the name as searched.
   final String name;
 
   /// Portrait image URL (Wikipedia), when one could be found.
@@ -199,7 +200,10 @@ class Celebrity extends Equatable {
   }
 }
 
-/// Structured biography returned by OpenAI.
+/// Structured biography assembled by the backend.
+///
+/// The prose is model-generated; the facts beside it are read from
+/// Wikidata claims. See [PersonFacts] for the half that is sourced.
 class Biography extends Equatable {
   const Biography({
     required this.profession,

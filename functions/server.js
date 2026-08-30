@@ -238,56 +238,7 @@ async function firestoreProbe() {
   }
 }
 
-/**
- * Records every inbound lookup, before any guard runs.
- *
- * Diagnostic instrument, not a feature: searches are rendering while
- * Firestore records nothing, and the two explanations — the request
- * never arrives, or it arrives and fails silently — are
- * indistinguishable from either end. A row written before the perimeter
- * separates them: no row means no request.
- *
- * Header *presence* only, never contents: a token in a log is a
- * credential in a place it was never meant to be. Set REQUEST_LOG=off to
- * disable without redeploying.
- *
- * @param {import("express").Request} req
- * @param {import("express").Response} res
- */
-function logRequest(req, res) {
-  if (String(process.env.REQUEST_LOG || "").toLowerCase() === "off") return;
-
-  let ref;
-  try {
-    const {getFirestore, FieldValue} = require("firebase-admin/firestore");
-    ref = getFirestore().collection("request_log").doc();
-    ref.set({
-      at: FieldValue.serverTimestamp(),
-      name: String(req.query.name || "").slice(0, 80),
-      qid: String(req.query.qid || "").slice(0, 20),
-      origin: req.get("Origin") || null,
-      userAgent: String(req.get("User-Agent") || "").slice(0, 120),
-      hasAuth: Boolean(req.get("Authorization")),
-      hasAppCheck: Boolean(req.get("X-Firebase-AppCheck")),
-      status: null,
-    }).catch((e) => logger.warn(`request_log write failed: ${e.message}`));
-  } catch (e) {
-    logger.warn(`request_log unavailable: ${e.message}`);
-    return;
-  }
-
-  // The status is only known once the response is sent, so it is filled
-  // in afterwards. The arrival row is already durable by then, which is
-  // the part that matters if the handler never finishes.
-  res.on("finish", () => {
-    ref.update({status: res.statusCode})
-        .catch((e) => logger.warn(`request_log update failed: ${e.message}`));
-  });
-}
-
 app.get("/getCelebrity", (req, res) => {
-  logRequest(req, res);
-
   // handlers.js reads req.query.name / req.query.qid, exactly as under
   // Cloud Functions.
   handleGetCelebrity(readKeys(), req, res).catch((e) => {

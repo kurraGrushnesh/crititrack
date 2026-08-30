@@ -1,9 +1,11 @@
 /// Domain model for a single documented controversy / criticism episode
 /// involving a public figure.
 ///
-/// Controversies are produced by the LLM as part of the biography call
-/// (see `OpenAiService.fetchBiography`) and rendered by the dedicated
-/// Controversy section on the dashboard. Unlike the earlier flat
+/// Controversies are produced by the language model as part of the
+/// biography call (`functions/lib/groq.js`), filtered by the
+/// corroboration gate so that a severe claim no retrieved article
+/// supports is discarded rather than rendered, and shown in the
+/// Controversy section of the dashboard. Unlike the earlier flat
 /// `List<String>`, each entry is structured so the UI can sort by
 /// severity, group by category, and show status at a glance.
 library;

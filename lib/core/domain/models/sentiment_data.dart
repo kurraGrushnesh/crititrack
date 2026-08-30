@@ -1,11 +1,15 @@
 /// Domain models for sentiment analysis results.
 ///
-/// [SentimentData] represents the aggregated analysis returned by
-/// OpenAI from news headlines — including ratios, trend direction,
-/// and the natural-language explanation paragraph.
+/// [SentimentData] represents the aggregated analysis of retrieved
+/// headlines — ratios, trend direction, per-source scores and the
+/// explanation paragraph. Scores come from the three-method ensemble in
+/// `functions/lib/sentiment/`, not from a single model call, so the
+/// spread between methods can be reported as a confidence band.
 ///
-/// [SentimentSnapshot] represents a single day in the 7-day trend,
-/// stored in the `sentiment_snapshots` Firestore sub-collection.
+/// [SentimentSnapshot] represents one measured day, stored in the
+/// `sentiment_snapshots` Firestore sub-collection. Only days the
+/// refresher actually measured are recorded; the series is not
+/// backfilled.
 ///
 /// [SentimentEvidence] represents a model-cited fragment explaining
 /// what drove the sentiment score (Phase 2).
@@ -93,8 +97,9 @@ class SentimentData extends Equatable {
   /// Trend direction: "up", "down", or "stable".
   final String trendDirection;
 
-  /// AI-generated 2–3 paragraph explanation of why sentiment
-  /// is trending this way. Rendered with typewriter animation.
+  /// Model-written 2–3 paragraph explanation of why sentiment is
+  /// trending this way. Prose, not evidence — the numbers beside it are
+  /// computed, and the screen distinguishes the two.
   final String explanation;
 
   /// 7-day trend data for the line chart.

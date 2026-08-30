@@ -66,8 +66,8 @@ void main() {
     });
 
     test('ApiKeyFailure includes service name', () {
-      const f = ApiKeyFailure(serviceName: 'OpenAI');
-      expect(f.serviceName, 'OpenAI');
+      const f = ApiKeyFailure(serviceName: 'CritiTrack');
+      expect(f.serviceName, 'CritiTrack');
     });
 
     test('RateLimitFailure has user-friendly message', () {

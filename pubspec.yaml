@@ -69,6 +69,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  assets:
-    - assets/animations/
-    - assets/images/
+  # No `assets:` block: the app bundles no images, animations or fonts.
+  # Declaring a directory that holds nothing forces an empty folder to be
+  # kept alive purely to stop the build failing. See docs/FONTS.md for
+  # why the typeface is the platform default rather than a bundled one.
