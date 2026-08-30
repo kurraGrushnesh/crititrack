@@ -10,26 +10,23 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:crititrack/features/alerts/data/push_service.dart';
 
-RemoteMessage spike({
-  Map<String, String>? data,
-  String? title,
-  String? body,
-}) => RemoteMessage(
-  data:
-      data ??
-      const {
-        'kind': 'spike',
-        'slug': 'taylor-swift',
-        'score': '41',
-        'change': '-14',
-        'direction': 'down',
-        'zScore': '2.41',
-      },
-  notification:
-      title == null && body == null
-          ? null
-          : RemoteNotification(title: title, body: body),
-);
+RemoteMessage spike({Map<String, String>? data, String? title, String? body}) =>
+    RemoteMessage(
+      data:
+          data ??
+          const {
+            'kind': 'spike',
+            'slug': 'taylor-swift',
+            'score': '41',
+            'change': '-14',
+            'direction': 'down',
+            'zScore': '2.41',
+          },
+      notification:
+          title == null && body == null
+              ? null
+              : RemoteNotification(title: title, body: body),
+    );
 
 void main() {
   group('AlertMessage.from', () {
@@ -68,10 +65,7 @@ void main() {
     });
 
     test('ignores a spike with no usable slug', () {
-      expect(
-        AlertMessage.from(spike(data: const {'kind': 'spike'})),
-        isNull,
-      );
+      expect(AlertMessage.from(spike(data: const {'kind': 'spike'})), isNull);
       expect(
         AlertMessage.from(spike(data: const {'kind': 'spike', 'slug': ''})),
         isNull,

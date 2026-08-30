@@ -12,8 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:crititrack/features/alerts/domain/alert_preferences.dart';
 
 /// A local wall-clock time on a fixed date.
-DateTime at(int hour, [int minute = 0]) =>
-    DateTime(2026, 1, 15, hour, minute);
+DateTime at(int hour, [int minute = 0]) => DateTime(2026, 1, 15, hour, minute);
 
 const quiet = AlertPreferences(
   quietEnabled: true,

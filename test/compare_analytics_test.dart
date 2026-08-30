@@ -136,8 +136,11 @@ void main() {
   });
 
   group('rankPairs', () {
-    CompareSeries s(String name, Map<String, double> scores) =>
-        (slug: name.toLowerCase(), name: name, scores: scores);
+    CompareSeries s(String name, Map<String, double> scores) => (
+      slug: name.toLowerCase(),
+      name: name,
+      scores: scores,
+    );
 
     test('refuses to report a correlation from two overlapping days', () {
       // Two points determine a line, so r is always exactly ±1 whatever
@@ -185,11 +188,7 @@ void main() {
         '2026-01-02': 20.0,
         '2026-01-03': 10.0,
       };
-      final flat = {
-        '2026-01-01': 10.0,
-        '2026-01-02': 30.0,
-        '2026-01-03': 11.0,
-      };
+      final flat = {'2026-01-01': 10.0, '2026-01-02': 30.0, '2026-01-03': 11.0};
 
       final pairs = rankPairs([
         s('A', together),
@@ -218,7 +217,12 @@ void main() {
 
     test('returns nothing for fewer than two figures', () {
       expect(rankPairs([]), isEmpty);
-      expect(rankPairs([s('A', {'2026-01-01': 1})]), isEmpty);
+      expect(
+        rankPairs([
+          s('A', {'2026-01-01': 1}),
+        ]),
+        isEmpty,
+      );
     });
   });
 }

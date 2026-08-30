@@ -20,9 +20,7 @@ Future<void> pump(WidgetTester tester) async {
   await tester.pumpWidget(
     MaterialApp(
       theme: AppTheme.darkTheme,
-      home: const Scaffold(
-        body: DemoBanner(child: Text('the app')),
-      ),
+      home: const Scaffold(body: DemoBanner(child: Text('the app'))),
     ),
   );
   await tester.pump();
@@ -53,9 +51,7 @@ void main() {
       expect(find.text('the app'), findsOneWidget);
     });
 
-    testWidgets('is announced to a screen reader as one label', (
-      tester,
-    ) async {
+    testWidgets('is announced to a screen reader as one label', (tester) async {
       await pump(tester);
 
       final semantics = tester.getSemantics(

@@ -173,10 +173,7 @@ void _toggleSizing() {
             body: SizedBox(
               width: 900,
               height: 700,
-              child: Align(
-                alignment: Alignment.topRight,
-                child: ThemeToggle(),
-              ),
+              child: Align(alignment: Alignment.topRight, child: ThemeToggle()),
             ),
           ),
         ),

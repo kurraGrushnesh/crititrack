@@ -59,7 +59,8 @@ void main() {
       final tomorrow = now.add(const Duration(days: 2));
 
       final beforeBirthday = PersonFacts(
-        birthDate: '2000-'
+        birthDate:
+            '2000-'
             '${tomorrow.month.toString().padLeft(2, '0')}-'
             '${tomorrow.day.toString().padLeft(2, '0')}',
       );
@@ -151,10 +152,7 @@ void main() {
     });
 
     test('rejects a candidate with no label to show', () {
-      expect(
-        EntityCandidate.fromMap(const {'qid': 'Q1', 'label': ''}),
-        isNull,
-      );
+      expect(EntityCandidate.fromMap(const {'qid': 'Q1', 'label': ''}), isNull);
       expect(EntityCandidate.fromMap(const {'qid': 'Q1'}), isNull);
     });
   });

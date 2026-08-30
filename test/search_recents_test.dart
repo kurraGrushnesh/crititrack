@@ -57,24 +57,30 @@ void main() {
     ]);
   });
 
-  test('re-searching a name moves it to the front rather than duplicating', () async {
-    final repo = SearchRepository();
-    await repo.addSearch('Zendaya');
-    await repo.addSearch('Elon Musk');
-    await repo.addSearch('Zendaya');
-    await restart();
+  test(
+    're-searching a name moves it to the front rather than duplicating',
+    () async {
+      final repo = SearchRepository();
+      await repo.addSearch('Zendaya');
+      await repo.addSearch('Elon Musk');
+      await repo.addSearch('Zendaya');
+      await restart();
 
-    expect(SearchRepository().getRecentSearches(), ['Zendaya', 'Elon Musk']);
-  });
+      expect(SearchRepository().getRecentSearches(), ['Zendaya', 'Elon Musk']);
+    },
+  );
 
-  test('clearing empties the list and the emptiness survives a restart', () async {
-    final repo = SearchRepository();
-    await repo.addSearch('Zendaya');
-    await repo.clearSearches();
-    await restart();
+  test(
+    'clearing empties the list and the emptiness survives a restart',
+    () async {
+      final repo = SearchRepository();
+      await repo.addSearch('Zendaya');
+      await repo.clearSearches();
+      await restart();
 
-    expect(SearchRepository().getRecentSearches(), isEmpty);
-  });
+      expect(SearchRepository().getRecentSearches(), isEmpty);
+    },
+  );
 
   test('removing one leaves the rest', () async {
     final repo = SearchRepository();
@@ -107,12 +113,19 @@ void main() {
     expect(recents.first, 'Person 24');
   });
 
-  test('a corrupt stored value degrades to empty rather than throwing', () async {
-    // The box is untyped, so anything could be in there.
-    await Hive.box<dynamic>('search_recents').put('recent_queries', 'not a list');
-    expect(SearchRepository().getRecentSearches(), isEmpty);
+  test(
+    'a corrupt stored value degrades to empty rather than throwing',
+    () async {
+      // The box is untyped, so anything could be in there.
+      await Hive.box<dynamic>(
+        'search_recents',
+      ).put('recent_queries', 'not a list');
+      expect(SearchRepository().getRecentSearches(), isEmpty);
 
-    await Hive.box<dynamic>('search_recents').put('recent_queries', [1, null, 'ok']);
-    expect(SearchRepository().getRecentSearches(), ['ok']);
-  });
+      await Hive.box<dynamic>(
+        'search_recents',
+      ).put('recent_queries', [1, null, 'ok']);
+      expect(SearchRepository().getRecentSearches(), ['ok']);
+    },
+  );
 }

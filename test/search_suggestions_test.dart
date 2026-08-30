@@ -53,11 +53,7 @@ void main() {
 
   test('shows a figure once even when watched and recently searched', () {
     // "zendaya" appears in both lists; the watched entry is the one kept.
-    final out = suggestionsFor(
-      query: 'zen',
-      watched: watched,
-      recent: recent,
-    );
+    final out = suggestionsFor(query: 'zen', watched: watched, recent: recent);
     expect(names(out), ['Zendaya']);
     expect(out.single.kind, SuggestionKind.watched);
   });
@@ -117,11 +113,7 @@ void main() {
   });
 
   test('returns nothing when nothing matches', () {
-    final out = suggestionsFor(
-      query: 'qqqq',
-      watched: watched,
-      recent: recent,
-    );
+    final out = suggestionsFor(query: 'qqqq', watched: watched, recent: recent);
     expect(out, isEmpty);
   });
 

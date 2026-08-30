@@ -88,9 +88,8 @@ List<String> orderOf(WidgetTester tester, List<String> titles) {
 /// the whole card is wrapped in one for expand/collapse, so every chip
 /// has an InkWell above it whether or not it is itself tappable.
 bool isLinked(WidgetTester tester, String label) {
-  final row = find
-      .ancestor(of: find.text(label), matching: find.byType(Row))
-      .first;
+  final row =
+      find.ancestor(of: find.text(label), matching: find.byType(Row)).first;
   final icon = tester.widget<Icon>(
     find.descendant(of: row, matching: find.byType(Icon)).first,
   );
@@ -169,10 +168,11 @@ void main() {
     testWidgets('defaults to most serious first', (tester) async {
       await pumpSection(tester, [recentMinor, oldSevere, undated]);
 
-      expect(
-        orderOf(tester, ['Old severe', 'Undated', 'Recent minor']),
-        ['Old severe', 'Undated', 'Recent minor'],
-      );
+      expect(orderOf(tester, ['Old severe', 'Undated', 'Recent minor']), [
+        'Old severe',
+        'Undated',
+        'Recent minor',
+      ]);
     });
 
     testWidgets('switches to newest first', (tester) async {

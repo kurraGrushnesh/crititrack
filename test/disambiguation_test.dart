@@ -73,14 +73,8 @@ void main() {
     await pumpBar(tester, candidates: const [footballer, professor]);
 
     // The pick is shown rather than left implicit.
-    expect(
-      find.textContaining('Showing Michael Jordan'),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('American basketball player'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('Showing Michael Jordan'), findsOneWidget);
+    expect(find.textContaining('American basketball player'), findsOneWidget);
   });
 
   testWidgets('offers every other person the name matched', (tester) async {
@@ -101,9 +95,7 @@ void main() {
     expect(find.byType(SizedBox), findsWidgets);
   });
 
-  testWidgets('choosing an alternative pins it by Wikidata id', (
-    tester,
-  ) async {
+  testWidgets('choosing an alternative pins it by Wikidata id', (tester) async {
     // By id, not by label — searching the label again would be circular,
     // because two people can share a label exactly.
     final container = await pumpBar(
@@ -116,10 +108,7 @@ void main() {
     await tester.tap(find.text('Michael I. Jordan'));
     await tester.pump();
 
-    expect(
-      container.read(pinnedEntityProvider),
-      {'michael-jordan': 'Q92466'},
-    );
+    expect(container.read(pinnedEntityProvider), {'michael-jordan': 'Q92466'});
   });
 
   testWidgets('the pinned choice is marked as selected', (tester) async {
@@ -156,10 +145,7 @@ void main() {
   });
 
   testWidgets('only one slug is affected by a pin', (tester) async {
-    final container = await pumpBar(
-      tester,
-      candidates: const [professor],
-    );
+    final container = await pumpBar(tester, candidates: const [professor]);
     container.read(pinnedEntityProvider.notifier).state = {
       'someone-else': 'Q1',
     };

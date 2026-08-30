@@ -88,9 +88,7 @@ void main() {
       expect(find.text(explanation), findsOneWidget);
     });
 
-    testWidgets('leaves no timer running under reduced motion', (
-      tester,
-    ) async {
+    testWidgets('leaves no timer running under reduced motion', (tester) async {
       // A periodic timer that outlives the test fails the binding, which
       // is the check that the early return really did return.
       await pumpSection(tester, disableAnimations: true);

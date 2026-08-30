@@ -8,9 +8,9 @@ serious it was, and whether sentiment is moving.
 ![Flutter](https://img.shields.io/badge/Flutter-3.47-02569B?logo=flutter)
 ![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart)
 ![Node](https://img.shields.io/badge/Node-24-339933?logo=nodedotjs)
-![Firebase](https://img.shields.io/badge/Backend-Cloud%20Functions-FFCA28?logo=firebase)
-![Tests](https://img.shields.io/badge/tests-462%20passing-brightgreen)
-![Coverage](https://img.shields.io/badge/core%20coverage-84%25-brightgreen)
+![Firebase](https://img.shields.io/badge/Data-Firestore-FFCA28?logo=firebase)
+![Tests](https://img.shields.io/badge/tests-477%20passing-brightgreen)
+![Coverage](https://img.shields.io/badge/core%20coverage-83%25-brightgreen)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
@@ -157,14 +157,14 @@ backend, and for what push notifications need before they can arrive.
 ## Testing
 
 ```bash
-flutter test                              # 299 widget and unit tests
+flutter test                              # 314 widget and unit tests
 flutter test --coverage
 dart run tool/check_coverage.dart         # enforces the coverage floors
 
 cd functions && npm test                  # 163 backend tests
 ```
 
-**462 tests.** Coverage is 84.4% on core and 68.1% overall, against
+**477 tests.** Coverage is 83.2% on core and 69.0% overall, against
 floors of 75% and 65%.
 
 CI gates formatting, `flutter analyze --fatal-infos --fatal-warnings`,
@@ -252,8 +252,8 @@ These are stated plainly because the difference matters:
   and your own history. Producing a trending row honestly needs a backend
   ranking what people actually look up; a hard-coded list of famous names
   would be a claim about other users that nothing measured.
-- **Overall coverage is 68.1%**, down from a peak of 77% as presentation
-  code was added faster than its tests. Core logic remains at 84.4%.
+- **Overall coverage is 69.0%**, down from a peak of 77% as presentation
+  code was added faster than its tests. Core logic remains at 83.2%.
 
 ---
 
