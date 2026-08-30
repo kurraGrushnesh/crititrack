@@ -18,24 +18,53 @@ class PersonFacts extends Equatable {
   const PersonFacts({
     this.birthDate,
     this.deathDate,
+    this.birthPlace,
     this.citizenship = const [],
     this.occupations = const [],
+    this.awards = const [],
+    this.education = const [],
+    this.notableWorks = const [],
+    this.links = const {},
   });
 
   /// `YYYY`, `YYYY-MM` or `YYYY-MM-DD`.
   final String? birthDate;
   final String? deathDate;
+  final String? birthPlace;
 
   final List<String> citizenship;
   final List<String> occupations;
+
+  /// Awards actually recorded against this person, newest first.
+  ///
+  /// Sourced, unlike the generated "notable achievements" the model used
+  /// to supply on its own: an award is a dated, checkable event, which is
+  /// the kind of claim this app is supposed to be made of.
+  final List<Award> awards;
+
+  final List<String> education;
+
+  /// Works recorded on Wikidata. Frequently empty — many people have no
+  /// `P800` — in which case the biography's generated list stands in and
+  /// the screen says which it is showing.
+  final List<String> notableWorks;
+
+  /// Primary sources: the subject's own site and accounts, plus IMDb.
+  /// Keys are `imdb`, `x`, `instagram`, `website`.
+  final Map<String, String> links;
 
   static const PersonFacts empty = PersonFacts();
 
   bool get isEmpty =>
       birthDate == null &&
       deathDate == null &&
+      birthPlace == null &&
       citizenship.isEmpty &&
-      occupations.isEmpty;
+      occupations.isEmpty &&
+      awards.isEmpty &&
+      education.isEmpty &&
+      notableWorks.isEmpty &&
+      links.isEmpty;
 
   bool get isNotEmpty => !isEmpty;
 
@@ -76,8 +105,16 @@ class PersonFacts extends Equatable {
     return PersonFacts(
       birthDate: _asDate(map['birthDate']),
       deathDate: _asDate(map['deathDate']),
+      birthPlace: switch (map['birthPlace']) {
+        final String s when s.trim().isNotEmpty => s.trim(),
+        _ => null,
+      },
       citizenship: _asStrings(map['citizenship']),
       occupations: _asStrings(map['occupations']),
+      awards: Award.listFrom(map['awards']),
+      education: _asStrings(map['education']),
+      notableWorks: _asStrings(map['notableWorks']),
+      links: _asLinks(map['links']),
     );
   }
 
@@ -85,9 +122,64 @@ class PersonFacts extends Equatable {
   List<Object?> get props => [
     birthDate,
     deathDate,
+    birthPlace,
     citizenship.join(','),
     occupations.join(','),
+    awards,
+    education.join(','),
+    notableWorks.join(','),
+    links.toString(),
   ];
+}
+
+/// A dated award, as recorded on Wikidata.
+class Award extends Equatable {
+  const Award({required this.label, this.year});
+
+  final String label;
+
+  /// Null when Wikidata records the award but not when it was given.
+  /// Undated awards sort last rather than being dropped — the award
+  /// still happened.
+  final int? year;
+
+  static List<Award> listFrom(Object? raw) {
+    if (raw is! List) return const [];
+
+    final out = <Award>[];
+    for (final entry in raw) {
+      if (entry is! Map) continue;
+      final label = entry['label'];
+      if (label is! String || label.trim().isEmpty) continue;
+      final year = entry['year'];
+      out.add(
+        Award(
+          label: label.trim(),
+          year: year is int ? year : (year is num ? year.toInt() : null),
+        ),
+      );
+    }
+    return out;
+  }
+
+  @override
+  List<Object?> get props => [label, year];
+}
+
+/// Only `http(s)` survives. Anything else on a profile would be a link
+/// the subject did not publish, rendered as though they had.
+Map<String, String> _asLinks(Object? raw) {
+  if (raw is! Map) return const {};
+
+  final out = <String, String>{};
+  for (final entry in raw.entries) {
+    final key = entry.key;
+    final value = entry.value;
+    if (key is! String || value is! String) continue;
+    if (!RegExp(r'^https?://', caseSensitive: false).hasMatch(value)) continue;
+    out[key] = value;
+  }
+  return out;
 }
 
 /// One of several people a name could have meant.

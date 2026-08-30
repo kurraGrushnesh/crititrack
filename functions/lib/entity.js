@@ -25,7 +25,9 @@ const logger = require("./logger");
 const {fetchWithTimeout} = require("./httpUtil");
 
 const API = "https://www.wikidata.org/w/api.php";
-const UA = "CritiTrack/1.0 (https://crititrack.app)";
+// Wikimedia asks for a contact URL that actually resolves. This pointed
+// at crititrack.app, which is not a registered domain.
+const UA = "CritiTrack/1.0 (https://crititrack-f7430.web.app)";
 
 /** Wikidata item id for "human". */
 const HUMAN = "Q5";
@@ -47,10 +49,44 @@ const PROPS = {
   deathDate: "P570",
   citizenship: "P27",
   occupation: "P106",
+  // A typical public figure carries ~250 properties and this read only
+  // five of them, so the profile was a stub while the record sat there
+  // sourced. These are the ones that describe a career rather than a
+  // demographic: what they are known for, what they won, where they
+  // trained, where they are from.
+  award: "P166",
+  notableWork: "P800",
+  education: "P69",
+  birthPlace: "P19",
+};
+
+/**
+ * Point-in-time qualifier, used to date an award.
+ *
+ * An award without a year is a claim; an award with one is an event, and
+ * events can be put on a timeline and lined up against coverage.
+ */
+const POINT_IN_TIME = "P585";
+
+/**
+ * External identifiers, which are string-valued rather than entity-valued.
+ *
+ * These exist so a reader can leave and check for themselves. For a tool
+ * whose argument is "here is the evidence", linking to the primary
+ * account and to IMDb is part of the argument, not a convenience.
+ */
+const EXTERNAL = {
+  imdb: "P345",
+  x: "P2002",
+  instagram: "P2003",
+  website: "P856",
 };
 
 /** How many occupations to keep. Wikidata often lists a dozen. */
 const MAX_OCCUPATIONS = 4;
+const MAX_AWARDS = 12;
+const MAX_WORKS = 8;
+const MAX_EDUCATION = 3;
 
 /** How many search hits to inspect. The person is rarely the top hit —
  * a search for "Zendaya" returns the given name first, then the album,
@@ -226,7 +262,10 @@ module.exports = {
   HUMAN,
   INSTANCE_OF,
   PROPS,
+  EXTERNAL,
   MAX_OCCUPATIONS,
+  MAX_AWARDS,
+  MAX_WORKS,
 };
 
 /**
@@ -248,7 +287,98 @@ function extractFacts(entity) {
     deathDate: timeClaim(entity, PROPS.deathDate),
     citizenshipIds: idClaims(entity, PROPS.citizenship).slice(0, 2),
     occupationIds: idClaims(entity, PROPS.occupation).slice(0, MAX_OCCUPATIONS),
+    // Awards keep their year so they can be ordered and placed on a
+    // timeline. Undated ones are kept — the award still happened — and
+    // sort last, the same rule the controversy list already uses.
+    awards: datedIdClaims(entity, PROPS.award).slice(0, MAX_AWARDS),
+    notableWorkIds: idClaims(entity, PROPS.notableWork).slice(0, MAX_WORKS),
+    educationIds: idClaims(entity, PROPS.education).slice(0, MAX_EDUCATION),
+    birthPlaceId: idClaims(entity, PROPS.birthPlace)[0] || null,
+    links: externalLinks(entity),
   };
+}
+
+/**
+ * Entity-valued claims paired with their point-in-time qualifier.
+ *
+ * @param {object} entity
+ * @param {string} prop
+ * @return {Array<{id: string, year: number|null}>}
+ */
+function datedIdClaims(entity, prop) {
+  const claims = (entity && entity.claims && entity.claims[prop]) || [];
+
+  return claims
+      .filter((c) => !isDeprecated(c))
+      .map((c) => {
+        const id = c && c.mainsnak && c.mainsnak.datavalue &&
+          c.mainsnak.datavalue.value && c.mainsnak.datavalue.value.id;
+        return {id, year: qualifierYear(c, POINT_IN_TIME)};
+      })
+      .filter((a) => typeof a.id === "string" && /^Q\d+$/.test(a.id));
+}
+
+/**
+ * The year of a time-valued qualifier, when one is present.
+ *
+ * @param {object} claim
+ * @param {string} prop
+ * @return {number|null}
+ */
+function qualifierYear(claim, prop) {
+  const quals = (claim && claim.qualifiers && claim.qualifiers[prop]) || [];
+  for (const q of quals) {
+    const t = q && q.datavalue && q.datavalue.value &&
+      q.datavalue.value.time;
+    if (typeof t !== "string" || !t.startsWith("+")) continue;
+    const m = t.match(/^\+(\d{4,})-/);
+    if (m) return Number(m[1]);
+  }
+  return null;
+}
+
+/**
+ * String-valued external identifiers, turned into URLs.
+ *
+ * Only the handle is stored on Wikidata; the URL shape is ours. Any
+ * identifier that is absent is simply omitted rather than rendered as a
+ * dead link.
+ *
+ * @param {object} entity
+ * @return {Record<string, string>}
+ */
+function externalLinks(entity) {
+  const out = {};
+  const raw = (prop) => {
+    const claims = (entity && entity.claims && entity.claims[prop]) || [];
+    for (const c of claims) {
+      if (isDeprecated(c)) continue;
+      const v = c && c.mainsnak && c.mainsnak.datavalue &&
+        c.mainsnak.datavalue.value;
+      if (typeof v === "string" && v.trim()) return v.trim();
+    }
+    return null;
+  };
+
+  const imdb = raw(EXTERNAL.imdb);
+  // Only name ids belong on a person; a title id here would be a data
+  // error on the entity and would link to a film.
+  if (imdb && /^nm\d+$/.test(imdb)) {
+    out.imdb = `https://www.imdb.com/name/${imdb}/`;
+  }
+
+  const x = raw(EXTERNAL.x);
+  if (x && /^[A-Za-z0-9_]{1,15}$/.test(x)) out.x = `https://x.com/${x}`;
+
+  const ig = raw(EXTERNAL.instagram);
+  if (ig && /^[A-Za-z0-9._]{1,30}$/.test(ig)) {
+    out.instagram = `https://www.instagram.com/${ig}/`;
+  }
+
+  const site = raw(EXTERNAL.website);
+  if (site && /^https?:\/\//i.test(site)) out.website = site;
+
+  return out;
 }
 
 /**
@@ -262,7 +392,14 @@ function extractFacts(entity) {
  * @return {Promise<object>}
  */
 async function resolveFactLabels(facts) {
-  const ids = [...facts.citizenshipIds, ...facts.occupationIds];
+  const ids = [
+    ...facts.citizenshipIds,
+    ...facts.occupationIds,
+    ...facts.awards.map((a) => a.id),
+    ...facts.notableWorkIds,
+    ...facts.educationIds,
+    ...(facts.birthPlaceId ? [facts.birthPlaceId] : []),
+  ];
 
   let labels = {};
   if (ids.length > 0) {
@@ -283,6 +420,18 @@ async function resolveFactLabels(facts) {
     deathDate: facts.deathDate,
     citizenship: facts.citizenshipIds.map((id) => labels[id]).filter(Boolean),
     occupations: facts.occupationIds.map((id) => labels[id]).filter(Boolean),
+    // Dated first, newest first; undated last. Same ordering rule the
+    // controversy list uses, so the two read consistently.
+    awards: facts.awards
+        .map((a) => ({label: labels[a.id] || "", year: a.year}))
+        .filter((a) => a.label)
+        .sort((a, b) => (b.year || -Infinity) - (a.year || -Infinity)),
+    notableWorks: facts.notableWorkIds
+        .map((id) => labels[id])
+        .filter(Boolean),
+    education: facts.educationIds.map((id) => labels[id]).filter(Boolean),
+    birthPlace: (facts.birthPlaceId && labels[facts.birthPlaceId]) || null,
+    links: facts.links,
   };
 }
 

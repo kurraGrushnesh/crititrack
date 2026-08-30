@@ -162,3 +162,92 @@ test("resolveByQid rejects anything that is not a Wikidata id", async () => {
     assert.equal(await resolveByQid(bad), null);
   }
 });
+
+// ── Expanded record (awards, works, education, links) ───────────────
+
+const claimId = (id, qualifiers) => ({
+  mainsnak: {datavalue: {value: {id}}},
+  ...(qualifiers ? {qualifiers} : {}),
+});
+const yearQual = (y) => ({
+  P585: [{datavalue: {value: {time: `+${y}-00-00T00:00:00Z`}}}],
+});
+const claimStr = (v) => ({mainsnak: {datavalue: {value: v}}});
+
+test("awards keep the year from their point-in-time qualifier", () => {
+  const e = {claims: {P166: [claimId("Q1", yearQual(2021))]}};
+  assert.deepEqual(extractFacts(e).awards, [{id: "Q1", year: 2021}]);
+});
+
+test("an award with no date is kept, with a null year", () => {
+  const e = {claims: {P166: [claimId("Q1")]}};
+  assert.deepEqual(extractFacts(e).awards, [{id: "Q1", year: null}]);
+});
+
+test("deprecated awards are dropped like any other claim", () => {
+  const e = {
+    claims: {P166: [{...claimId("Q1"), rank: "deprecated"}, claimId("Q2")]},
+  };
+  assert.deepEqual(extractFacts(e).awards.map((a) => a.id), ["Q2"]);
+});
+
+test("notable work, education and birthplace are read off the entity", () => {
+  const e = {
+    claims: {
+      P800: [claimId("Q10"), claimId("Q11")],
+      P69: [claimId("Q20")],
+      P19: [claimId("Q30")],
+    },
+  };
+  const f = extractFacts(e);
+  assert.deepEqual(f.notableWorkIds, ["Q10", "Q11"]);
+  assert.deepEqual(f.educationIds, ["Q20"]);
+  assert.equal(f.birthPlaceId, "Q30");
+});
+
+test("birthPlaceId is null rather than undefined when absent", () => {
+  assert.equal(extractFacts({claims: {}}).birthPlaceId, null);
+});
+
+test("external identifiers become URLs", () => {
+  const e = {
+    claims: {
+      P345: [claimStr("nm3918035")],
+      P2002: [claimStr("zendaya")],
+      P2003: [claimStr("zendaya")],
+      P856: [claimStr("https://example.com")],
+    },
+  };
+  const links = extractFacts(e).links;
+  assert.equal(links.imdb, "https://www.imdb.com/name/nm3918035/");
+  assert.equal(links.x, "https://x.com/zendaya");
+  assert.equal(links.instagram, "https://www.instagram.com/zendaya/");
+  assert.equal(links.website, "https://example.com");
+});
+
+test("an IMDb title id on a person is rejected, not linked to a film", () => {
+  const e = {claims: {P345: [claimStr("tt1234567")]}};
+  assert.equal(extractFacts(e).links.imdb, undefined);
+});
+
+test("a handle that cannot be one is dropped rather than linked", () => {
+  const e = {
+    claims: {
+      P2002: [claimStr("way too long for a handle")],
+      P856: [claimStr("javascript:alert(1)")],
+    },
+  };
+  const links = extractFacts(e).links;
+  assert.equal(links.x, undefined);
+  // Only http(s) is linkable; anything else would be a live XSS vector
+  // rendered as the subject's own website.
+  assert.equal(links.website, undefined);
+});
+
+test("the expanded fields are empty, not missing, on a bare entity", () => {
+  const f = extractFacts({});
+  assert.deepEqual(f.awards, []);
+  assert.deepEqual(f.notableWorkIds, []);
+  assert.deepEqual(f.educationIds, []);
+  assert.deepEqual(f.links, {});
+});

@@ -156,4 +156,87 @@ void main() {
       expect(EntityCandidate.fromMap(const {'qid': 'Q1'}), isNull);
     });
   });
+
+  group('expanded record', () {
+    test('awards parse with their year and survive a missing one', () {
+      final facts = PersonFacts.fromMap({
+        'awards': [
+          {'label': 'Primetime Emmy', 'year': 2020},
+          {'label': 'Unnamed honour'},
+        ],
+      });
+
+      expect(facts.awards, hasLength(2));
+      expect(facts.awards.first.label, 'Primetime Emmy');
+      expect(facts.awards.first.year, 2020);
+      // An award Wikidata records without a date is still an award.
+      expect(facts.awards.last.year, isNull);
+    });
+
+    test('award entries missing a label are dropped, not rendered blank', () {
+      final facts = PersonFacts.fromMap({
+        'awards': [
+          {'year': 1999},
+          {'label': '   '},
+          {'label': 'Real', 'year': 2001},
+        ],
+      });
+
+      expect(facts.awards.map((a) => a.label), ['Real']);
+    });
+
+    test('awards tolerate a malformed payload instead of throwing', () {
+      expect(PersonFacts.fromMap({'awards': 'nonsense'}).awards, isEmpty);
+      expect(
+        PersonFacts.fromMap({
+          'awards': [1, 2],
+        }).awards,
+        isEmpty,
+      );
+    });
+
+    test('birthPlace, education and sourced works are read', () {
+      final facts = PersonFacts.fromMap({
+        'birthPlace': 'Oakland',
+        'education': ['Oakland School for the Arts'],
+        'notableWorks': ['Euphoria'],
+      });
+
+      expect(facts.birthPlace, 'Oakland');
+      expect(facts.education, ['Oakland School for the Arts']);
+      expect(facts.notableWorks, ['Euphoria']);
+    });
+
+    test('only http(s) links survive', () {
+      final facts = PersonFacts.fromMap({
+        'links': {
+          'website': 'https://example.com',
+          'x': 'http://x.com/someone',
+          // A profile must never render a script URL as the subject's
+          // own site.
+          'evil': 'javascript:alert(1)',
+          'bad': 'ftp://example.com',
+          'wrong': 42,
+        },
+      });
+
+      expect(facts.links.keys, containsAll(['website', 'x']));
+      expect(facts.links.containsKey('evil'), isFalse);
+      expect(facts.links.containsKey('bad'), isFalse);
+      expect(facts.links.containsKey('wrong'), isFalse);
+    });
+
+    test('a record with only expanded fields is not reported as empty', () {
+      expect(PersonFacts.fromMap({'birthPlace': 'Oakland'}).isEmpty, isFalse);
+      expect(
+        PersonFacts.fromMap({
+          'awards': [
+            {'label': 'Emmy'},
+          ],
+        }).isEmpty,
+        isFalse,
+      );
+      expect(PersonFacts.fromMap({}).isEmpty, isTrue);
+    });
+  });
 }

@@ -2,6 +2,7 @@ library;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:crititrack/core/domain/models/celebrity.dart';
 import 'package:crititrack/core/domain/models/person_facts.dart';
@@ -57,6 +58,12 @@ class _BiographyCardState extends State<BiographyCard>
     _animController.dispose();
     super.dispose();
   }
+
+  /// Sourced works if Wikidata has any, otherwise the generated list.
+  List<String> _works(Biography bio) =>
+      widget.facts.notableWorks.isNotEmpty
+          ? widget.facts.notableWorks
+          : bio.notableWorks;
 
   void _toggleExpand() {
     setState(() => _expanded = !_expanded);
@@ -202,10 +209,29 @@ class _BiographyCardState extends State<BiographyCard>
           ),
 
           // ── Notable Works Chips ─────────────────────────────────
-          if (bio.notableWorks.isNotEmpty) ...[
+          // Wikidata's P800 wins when the entity has one. The model's
+          // list is the fallback, and the subtitle says which is on
+          // screen — the same sourced-versus-generated distinction the
+          // facts strip above draws, applied to a field that used to be
+          // generated unconditionally.
+          if (_works(bio).isNotEmpty) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-              child: Text('Notable Works', style: theme.textTheme.labelLarge),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Notable Works', style: theme.textTheme.labelLarge),
+                  Text(
+                    widget.facts.notableWorks.isNotEmpty
+                        ? 'From Wikidata'
+                        : 'Generated — not a sourced list',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: palette.textMuted,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 8),
             SizedBox(
@@ -213,7 +239,7 @@ class _BiographyCardState extends State<BiographyCard>
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: bio.notableWorks.length,
+                itemCount: _works(bio).length,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder:
                     (_, i) => Container(
@@ -229,7 +255,7 @@ class _BiographyCardState extends State<BiographyCard>
                         ),
                       ),
                       child: Text(
-                        bio.notableWorks[i],
+                        _works(bio)[i],
                         style: TextStyle(
                           color: palette.brandText,
                           fontSize: 12,
@@ -403,6 +429,8 @@ class _FactsStrip extends StatelessWidget {
                   value: age == null ? born : '$born  ·  $age',
                 ),
               if (died != null) _Fact(label: 'Died', value: died),
+              if (facts.birthPlace != null)
+                _Fact(label: 'From', value: facts.birthPlace!),
               if (facts.citizenship.isNotEmpty)
                 _Fact(
                   label:
@@ -411,6 +439,8 @@ class _FactsStrip extends StatelessWidget {
                           : 'Citizenships',
                   value: facts.citizenship.join(', '),
                 ),
+              if (facts.education.isNotEmpty)
+                _Fact(label: 'Educated at', value: facts.education.join(' · ')),
             ],
           ),
           if (facts.occupations.isNotEmpty) ...[
@@ -440,6 +470,8 @@ class _FactsStrip extends StatelessWidget {
               ],
             ),
           ],
+          if (facts.awards.isNotEmpty) _Awards(awards: facts.awards),
+          if (facts.links.isNotEmpty) _PrimarySources(links: facts.links),
           const SizedBox(height: 10),
           Row(
             children: [
@@ -499,6 +531,190 @@ class _Fact extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Awards actually recorded against this person, newest first.
+///
+/// Sourced from Wikidata, unlike the generated "notable achievements"
+/// list beside it. An award is dated and checkable, which is the kind of
+/// claim this app is meant to be built from — so it is shown as fact,
+/// with its year, rather than folded into prose.
+class _Awards extends StatefulWidget {
+  const _Awards({required this.awards});
+
+  final List<Award> awards;
+
+  @override
+  State<_Awards> createState() => _AwardsState();
+}
+
+class _AwardsState extends State<_Awards> {
+  static const _collapsed = 4;
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+
+    final all = widget.awards;
+    final shown = _expanded ? all : all.take(_collapsed).toList();
+    final hidden = all.length - shown.length;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.emoji_events_outlined,
+                size: 15,
+                color: palette.textMuted,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                all.length == 1
+                    ? '1 recorded award'
+                    : '${all.length} '
+                        'recorded awards',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: palette.textMuted,
+                  fontSize: 11,
+                  letterSpacing: 0.8,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          for (final award in shown)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Fixed width so the years form a column and the
+                  // titles align, which is what makes a list of eleven
+                  // scannable rather than a wall.
+                  SizedBox(
+                    width: 38,
+                    child: Text(
+                      award.year?.toString() ?? '—',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color:
+                            award.year == null
+                                ? palette.textMuted
+                                : palette.brandText,
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      award.label,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: palette.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (hidden > 0 || _expanded)
+            SizedBox(
+              height: 44,
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  minimumSize: const Size(0, 44),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: () => setState(() => _expanded = !_expanded),
+                child: Text(_expanded ? 'Show fewer' : 'Show $hidden more'),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The subject's own accounts and IMDb, where Wikidata records them.
+///
+/// For a tool arguing from evidence, "go and check for yourself" is part
+/// of the argument. Every link here is a primary source rather than
+/// something written about them.
+class _PrimarySources extends StatelessWidget {
+  const _PrimarySources({required this.links});
+
+  final Map<String, String> links;
+
+  static const _order = ['website', 'x', 'instagram', 'imdb'];
+
+  static const _labels = {
+    'website': 'Official site',
+    'x': 'X',
+    'instagram': 'Instagram',
+    'imdb': 'IMDb',
+  };
+
+  static const _icons = {
+    'website': Icons.public_rounded,
+    'x': Icons.alternate_email_rounded,
+    'instagram': Icons.photo_camera_outlined,
+    'imdb': Icons.movie_outlined,
+  };
+
+  Future<void> _open(BuildContext context, String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri != null && await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      return;
+    }
+    if (!context.mounted) return;
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      const SnackBar(content: Text('That link could not be opened.')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = context.palette;
+
+    final present = _order.where(links.containsKey).toList();
+    if (present.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final key in present)
+            SizedBox(
+              height: 44,
+              child: OutlinedButton.icon(
+                onPressed: () => _open(context, links[key]!),
+                icon: Icon(_icons[key], size: 15),
+                label: Text(_labels[key]!),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: palette.textSecondary,
+                  side: BorderSide(color: palette.border),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  textStyle: theme.textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -19,7 +19,12 @@ async function fetchWikiSummary(name) {
   try {
     const res = await fetchWithTimeout(
         url,
-        {headers: {"User-Agent": "CritiTrack/1.0 (https://crititrack.app)"}},
+        // A contact URL that resolves, as Wikimedia's policy asks.
+        {
+          headers: {
+            "User-Agent": "CritiTrack/1.0 (https://crititrack-f7430.web.app)",
+          },
+        },
         8000,
     );
     if (!res.ok) return null;

@@ -36,6 +36,7 @@ const {corroborate} = require("./corroborate");
 const {fetchNews, fetchVideos, fetchGdelt, dedupe} = require("./media");
 const {linkEvidence} = require("./evidence");
 const {fetchWikiSummary} = require("./wiki");
+const {fetchPageviews, summarise} = require("./pageviews");
 
 /**
  * @param {{groq: string, news: string, youtube: string}} keys
@@ -44,8 +45,8 @@ const {fetchWikiSummary} = require("./wiki");
  * @return {Promise<object>} the payload served to the app and stored
  */
 async function assembleCelebrity(keys, name, slug) {
-  // ── Parallel: biography + media + portrait ──────────────────────
-  const [bioResult, news, gdelt, videos, wiki] = await Promise.all([
+  // ── Parallel: biography + media + portrait + attention ──────────
+  const [bioResult, news, gdelt, videos, wiki, pageviews] = await Promise.all([
     fetchBiography(keys.groq, name).then(
         (v) => ({ok: true, value: v}),
         (e) => ({ok: false, error: e}),
@@ -54,6 +55,10 @@ async function assembleCelebrity(keys, name, slug) {
     fetchGdelt(name),
     fetchVideos(keys.youtube, name),
     fetchWikiSummary(name),
+    // Free and keyless, so it costs nothing to ask on every assembly.
+    // Returns [] for anyone without an English article rather than
+    // throwing, which is the common case for a minor figure.
+    fetchPageviews(name),
   ]);
 
   // GDELT first: it is the broader, unmetered source, so when the two
@@ -217,6 +222,16 @@ async function assembleCelebrity(keys, name, slug) {
       scoreNews,
       scoreYoutube,
       scoreInstagram: null,
+    },
+    // Deliberately a sibling of `sentiment`, not a field inside it.
+    // Attention and opinion are different measurements: a spike here
+    // means people looked someone up, with no sign attached — an award
+    // and an indictment both cause one. Nesting it under sentiment
+    // would invite exactly the blend this project refuses to make.
+    attention: {
+      source: "Wikipedia pageviews",
+      series: pageviews,
+      summary: summarise(pageviews),
     },
     media,
   };
