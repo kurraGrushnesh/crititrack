@@ -15,13 +15,14 @@ serious it was, and whether sentiment is moving.
 
 ## Try it
 
-**[Open the app →](https://crititrack-f7430.web.app/app/)**  ·
-[Project site](https://crititrack-f7430.web.app)
+**[crititrack-f7430.web.app →](https://crititrack-f7430.web.app)**  ·
+[Open the app directly](https://crititrack-f7430.web.app/app/)
 
-Live and fully working: search any public figure and the lookup runs for
-real — Wikidata entity resolution, news and video retrieval, the
-three-method sentiment ensemble, and the corroboration gate. No sign-up;
-an anonymous session is created on first launch.
+The site explains the method and links straight through to the app. Both
+are live: search any public figure and the lookup runs for real —
+Wikidata entity resolution, news and video retrieval, the three-method
+sentiment ensemble, and the corroboration gate. No sign-up; an anonymous
+session is created on first launch.
 
 Two things worth knowing before you judge it:
 
