@@ -141,9 +141,71 @@ app.use((err, req, res, next) => {
 app.get("/health", async (req, res) => {
   if (!req.query.deep) return res.json({ok: true});
 
-  const probe = await firestoreProbe();
-  return res.json({ok: true, firestore: probe});
+  const keys = {
+    groq: process.env.GROQ_API_KEY,
+    news: process.env.NEWS_API_KEY,
+    youtube: process.env.YOUTUBE_API_KEY,
+  };
+
+  const body = {
+    ok: true,
+    firestore: await firestoreProbe(),
+    // Presence only. Whether a key is configured is operational state;
+    // its value is a secret and never leaves the process.
+    keys: {
+      groq: Boolean(keys.groq),
+      news: Boolean(keys.news),
+      youtube: Boolean(keys.youtube),
+    },
+  };
+
+  // ?upstream=1 additionally calls each provider, because a key that is
+  // present can still be expired, revoked or out of quota — and that
+  // failure looks identical from outside to a key that is missing.
+  if (req.query.upstream) body.upstream = await upstreamProbe(keys);
+
+  return res.json(body);
 });
+
+/**
+ * Cheapest possible call against each provider, reporting the status
+ * code only. No key or response body is echoed.
+ *
+ * @param {{groq: string, news: string, youtube: string}} keys
+ * @return {Promise<object>}
+ */
+async function upstreamProbe(keys) {
+  const check = async (name, url, init) => {
+    if (!url) return {configured: false};
+    try {
+      const res = await fetch(url, {...init, signal: AbortSignal.timeout(10000)});
+      return {configured: true, status: res.status, ok: res.ok};
+    } catch (e) {
+      return {configured: true, error: String(e.message).slice(0, 120)};
+    }
+  };
+
+  const [groq, news, youtube] = await Promise.all([
+    check("groq", keys.groq && "https://api.groq.com/openai/v1/models", {
+      headers: {Authorization: `Bearer ${keys.groq}`},
+    }),
+    check(
+        "news",
+        keys.news &&
+        `https://newsapi.org/v2/top-headlines?country=us&pageSize=1&apiKey=${keys.news}`,
+        {},
+    ),
+    check(
+        "youtube",
+        keys.youtube &&
+        "https://www.googleapis.com/youtube/v3/search?part=snippet&q=test" +
+        `&maxResults=1&key=${keys.youtube}`,
+        {},
+    ),
+  ]);
+
+  return {groq, news, youtube};
+}
 
 /**
  * Writes and deletes one throwaway document, to prove the credential
