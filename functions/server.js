@@ -149,6 +149,14 @@ app.get("/health", async (req, res) => {
 
   const body = {
     ok: true,
+    // Which project this process is actually writing to. A probe that
+    // writes and deletes reports success even when it is pointed at the
+    // wrong project's Firestore, so the identity has to be stated
+    // outright. Project id and client email are not secrets; the key is.
+    identity: {
+      project: serviceAccount.project_id,
+      serviceAccount: serviceAccount.client_email,
+    },
     firestore: await firestoreProbe(),
     // Presence only. Whether a key is configured is operational state;
     // its value is a secret and never leaves the process.
