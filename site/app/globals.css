@@ -112,7 +112,11 @@ a {
   position: absolute;
   left: -9999px;
   top: 0;
-  background: var(--brand);
+  /* --brand-strong, not --brand. White on --brand is 3.27:1, which the
+     token block above already flags as failing AA for text — and this is
+     the keyboard affordance, so it is the last element that should be
+     hard to read. --brand-strong is 4.88:1. */
+  background: var(--brand-strong);
   color: #fff;
   padding: 12px 18px;
   z-index: 100;
@@ -324,7 +328,9 @@ a {
 }
 
 .section-label {
-  font-size: 0.74rem;
+  /* 0.74rem computed to 11.8px, under the 12px floor for legible text.
+     Uppercase at 0.16em tracking is already hard work for small type. */
+  font-size: 0.78rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -360,7 +366,7 @@ a {
 }
 
 .pillar-n {
-  font-size: 0.74rem;
+  font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--brand-ink);
