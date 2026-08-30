@@ -28,7 +28,7 @@ void main() {
     // no headers; pass it explicitly to keep that dependency visible.
     repo = ProxyCelebrityRepository(
       client: client,
-      credentials: const ApiCredentials(),
+      credentials: ApiCredentials(),
     );
   });
 

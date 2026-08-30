@@ -16,7 +16,17 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 
 class ApiCredentials {
-  const ApiCredentials();
+  ApiCredentials();
+
+  /// Why the last App Check token could not be obtained, if it could not.
+  ///
+  /// Kept because the consequence is a 401 the reader cannot act on: the
+  /// backend can only report that no attestation arrived, never why the
+  /// browser failed to mint one. The reason exists solely on the client,
+  /// and without carrying it forward the screen has to say "not signed
+  /// in" for what is usually a blocked reCAPTCHA script or a
+  /// misconfigured site key.
+  String? lastAppCheckError;
 
   /// Headers to attach to a backend call. Empty when Firebase is not
   /// initialised, which is the expected state in unit tests.
@@ -51,9 +61,18 @@ class ApiCredentials {
 
   Future<String?> _appCheckToken() async {
     try {
-      return await FirebaseAppCheck.instance.getToken();
+      final token = await FirebaseAppCheck.instance.getToken();
+      if (token == null || token.isEmpty) {
+        // A null token is not an exception, but it is still a failure:
+        // the request will be rejected exactly as if one had been thrown.
+        lastAppCheckError = 'App Check returned no token.';
+        return null;
+      }
+      lastAppCheckError = null;
+      return token;
     } catch (e) {
       debugPrint('No App Check token available ($e)');
+      lastAppCheckError = e.toString();
       return null;
     }
   }

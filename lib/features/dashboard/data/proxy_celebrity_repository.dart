@@ -28,7 +28,7 @@ import 'package:crititrack/features/dashboard/data/celebrity_repository.dart';
 class ProxyCelebrityRepository extends CelebrityRepository {
   ProxyCelebrityRepository({http.Client? client, ApiCredentials? credentials})
     : _client = client ?? http.Client(),
-      _credentials = credentials ?? const ApiCredentials();
+      _credentials = credentials ?? ApiCredentials();
 
   final http.Client _client;
 
@@ -66,12 +66,25 @@ class ProxyCelebrityRepository extends CelebrityRepository {
           .timeout(const Duration(seconds: 120));
 
       if (response.statusCode == 401) {
+        // The backend can only say that no attestation arrived, never why
+        // this browser could not produce one — that reason exists solely
+        // on the client. Carrying it into the message is the difference
+        // between a dead end and something the reader can act on.
+        final appCheck = _credentials.lastAppCheckError;
+        final detail =
+            appCheck == null
+                ? _errorMessage(response)
+                : 'The app could not prove it is a genuine build. '
+                    'This is usually a browser extension blocking '
+                    "Google's reCAPTCHA script, or a site key that does "
+                    'not list this domain. ($appCheck)';
+
         return Error(
           ApiKeyFailure(
             serviceName: 'CritiTrack',
             message:
                 'This app could not authenticate with the CritiTrack '
-                'backend. ${_errorMessage(response)}',
+                'backend. $detail',
           ),
         );
       }
