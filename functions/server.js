@@ -111,6 +111,18 @@ app.set("trust proxy", true);
 app.use(corsMiddleware);
 app.options("*", corsMiddleware);
 
+// A disallowed Origin makes the cors middleware call back with an Error,
+// which Express would otherwise render as a 500. The request is not a
+// server fault — it is a refusal — and logging it as one buries real
+// faults among routine rejected traffic.
+app.use((err, req, res, next) => {
+  if (err && /^origin not allowed: /.test(err.message)) {
+    logger.warn(err.message);
+    return res.status(403).json({error: "origin_not_allowed"});
+  }
+  return next(err);
+});
+
 app.get("/health", (_req, res) => res.json({ok: true}));
 
 app.get("/getCelebrity", (req, res) => {
