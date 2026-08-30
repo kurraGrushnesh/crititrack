@@ -55,14 +55,28 @@ class SourceBreakdown extends StatelessWidget {
                   color: AppTheme.warning.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text(
-                  '⚡ Algorithmically generated',
-                  style: TextStyle(
-                    fontSize: 8,
-                    fontWeight: FontWeight.w500,
-                    color: AppTheme.warning,
-                    letterSpacing: 0.3,
-                  ),
+                // A provenance disclosure, so it has to be readable: it
+                // was 8px in a hue that measures ~1.7:1 on its own tint
+                // in light mode, and used an emoji as its icon.
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.auto_awesome_rounded,
+                      size: 12,
+                      color: context.palette.sentimentNeutralText,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Algorithmically generated',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: context.palette.sentimentNeutralText,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

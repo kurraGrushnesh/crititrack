@@ -286,7 +286,7 @@ class _Sources extends StatelessWidget {
           'SOURCES',
           style: theme.textTheme.labelSmall?.copyWith(
             color: palette.textMuted,
-            fontSize: 9,
+            fontSize: 11,
             letterSpacing: 0.8,
             fontWeight: FontWeight.w700,
           ),

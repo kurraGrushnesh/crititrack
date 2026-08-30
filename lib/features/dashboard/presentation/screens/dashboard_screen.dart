@@ -131,7 +131,13 @@ class _DashboardContent extends ConsumerWidget {
                   Icon(
                     trendIcon(celebrity.sentimentData.trendDirection),
                     size: 16,
-                    color: sentimentColor(celebrity.sentimentData.overallScore),
+                    // Text variant for both: the chip behind them is a
+                    // 15% tint of the same hue, which is what made the
+                    // fill colour unreadable here in light mode.
+                    color: sentimentTextColor(
+                      context,
+                      celebrity.sentimentData.overallScore,
+                    ),
                   ),
                   const SizedBox(width: 4),
                   Text(
@@ -139,7 +145,8 @@ class _DashboardContent extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: sentimentColor(
+                      color: sentimentTextColor(
+                        context,
                         celebrity.sentimentData.overallScore,
                       ),
                     ),

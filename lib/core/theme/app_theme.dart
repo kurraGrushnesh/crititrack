@@ -14,8 +14,15 @@
 /// ```
 ///
 /// Brand and sentiment hues ([primary], [sentimentPositive], …) are
-/// deliberately mid-tone so they stay legible on both skins and are
-/// exposed as plain constants.
+/// mid-tone **fill** colours, exposed as plain constants: dots, bars,
+/// chart series and tinted chip backgrounds, where the 3:1 threshold for
+/// graphical objects applies.
+///
+/// They are not legible as text on both skins, which this file used to
+/// claim. On white the three sentiment hues measure 2.29, 1.68 and 3.03
+/// against the score chip's own tint. Text and icons therefore read
+/// [AppPalette.sentimentPositiveText] and its siblings, which are tuned
+/// per skin — see [sentimentTextColor].
 ///
 /// All text styles are accessed through `Theme.of(context).textTheme`
 /// — no hardcoded font sizes anywhere in the widget tree.
@@ -75,6 +82,12 @@ abstract final class AppTheme {
     // against the elevated surface — below the WCAG AA floor of 4.5.
     textMuted: Color(0xFF8A92A8),
     brandText: primaryLight,
+    // Positive and neutral already clear 4.5:1 on their own tint here;
+    // negative did not (4.29 on card, 3.84 on elevated), so it is
+    // lightened. The other two are unchanged.
+    sentimentPositiveText: sentimentPositive,
+    sentimentNeutralText: sentimentNeutral,
+    sentimentNegativeText: Color(0xFFE57667),
     chartGrid: Color(0xFF272B3B),
     scrim: Color(0xFF0A0B12),
     heroTint: Color(0xFF221A55),
@@ -94,6 +107,11 @@ abstract final class AppTheme {
     // Darkened from 0xFF8A92A6, which sat at a 2.76 contrast ratio.
     textMuted: Color(0xFF636A7C),
     brandText: primaryDeep,
+    // All three fill hues are far too light to read on white — 2.29,
+    // 1.68 and 3.03 on their own tint. Darkened to 4.56, 4.59 and 4.53.
+    sentimentPositiveText: Color(0xFF0F7652),
+    sentimentNeutralText: Color(0xFF8C5E0A),
+    sentimentNegativeText: Color(0xFFBE3321),
     chartGrid: Color(0xFFD9DFEC),
     scrim: Color(0xFFF5F6FB),
     heroTint: Color(0xFFE7E3FF),
@@ -482,6 +500,9 @@ class AppPalette extends ThemeExtension<AppPalette> {
     required this.textSecondary,
     required this.textMuted,
     required this.brandText,
+    required this.sentimentPositiveText,
+    required this.sentimentNeutralText,
+    required this.sentimentNegativeText,
     required this.chartGrid,
     required this.scrim,
     required this.heroTint,
@@ -513,6 +534,19 @@ class AppPalette extends ThemeExtension<AppPalette> {
 
   /// Brand hue tuned for legibility as *text* on [card] / [elevated].
   final Color brandText;
+
+  /// Sentiment hues tuned for legibility as *text* and *icons*.
+  ///
+  /// [AppTheme.sentimentPositive] and friends are fill colours — dots,
+  /// bars, chart series — where the 3:1 non-text threshold applies. The
+  /// score chip puts the same hue on a 15% tint of itself, and there the
+  /// 4.5:1 text threshold applies instead. Measured on that composite,
+  /// the fill colours came out at 2.29, 1.68 and 3.03 in light mode:
+  /// the app's headline number was effectively unreadable. These are the
+  /// same hues walked in lightness until they clear 4.5:1.
+  final Color sentimentPositiveText;
+  final Color sentimentNeutralText;
+  final Color sentimentNegativeText;
 
   /// Grid-line colour for fl_chart axes.
   final Color chartGrid;
@@ -582,6 +616,9 @@ class AppPalette extends ThemeExtension<AppPalette> {
     Color? textSecondary,
     Color? textMuted,
     Color? brandText,
+    Color? sentimentPositiveText,
+    Color? sentimentNeutralText,
+    Color? sentimentNegativeText,
     Color? chartGrid,
     Color? scrim,
     Color? heroTint,
@@ -599,6 +636,11 @@ class AppPalette extends ThemeExtension<AppPalette> {
       textSecondary: textSecondary ?? this.textSecondary,
       textMuted: textMuted ?? this.textMuted,
       brandText: brandText ?? this.brandText,
+      sentimentPositiveText:
+          sentimentPositiveText ?? this.sentimentPositiveText,
+      sentimentNeutralText: sentimentNeutralText ?? this.sentimentNeutralText,
+      sentimentNegativeText:
+          sentimentNegativeText ?? this.sentimentNegativeText,
       chartGrid: chartGrid ?? this.chartGrid,
       scrim: scrim ?? this.scrim,
       heroTint: heroTint ?? this.heroTint,
@@ -621,6 +663,12 @@ class AppPalette extends ThemeExtension<AppPalette> {
       textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
       textMuted: Color.lerp(textMuted, other.textMuted, t)!,
       brandText: Color.lerp(brandText, other.brandText, t)!,
+      sentimentPositiveText:
+          Color.lerp(sentimentPositiveText, other.sentimentPositiveText, t)!,
+      sentimentNeutralText:
+          Color.lerp(sentimentNeutralText, other.sentimentNeutralText, t)!,
+      sentimentNegativeText:
+          Color.lerp(sentimentNegativeText, other.sentimentNegativeText, t)!,
       chartGrid: Color.lerp(chartGrid, other.chartGrid, t)!,
       scrim: Color.lerp(scrim, other.scrim, t)!,
       heroTint: Color.lerp(heroTint, other.heroTint, t)!,

@@ -122,9 +122,12 @@ class ControversySection extends StatelessWidget {
                 child: Text(
                   'Index and severities are algorithmically assessed from public '
                   'reporting',
+                  // This is the product's central disclosure. At 9px it
+                  // was the smallest text on the screen — the caveat set
+                  // in the size reserved for things nobody reads.
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: palette.textMuted,
-                    fontSize: 9,
+                    fontSize: 12,
                     fontStyle: FontStyle.italic,
                   ),
                 ),

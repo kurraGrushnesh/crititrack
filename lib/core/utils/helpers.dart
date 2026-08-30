@@ -61,7 +61,30 @@ String cacheTimestamp(DateTime fetchedAt) {
   return 'Updated ${DateFormat('MMM d, h:mm a').format(fetchedAt)}';
 }
 
+/// The sentiment colour to use when the score is drawn as **text or an
+/// icon** rather than as a fill.
+///
+/// [sentimentColor] returns the fill hue, which only has to clear the
+/// 3:1 threshold for graphical objects. Text needs 4.5:1, and the score
+/// chip makes that harder by tinting its own background with the same
+/// hue — in light mode the fill hues landed at 2.29, 1.68 and 3.03 on
+/// that composite. This reads the theme-tuned variants instead, so the
+/// number stays legible in both skins.
+Color sentimentTextColor(BuildContext context, double score) {
+  final palette = context.palette;
+  if (score >= AppConstants.sentimentPositiveThreshold) {
+    return palette.sentimentPositiveText;
+  } else if (score >= AppConstants.sentimentNeutralThreshold) {
+    return palette.sentimentNeutralText;
+  } else {
+    return palette.sentimentNegativeText;
+  }
+}
+
 /// Returns the appropriate sentiment color based on a 0–100 score.
+///
+/// This is the **fill** hue — dots, bars, chart series, tinted chip
+/// backgrounds. For text or icons use [sentimentTextColor].
 Color sentimentColor(double score) {
   if (score >= AppConstants.sentimentPositiveThreshold) {
     return AppTheme.sentimentPositive;

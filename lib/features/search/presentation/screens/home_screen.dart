@@ -432,7 +432,9 @@ class _WatchRow extends ConsumerWidget {
                       child: Text(
                         score.toStringAsFixed(0),
                         style: TextStyle(
-                          color: sentimentColor(score),
+                          // Text variant, not the fill: the chip behind
+                          // this number is a 15% tint of the same hue.
+                          color: sentimentTextColor(context, score),
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                         ),

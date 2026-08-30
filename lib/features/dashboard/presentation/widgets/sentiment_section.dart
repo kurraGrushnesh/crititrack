@@ -542,8 +542,11 @@ class _SentimentSectionState extends State<SentimentSection>
                   String label;
                   if (idx < data.trendData.length) {
                     final day = data.trendData[idx].date;
+                    // Word, not an emoji: a screen reader announces
+                    // "high voltage" for the glyph, and the tooltip is
+                    // the only place this flag is stated.
                     final spikeTag =
-                        data.trendData[idx].isSpike ? ' ⚡ SPIKE' : '';
+                        data.trendData[idx].isSpike ? '  SPIKE' : '';
                     label = '$day\n${spot.y.toStringAsFixed(0)}$spikeTag';
                   } else {
                     final fIdx = idx - data.trendData.length;
