@@ -13,6 +13,28 @@ serious it was, and whether sentiment is moving.
 ![Coverage](https://img.shields.io/badge/core%20coverage-83%25-brightgreen)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+## Try it
+
+**[Open the app →](https://crititrack-f7430.web.app/app/)**  ·
+[Project site](https://crititrack-f7430.web.app)
+
+Live and fully working: search any public figure and the lookup runs for
+real — Wikidata entity resolution, news and video retrieval, the
+three-method sentiment ensemble, and the corroboration gate. No sign-up;
+an anonymous session is created on first launch.
+
+Two things worth knowing before you judge it:
+
+- **The first search after a quiet period takes up to a minute.** The
+  backend is on a free tier that sleeps when idle. Later searches are
+  quick.
+- **Trend charts and comparisons will look sparse.** History is only
+  recorded when a lookup actually happens, and this deployment has no
+  scheduled refresher, so most figures have a single measured day.
+  Correlation is refused below three shared days rather than drawn from
+  too little — see [Status](#status). The alternative would be a
+  confident line through invented numbers.
+
 ---
 
 ## What makes it different
@@ -215,6 +237,14 @@ there is a report control on the entry.
 
 ## Status
 
+### Live and verified end to end
+
+The deployed app completes real lookups against the deployed backend:
+attestation and identity pass the guard chain, Groq, NewsAPI and YouTube
+are called with live keys, and the result is written to Firestore, where
+measured snapshots have begun accumulating. Verified by request logging
+and by reading the stored documents back, not by watching the screen.
+
 ### Built and verified
 
 The backend proxy and its guard chain; entity resolution and
@@ -236,19 +266,21 @@ These are stated plainly because the difference matters:
 - **Push has never delivered a notification.** Every pure decision behind
   it is tested — recipient selection, quiet hours across timezones and
   midnight, payload construction, token batching, dead-token pruning — but
-  the delivery path needs a deploy and a real device.
-- **The pipeline has not run end to end against live APIs** from this
-  machine. GDELT is unreachable from it — it times out rather than
-  refusing, which looks identical to having no coverage — and the
-  ensemble's LLM arm needs a key.
+  no notification has been delivered to a real device. The backend that
+  sends them is now deployed, but nothing triggers a spike check on a
+  timer yet, so the path has still never fired.
+- **GDELT is unreachable from this development machine.** It times out
+  rather than refusing, which looks identical to having no coverage. The
+  deployed backend reaches it; local runs simply see one source fewer.
 
 ### Known limitations
 
 - **The trend line is honest and therefore short.** Snapshots are
   recorded one day per refresh rather than backfilled from a generated
   series, so a newly tracked figure genuinely has no history and the app
-  says so. It fills in once the scheduled refresher is deployed, which
-  needs the Blaze plan.
+  says so. It fills in as lookups happen, and would fill in on a schedule
+  once something calls the backend's `/refresh` route on a timer — that
+  needs a `REFRESH_SECRET` and an external cron, not a paid plan.
 - **The benchmark cannot yet support its own claim.** The harness works
   and its results are committed, but they come from a 40-item seed set,
   there is no single-LLM arm without a key, and the apparent gain from
