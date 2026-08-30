@@ -161,8 +161,14 @@ flutter test                              # 314 widget and unit tests
 flutter test --coverage
 dart run tool/check_coverage.dart         # enforces the coverage floors
 
+flutter build web --release
+dart run tool/scan_build_secrets.dart     # SEC-01: no key in the bundle
+
 cd functions && npm test                  # 163 backend tests
 ```
+
+Every one of these is a command CI runs verbatim, on the same SDK
+versions, so a local pass means a green run rather than a guess.
 
 **477 tests.** Coverage is 83.2% on core and 69.0% overall, against
 floors of 75% and 65%.

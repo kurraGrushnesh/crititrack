@@ -89,10 +89,10 @@ jobs:
         run: flutter build web --release
 
       # SEC-01 regression gate. A credential must never reach a build
-      # artifact again. The script is checked in so the same check runs
-      # locally: bash tool/scan_build_secrets.sh build/web
+      # artifact again. Written in Dart, not shell, so the same command
+      # runs on a Windows dev machine as runs here.
       - name: Scan build output for secrets
-        run: bash tool/scan_build_secrets.sh build/web
+        run: dart run tool/scan_build_secrets.dart build/web
 
       - uses: actions/upload-artifact@v4
         with:
