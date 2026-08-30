@@ -123,7 +123,50 @@ app.use((err, req, res, next) => {
   return next(err);
 });
 
-app.get("/health", (_req, res) => res.json({ok: true}));
+/**
+ * GET /health — liveness, and optionally credential state.
+ *
+ * `cert()` does not verify anything: the Admin SDK only exercises the
+ * credential on first real use. So a mangled FIREBASE_SERVICE_ACCOUNT
+ * produces a service that boots, answers /health, and verifies ID and
+ * App Check tokens (those use Google's public keys) while every
+ * Firestore write fails — and writes are deliberately non-fatal, so the
+ * API keeps returning good responses and nothing is ever cached. That
+ * combination is invisible from outside, which is how it went unnoticed.
+ *
+ * `?deep=1` does a real Firestore round-trip and reports what happened.
+ * It stays 200 either way: Render's health check hits the plain path,
+ * and a 503 here would take the service down instead of reporting on it.
+ */
+app.get("/health", async (req, res) => {
+  if (!req.query.deep) return res.json({ok: true});
+
+  const probe = await firestoreProbe();
+  return res.json({ok: true, firestore: probe});
+});
+
+/**
+ * Writes and deletes one throwaway document, to prove the credential
+ * actually works rather than merely parsing.
+ *
+ * @return {Promise<{ok: boolean, code?: string, message?: string}>}
+ */
+async function firestoreProbe() {
+  try {
+    const {getFirestore} = require("firebase-admin/firestore");
+    const ref = getFirestore().collection("_diagnostics").doc("probe");
+    await ref.set({at: new Date().toISOString()});
+    await ref.delete();
+    return {ok: true};
+  } catch (e) {
+    return {
+      ok: false,
+      code: e && e.code ? String(e.code) : undefined,
+      // Enough to identify the failure, not enough to echo the key.
+      message: String((e && e.message) || e).slice(0, 200),
+    };
+  }
+}
 
 app.get("/getCelebrity", (req, res) => {
   // handlers.js reads req.query.name / req.query.qid, exactly as under
@@ -168,9 +211,26 @@ app.post("/refresh", async (req, res) => {
 });
 
 const port = process.env.PORT || 8080;
-app.listen(port, () => {
+app.listen(port, async () => {
   logger.info(`CritiTrack API listening on ${port}`, {
     origins: ALLOWED_ORIGINS,
     project: serviceAccount.project_id,
   });
+
+  // Exercise the credential at boot rather than discovering on the first
+  // request that it never worked. Logged, not fatal: the API still
+  // serves useful responses without Firestore, it just cannot cache or
+  // record history, and that is a state worth naming in the logs.
+  const probe = await firestoreProbe();
+  if (probe.ok) {
+    logger.info("Firestore credential verified: writes are working.");
+  } else {
+    logger.error(
+        "FIRESTORE WRITES ARE FAILING — responses will still be served, " +
+        "but nothing will be cached and no history will be recorded. " +
+        "Check that FIREBASE_SERVICE_ACCOUNT holds the complete " +
+        "service-account JSON (or its base64 form).",
+        probe,
+    );
+  }
 });
