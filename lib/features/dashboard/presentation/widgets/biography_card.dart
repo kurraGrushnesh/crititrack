@@ -454,7 +454,7 @@ class _FactsStrip extends StatelessWidget {
                   'From Wikidata. The description below is generated.',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: palette.textMuted,
-                    fontSize: 10.5,
+                    fontSize: 12,
                   ),
                 ),
               ),
@@ -485,7 +485,7 @@ class _Fact extends StatelessWidget {
           label.toUpperCase(),
           style: theme.textTheme.labelSmall?.copyWith(
             color: palette.textMuted,
-            fontSize: 9,
+            fontSize: 11,
             letterSpacing: 0.8,
             fontWeight: FontWeight.w700,
           ),

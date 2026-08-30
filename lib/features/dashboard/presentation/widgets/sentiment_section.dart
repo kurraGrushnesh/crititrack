@@ -236,12 +236,16 @@ class _SentimentSectionState extends State<SentimentSection>
                   color: AppTheme.warning.withValues(alpha: 0.7),
                 ),
                 const SizedBox(width: 4),
-                Text(
-                  'Scores and charts are algorithmically generated',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: palette.textMuted,
-                    fontSize: 9,
-                    fontStyle: FontStyle.italic,
+                // Expanded, not bare: unconstrained in a Row this
+                // overflows once the text is large enough to read.
+                Expanded(
+                  child: Text(
+                    'Scores and charts are algorithmically generated',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: palette.textMuted,
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
                 ),
               ],
@@ -642,9 +646,14 @@ class _SentimentSectionState extends State<SentimentSection>
                         label: VerticalLineLabel(
                           show: true,
                           alignment: Alignment.topRight,
+                          // 8px was the smallest text anywhere on a
+                          // screen, and it names what the dashed line
+                          // divides — measured history from forecast.
+                          // Full opacity too: 0.7 on an already-light
+                          // accent left it fainter than the gridlines.
                           style: TextStyle(
-                            fontSize: 8,
-                            color: AppTheme.accent.withValues(alpha: 0.7),
+                            fontSize: 10,
+                            color: AppTheme.accent,
                             fontStyle: FontStyle.italic,
                           ),
                           labelResolver: (_) => 'Baseline forecast →',

@@ -165,7 +165,7 @@ class _SourceChip extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: context.palette.textMuted,
                     letterSpacing: 0.3,

@@ -190,12 +190,17 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
                     color: AppTheme.warning.withValues(alpha: 0.7),
                   ),
                   const SizedBox(width: 4),
-                  Text(
-                    'Correlations are algorithmically generated from cached data',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: palette.textMuted,
-                      fontSize: 9,
-                      fontStyle: FontStyle.italic,
+                  // Expanded, not bare: this is the longest of the
+                  // disclosure strings and would overflow a narrow row.
+                  Expanded(
+                    child: Text(
+                      'Correlations are algorithmically generated from cached '
+                      'data',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: palette.textMuted,
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   ),
                 ],

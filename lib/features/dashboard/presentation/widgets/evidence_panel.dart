@@ -113,7 +113,7 @@ class _EvidencePanelState extends State<EvidencePanel>
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: palette.textMuted,
                             fontStyle: FontStyle.italic,
-                            fontSize: 10,
+                            fontSize: 12,
                           ),
                         ),
                       ),
@@ -172,7 +172,7 @@ class _EvidenceItem extends ConsumerWidget {
             child: Text(
               _sourceLabel(evidence.source),
               style: TextStyle(
-                fontSize: 9,
+                fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: _sourceColor(context, evidence.source),
                 letterSpacing: 0.5,
