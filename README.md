@@ -9,7 +9,7 @@ serious it was, and whether sentiment is moving.
 ![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart)
 ![Node](https://img.shields.io/badge/Node-24-339933?logo=nodedotjs)
 ![Firebase](https://img.shields.io/badge/Data-Firestore-FFCA28?logo=firebase)
-![Tests](https://img.shields.io/badge/tests-477%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-503%20passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/core%20coverage-83%25-brightgreen)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
@@ -58,10 +58,17 @@ a general-purpose lexicon, a reputation lexicon, and a batched LLM call.
 How much they *disagree* becomes a confidence band. A single-method score
 has nothing to disagree with, so it can only assert.
 
-**Facts from sources, prose from models.** Birth date, death, citizenship
-and occupation are read off Wikidata claims and rendered at exactly the
-precision Wikidata asserts. Only the summary is generated, and the screen
-says which is which.
+**Facts from sources, prose from models.** Birth date, death, birthplace,
+citizenship, occupation, education and dated awards are read off Wikidata
+claims and rendered at exactly the precision Wikidata asserts. Notable
+works come from `P800` when the entity has one and fall back to the model
+otherwise — the card says which it is showing. Only the summary is
+generated unconditionally.
+
+**Attention is not opinion.** Wikipedia pageviews give 60 days of real
+daily interest, measured by Wikimedia rather than by us. It is reported
+as its own series and never folded into the sentiment score: a spike has
+no sign, and an award and an indictment both cause one.
 
 **Corroboration before display.** A severity 4–5 claim that no retrieved
 article supports is discarded, not rendered. That is a technical control
@@ -76,7 +83,8 @@ it.
 |---|---|
 | **Search** | Debounced suggestions from your watchlist and past searches; Wikidata entity resolution, so "ntr" resolves to *N. T. Rama Rao* and every spelling shares one cache entry |
 | **Disambiguation** | When a name matches several people, the app says which one it chose and offers the rest — pinned by Wikidata id, because re-searching a label is circular when two people share one |
-| **Profile** | Portrait, structured facts from Wikidata, generated summary, notable works, and a verification badge when the subject is a documented public figure |
+| **Profile** | Portrait, structured facts from Wikidata — birth, birthplace, citizenship, occupations, education and dated awards — generated summary, notable works, links to the subject's own site and accounts, and a verification badge when they are a documented public figure |
+| **Attention** | 60 days of Wikipedia pageviews, shown as its own series beside sentiment rather than mixed into it |
 | **Controversy Tracker** | Typed episodes with a deterministic 0–100 index, orderable by severity or by date, with per-record source links |
 | **Sentiment** | Three-method ensemble with a confidence band, per-item scores, per-source breakdown, spike detection and a linear forecast |
 | **Evidence → article** | Tapping a cited fragment scrolls the media feed to the article it came from and highlights it |
@@ -97,23 +105,30 @@ Two rules govern the design: **no secret ever reaches the client**, and
 **every layer degrades instead of failing**.
 
 ```
-Flutter app  ──HTTPS + ID token + App Check──▶  Cloud Functions
+Flutter app  ──HTTPS + ID token + App Check──▶  Node API (Express)
   no keys                                          the only place
   Riverpod · go_router · typed Result              third-party keys exist
                                                           │
                                                           ▼
-                                              entity resolution
+                                              entity resolution + record
                                               source fetch + dedup
                                               three-method ensemble
                                               corroboration gate
                                               evidence → article match
+                                              pageviews (attention)
                                                           │
                                                           ▼
-                                        Firestore  ──▶  scheduled refresher
+                                        Firestore  ──▶  POST /refresh
                                         server-owned     one dated snapshot
-                                                         per refresh, then
+                                                         per run, then
                                                          spike detection → FCM
 ```
+
+The same handlers run under Cloud Functions (`functions/index.js`) and as
+a plain Node process (`functions/server.js`). Only the second is
+deployed: Cloud Functions needs a billed Firebase plan. `/refresh` is the
+scheduled path and needs an external cron to call it — nothing does yet,
+which is why history is thin.
 
 ```
 lib/
@@ -131,8 +146,11 @@ lib/
 
 functions/
 ├── lib/             assemble · groq · entity · media · wiki · evidence
-│                    sentiment/ (lexicon · domain · ensemble · reach)
-│                    corroborate · validate · guard · store · alerts · push
+│                    pageviews · sentiment/ (lexicon · domain · ensemble
+│                    · reach) · corroborate · validate · guard · store
+│                    · alerts · push · handlers (shared by both entries)
+├── index.js         Cloud Functions entry (needs a billed plan)
+├── server.js        Node entry — this is what runs
 └── benchmark/       harness, labelled set, committed results
 
 site/                marketing site — Next 16, React 19, static export
@@ -180,20 +198,20 @@ backend, and for what push notifications need before they can arrive.
 ## Testing
 
 ```bash
-flutter test                              # 314 widget and unit tests
+flutter test                              # 320 widget and unit tests
 flutter test --coverage
 dart run tool/check_coverage.dart         # enforces the coverage floors
 
 flutter build web --release
 dart run tool/scan_build_secrets.dart     # SEC-01: no key in the bundle
 
-cd functions && npm test                  # 163 backend tests
+cd functions && npm test                  # 183 backend tests
 ```
 
 Every one of these is a command CI runs verbatim, on the same SDK
 versions, so a local pass means a green run rather than a guess.
 
-**477 tests.** Coverage is 83.2% on core and 69.0% overall, against
+**503 tests.** Coverage is 82.7% on core and 67.6% overall, against
 floors of 75% and 65%.
 
 CI gates formatting, `flutter analyze --fatal-infos --fatal-warnings`,
@@ -291,8 +309,8 @@ These are stated plainly because the difference matters:
   and your own history. Producing a trending row honestly needs a backend
   ranking what people actually look up; a hard-coded list of famous names
   would be a claim about other users that nothing measured.
-- **Overall coverage is 69.0%**, down from a peak of 77% as presentation
-  code was added faster than its tests. Core logic remains at 83.2%.
+- **Overall coverage is 67.6%**, down from a peak of 77% as presentation
+  code was added faster than its tests. Core logic remains at 82.7%.
 
 ---
 
