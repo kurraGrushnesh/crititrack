@@ -33,7 +33,7 @@ const PILLARS = [
   {
     n: "03",
     title: "Measured uncertainty",
-    body: "Two independent methods score every headline. How much they disagree becomes a confidence band. A single-method score has nothing to disagree with, so it can only assert.",
+    body: "Three independent methods score every headline — a general lexicon, a reputation lexicon, and a language model. How much they disagree becomes a confidence band. A single-method score has nothing to disagree with, so it can only assert.",
   },
   {
     n: "04",
@@ -53,7 +53,7 @@ const STEPS = [
   },
   {
     k: "Score",
-    body: "A lexicon and a batched language-model call score each item independently. The blend is weighted by reach — a front-page story and a 200-view upload are not equally informative.",
+    body: "A general lexicon, a reputation lexicon and a batched language-model call score each item independently. The blend is weighted by reach — a front-page story and a 200-view upload are not equally informative — and the spread between the three becomes the confidence band.",
   },
   {
     k: "Gate",
@@ -149,7 +149,7 @@ export default function Home() {
             </p>
             <div className="cta-row">
               <a className="btn btn-primary" href="/app/">
-                Open the demo
+                Open the app
               </a>
               <a
                 className="btn btn-ghost"

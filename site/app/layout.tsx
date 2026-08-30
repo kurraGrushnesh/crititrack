@@ -1,5 +1,24 @@
 import type { Metadata, Viewport } from "next";
+import { Newsreader } from "next/font/google";
 import "./globals.css";
+
+/**
+ * Headlines are set in a serif; body copy stays on the system sans.
+ *
+ * The pairing is the editorial one rather than a decorative choice: this
+ * page makes claims about evidence and sourcing, and a serif headline
+ * reads as published rather than as marketing. Body text stays sans
+ * because it carries dense technical prose at small sizes.
+ *
+ * Self-hosted by next/font at build time — no runtime request to Google,
+ * and `display: swap` with a matched fallback keeps the layout stable.
+ */
+const display = Newsreader({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  display: "swap",
+  variable: "--font-display",
+});
 
 // The Firebase Hosting target for this project. Deliberately not a
 // custom domain: `crititrack.app` is not registered, and a canonical
@@ -64,7 +83,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={display.variable}>
       <body>
         {/* Keyboard users should not have to tab through the hero to
             reach the content. */}

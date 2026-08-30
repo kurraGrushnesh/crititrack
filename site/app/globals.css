@@ -75,8 +75,15 @@ h1,
 h2,
 h3 {
   margin: 0;
-  line-height: 1.12;
-  letter-spacing: -0.025em;
+  /* Serif headlines against sans body: the pairing reads as editorial
+     rather than as product marketing, which is the claim this page is
+     making about itself. The fallback stack is serif so a failed font
+     load degrades in the same voice instead of snapping to sans. */
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+  line-height: 1.14;
+  /* Serifs need less negative tracking than a geometric sans; -0.025em
+     closed the counters up at display sizes. */
+  letter-spacing: -0.012em;
   text-wrap: balance;
 }
 
@@ -86,6 +93,7 @@ p {
 
 a {
   color: var(--brand-ink);
+  transition: color 180ms ease;
 }
 
 :focus-visible {
@@ -191,6 +199,14 @@ a {
   /* Comfortably past the 44px minimum touch target. */
   min-height: 46px;
   line-height: 22px;
+  /* Colour only — never `transition: all`, which would also animate the
+     focus outline and delay the one affordance a keyboard user depends
+     on being immediate. The reduced-motion block above collapses this
+     to nothing. */
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
 }
 
 .btn-primary {
@@ -488,5 +504,42 @@ a {
      * decorative only, and a landing page should lead with what it says.
      */
     margin-top: 8px;
+  }
+}
+
+/* Small phones. The 900px breakpoint above handles the column collapse;
+   this one only reclaims vertical space, because at 375px the section
+   padding alone was pushing the first line of each band below the fold. */
+@media (max-width: 560px) {
+  .wrap,
+  .hero-inner {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .hero-inner {
+    padding-top: 44px;
+    padding-bottom: 52px;
+  }
+
+  .band {
+    padding: 52px 0;
+  }
+
+  /* Buttons go full width rather than wrapping into a ragged two-and-one
+     arrangement, which is what three pills did in a 339px content box. */
+  .cta-row {
+    gap: 10px;
+  }
+
+  .cta-row .btn {
+    flex: 1 1 100%;
+    text-align: center;
+  }
+
+  .pillar,
+  .steps li,
+  .honesty {
+    padding: 20px 18px;
   }
 }

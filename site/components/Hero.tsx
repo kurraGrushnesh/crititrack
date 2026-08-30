@@ -76,7 +76,7 @@ export default function Hero({ figures }: { figures: Figure[] }) {
 
           <div className="cta-row">
             <a className="btn btn-primary" href="/app/">
-              Open the demo
+              Open the app
             </a>
             <a className="btn btn-ghost" href="#how">
               How it works
@@ -85,13 +85,13 @@ export default function Hero({ figures }: { figures: Figure[] }) {
               Read the method
             </a>
           </div>
-          {/* Said here as well as inside the app itself. Someone who
-              clicks through expecting a working product and finds an
-              empty result has been misled by this page, not by that
-              one. */}
+          {/* Sets the one expectation that would otherwise read as a
+              fault. The backend sleeps on a free tier, so the first
+              search of a session is slow — saying so here is the
+              difference between "loading" and "broken". */}
           <p className="cta-note">
-            The demo has no backend deployed, so searches return nothing.
-            Everything else is real and interactive.
+            Live, with no sign-up. The first search after a quiet spell takes
+            up to a minute while the backend wakes; after that it is quick.
           </p>
 
           <ul className="figure-list" aria-label="Coverage areas tracked">
