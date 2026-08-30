@@ -195,6 +195,12 @@ class Celebrity extends Equatable {
       imageUrl: data['imageUrl'] as String?,
       wikidataId: data['wikidataId'] as String?,
       verified: data['verified'] as bool? ?? false,
+      // The sourced record, so a cached profile is the same profile as a
+      // live one. Absent on documents written before the store began
+      // persisting it, which PersonFacts.fromMap reads as empty.
+      facts: PersonFacts.fromMap(
+        (data['facts'] as Map?)?.cast<String, dynamic>(),
+      ),
       cacheVersion: data['cacheVersion'] as int? ?? 1,
     );
   }

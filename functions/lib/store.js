@@ -131,6 +131,19 @@ async function writeCelebrity(payload, meta = {trigger: "request"}) {
         scoreInstagram: orNull(s.scoreInstagram),
         fetchedAt: payload.fetchedAt,
         cacheVersion: 1,
+        // ── Identity and sourced record ────────────────────────────
+        // Celebrity.fromFirestore has always read imageUrl, wikidataId
+        // and verified, and nothing ever wrote them: a cache hit inside
+        // the freshness window rendered a profile with no portrait, no
+        // verification badge and an empty facts strip, then filled in
+        // once the cache went stale. Persisted now, along with the
+        // facts themselves, so the cached read matches the live one.
+        imageUrl: (payload.image && payload.image.url) || null,
+        wikidataId: (payload.entity && payload.entity.qid) || null,
+        verified: payload.verified === true,
+        facts: (payload.entity && payload.entity.facts) || null,
+        // Attention is a sibling of sentiment, never folded into it.
+        attention: payload.attention || null,
         // ── Tracking metadata (server-only, ignored by the client) ──
         refreshedAt: FieldValue.serverTimestamp(),
         lastTrigger: meta.trigger,
