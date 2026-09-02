@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import type { MediaLink } from "@/lib/api";
 import { relativeTime, latestOf } from "@/lib/time";
 import { parseSafeUrl, displayHost } from "@/lib/safe-url";
@@ -119,6 +119,31 @@ export default function MediaCoverage({ items }: { items: MediaLink[] }) {
   );
 }
 
+/**
+ * An image that falls back to `placeholder` if the URL fails to load —
+ * dead news thumbnails and pulled videos are common, and a broken-image
+ * icon looks worse than an intentional glyph.
+ */
+function ThumbImg({
+  src,
+  placeholder,
+}: {
+  src: string | null;
+  placeholder: ReactNode;
+}) {
+  const [failed, setFailed] = useState(false);
+  if (!src || failed) return <>{placeholder}</>;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt=""
+      loading="lazy"
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 function ExtGlyph() {
   return (
     <svg
@@ -163,12 +188,10 @@ function NewsRow({ m }: { m: MediaLink }) {
   return (
     <li className="media-card">
       <span className="media-thumb" data-kind="news">
-        {thumb ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumb.toString()} alt="" loading="lazy" />
-        ) : (
-          <NewsGlyph />
-        )}
+        <ThumbImg
+          src={thumb ? thumb.toString() : null}
+          placeholder={<NewsGlyph />}
+        />
       </span>
       <div className="media-body">
         <a
@@ -207,14 +230,14 @@ function VideoCard({ m }: { m: MediaLink }) {
         rel="noopener noreferrer nofollow"
         aria-label={m.title}
       >
-        {thumb ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumb.toString()} alt="" loading="lazy" />
-        ) : (
-          <span className="media-video-placeholder">
-            <VideoGlyph />
-          </span>
-        )}
+        <ThumbImg
+          src={thumb ? thumb.toString() : null}
+          placeholder={
+            <span className="media-video-placeholder">
+              <VideoGlyph />
+            </span>
+          }
+        />
         <span className="media-video-play" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="22" height="22">
             <path d="M8 5v14l11-7Z" fill="currentColor" />

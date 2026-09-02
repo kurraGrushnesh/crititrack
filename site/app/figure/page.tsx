@@ -14,6 +14,11 @@ import AttentionChart from "@/components/AttentionChart";
 import { Stat, StatRow } from "@/components/Stat";
 import MediaCoverage from "@/components/MediaCoverage";
 import BioSection from "@/components/BioSection";
+import {
+  FigureSkeleton,
+  FigureNotFound,
+  FigureError,
+} from "@/components/FigureStates";
 import { computeControversyIndex, roundedScore } from "@/lib/controversy-index";
 import { useCelebrity } from "@/lib/use-celebrity";
 import type { RealProfile } from "@/lib/api";
@@ -46,41 +51,6 @@ function SearchPrompt() {
   );
 }
 
-function ProfileSkeleton({ name }: { name: string }) {
-  return (
-    <main id="main" aria-busy="true">
-      <div className="profile-head">
-        <div>
-          <div className="breadcrumb">
-            <Link href="/">Home</Link>
-            <span>/</span>
-            <span>{name}</span>
-          </div>
-          <h1>{name}</h1>
-          <p className="subtitle">Building profile from sourced coverage…</p>
-          <div
-            className="skeleton"
-            style={{ height: 120, marginTop: 40, borderRadius: 4 }}
-          />
-        </div>
-        <div className="portrait-frame">
-          <span className="mono-xl">{initials(name)}</span>
-        </div>
-      </div>
-      <div className="min-section">
-        <div className="skeleton" style={{ height: 220, borderRadius: 12 }} />
-      </div>
-      <hr className="divider-rule" />
-      <div className="min-section">
-        <div className="skeleton" style={{ height: 160, borderRadius: 12 }} />
-      </div>
-      <p className="form-note" style={{ textAlign: "center", paddingBottom: 40 }}>
-        The analysis backend sleeps when idle — the first search after a quiet
-        spell can take 20–30 seconds.
-      </p>
-    </main>
-  );
-}
 
 function ProfileView({ profile }: { profile: RealProfile }) {
   const index = useMemo(
@@ -254,42 +224,23 @@ function FigureInner() {
     <>
       <PillNav />
 
-      {state.status === "loading" && <ProfileSkeleton name={q} />}
+      {state.status === "loading" && <FigureSkeleton name={q} />}
 
       {state.status === "ready" && <ProfileView profile={state.profile} />}
 
       {state.status === "not-found" && (
-        <main id="main" className="min-section" style={{ paddingTop: 96 }}>
-          <p className="state-block">
-            <span className="sb-title">No match</span>
-            {state.message}
-          </p>
-          <p style={{ marginTop: 24 }}>
-            <button
-              type="button"
-              className="pillnav-cta"
-              onClick={() => router.push("/")}
-            >
-              Back to home
-            </button>
-          </p>
-        </main>
+        <FigureNotFound
+          message={state.message}
+          onHome={() => router.push("/")}
+        />
       )}
 
       {state.status === "error" && (
-        <main id="main" className="min-section" style={{ paddingTop: 96 }}>
-          <p className="state-block">
-            <span className="sb-title">Couldn’t load this profile</span>
-            {state.message}
-          </p>
-          {state.canRetry && (
-            <p style={{ marginTop: 24 }}>
-              <button type="button" className="pillnav-cta" onClick={retry}>
-                Try again
-              </button>
-            </p>
-          )}
-        </main>
+        <FigureError
+          message={state.message}
+          canRetry={state.canRetry}
+          onRetry={retry}
+        />
       )}
 
       <SiteFooter />
@@ -303,7 +254,7 @@ export default function FigurePage() {
       fallback={
         <>
           <PillNav />
-          <ProfileSkeleton name="…" />
+          <FigureSkeleton name="…" />
         </>
       }
     >
