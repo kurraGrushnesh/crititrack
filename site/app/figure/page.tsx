@@ -13,6 +13,7 @@ import WatchButton from "@/components/WatchButton";
 import ConfidenceMeter, { confidenceLabel } from "@/components/ConfidenceMeter";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
 import SentimentDonut from "@/components/SentimentDonut";
+import AttentionChart from "@/components/AttentionChart";
 import StatTable from "@/components/StatTable";
 import ClassificationPanel from "@/components/ClassificationPanel";
 import { buildClassification } from "@/lib/classification";
@@ -252,6 +253,18 @@ function ProfileView({ profile }: { profile: RealProfile }) {
                 A query over stored dated snapshots, not a forecast.
               </p>
             </div>
+          </section>
+        </>
+      )}
+
+      {profile.attention && profile.attention.series.length > 1 && (
+        <>
+          <hr className="divider-rule" />
+          <section className="min-section">
+            <div className="head">
+              <h2>Public attention</h2>
+            </div>
+            <AttentionChart data={profile.attention} />
           </section>
         </>
       )}

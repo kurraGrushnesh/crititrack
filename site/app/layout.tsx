@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Manrope } from "next/font/google";
 import "./globals.css";
 import PageFade from "@/components/PageFade";
+import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 
 /**
  * One tight grotesk for the whole site — display and body. The design is
@@ -69,7 +70,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f4f4f2",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f4f2" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f100e" },
+  ],
   width: "device-width",
   initialScale: 1,
 };
@@ -80,7 +84,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={display.variable}>
+    <html lang="en" className={display.variable} suppressHydrationWarning>
+      <head>
+        <script
+          // Runs before first paint: applies the saved theme so there is
+          // no flash of the wrong one. Safe to inline — no user input,
+          // string is a module constant.
+          dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }}
+        />
+      </head>
       <body>
         {/* Keyboard users should not have to tab through the nav to
             reach the content. Every page marks its main region with

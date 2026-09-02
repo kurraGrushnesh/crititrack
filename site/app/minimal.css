@@ -127,6 +127,35 @@ h3 {
   background: color-mix(in srgb, var(--brand) 80%, #000);
 }
 
+.theme-toggle {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-soft);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.theme-toggle:hover {
+  color: var(--text);
+  border-color: var(--brand);
+}
+
+.theme-toggle svg {
+  flex: none;
+}
+
 @media (max-width: 860px) {
   .pillnav {
     flex-wrap: wrap;
@@ -139,6 +168,12 @@ h3 {
   }
   .pillnav-links {
     display: none;
+  }
+  .theme-toggle-label {
+    display: none;
+  }
+  .theme-toggle {
+    padding: 8px;
   }
 }
 
@@ -562,6 +597,105 @@ h3 {
 }
 
 .donut-legend-pct {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* ── Attention chart (Wikipedia pageviews) ────────────────────── */
+
+.attention {
+  display: grid;
+  gap: 20px;
+}
+
+.attention-figure {
+  position: relative;
+}
+
+.attention-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  touch-action: pan-y;
+}
+
+.attention-area {
+  fill: color-mix(in srgb, var(--brand) 26%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .attention-area {
+    animation: attention-fill 500ms var(--ease-out, ease) both;
+  }
+}
+
+@keyframes attention-fill {
+  from {
+    opacity: 0;
+  }
+}
+
+.attention-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.attention-axis-max {
+  color: var(--text-soft);
+}
+
+.attention-tip {
+  position: absolute;
+  top: -6px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: var(--text);
+  color: var(--surface);
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.attention-tip b {
+  font-variant-numeric: tabular-nums;
+}
+
+.attention-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px 24px;
+  margin: 4px 0 0;
+  padding: 20px 0 0;
+  border-top: 1px solid var(--border);
+}
+
+.attention-stats dt {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.attention-stats dd {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.attention-stat-sub {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.78rem;
   font-weight: 500;
   color: var(--text-muted);
 }
