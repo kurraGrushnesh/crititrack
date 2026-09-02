@@ -5,7 +5,7 @@ import SiteFooter from "@/components/SiteFooter";
 import CategoryRail from "@/components/CategoryRail";
 import PersonCard from "@/components/PersonCard";
 import Reveal from "@/components/Reveal";
-import HeroGradient from "@/components/HeroGradient";
+import HeroSwitch from "@/components/hero/HeroSwitch";
 import { CATEGORIES, topTen } from "@/lib/catalog";
 import { DEMO_PROFILES } from "@/lib/demo-data";
 import { corroborated } from "@/lib/controversy";
@@ -33,7 +33,7 @@ export default function Home() {
 
       <main id="main">
         <div className="display-hero-band">
-          <HeroGradient speed={0.35} />
+          <HeroSwitch />
           <header className="display-hero">
             <p className="eyebrow">
               Accountability tracking for public figures

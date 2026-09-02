@@ -385,3 +385,52 @@ h3 {
   max-width: var(--wrap);
   margin: 0 auto;
 }
+
+/* ── Hero variant B / C / D scaffolding (comparison only) ───────── */
+
+.hero-liquid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+}
+
+.hero-liquid > * {
+  width: min(440px, 70vw);
+  height: min(440px, 70vw);
+}
+
+/* Variant D: a flat warm CSS wash, no canvas. */
+.hero-flatwash {
+  background:
+    radial-gradient(
+      680px 420px at 82% -10%,
+      color-mix(in srgb, #d97757 26%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      520px 360px at 6% 8%,
+      color-mix(in srgb, #faf7f2 60%, transparent),
+      transparent 55%
+    ),
+    var(--bg);
+}
+
+/* Variant D also frosts the nav into a liquid-glass panel. */
+:root[data-hero="d"] .pillnav {
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  backdrop-filter: blur(18px) saturate(1.6);
+  border-color: color-mix(in srgb, #ffffff 40%, var(--border));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 55%, transparent),
+    var(--depth-2);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-hero="d"] .pillnav {
+    background: var(--surface);
+    backdrop-filter: none;
+  }
+}
