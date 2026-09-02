@@ -93,7 +93,9 @@ export default function CorrectionForm({
         }
         setStatus({
           kind: "network-error",
-          message: `The server rejected the report (HTTP ${res.status}).`,
+          message:
+            body.message ??
+            `The server rejected the report (HTTP ${res.status}).`,
         });
         return;
       }
