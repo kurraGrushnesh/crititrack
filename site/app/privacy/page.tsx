@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import SiteNav from "@/components/SiteNav";
+import PillNav from "@/components/PillNav";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <>
-      <SiteNav />
+      <PillNav />
       <main id="main" className="page page-narrow">
         <div className="page-head">
           <h1>Privacy</h1>

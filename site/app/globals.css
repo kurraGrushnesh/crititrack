@@ -1,44 +1,59 @@
 /*
- * The site commits to a single dark look rather than following the
- * viewer's theme. It is a product page for an app whose own identity is
- * dark, and a light variant of a page built around a glowing globe would
- * be a different design rather than the same one inverted.
+ * Light editorial minimalism. Warm off-white ground, near-black type,
+ * one restrained sage-green accent, generous whitespace, big display
+ * type. The site commits to this single look and paints every colour
+ * explicitly rather than borrowing from the host.
  *
- * Because it commits, every colour is painted explicitly — nothing is
- * borrowed from the host.
+ * Every component reads these custom properties, so the palette lives
+ * here; the layers below (reference.css, app.css, minimal.css) only add
+ * structure.
  */
 
 @import "./reference.css";
 @import "./app.css";
+@import "./minimal.css";
 
 :root {
-  --bg: #0e1119;
-  --bg-alt: #12161f;
-  --surface: #181c29;
-  --border: #262c3d;
-  --border-strong: #333b52;
+  color-scheme: light;
 
-  --text: #f2f4fa;
-  --text-soft: #a6aec4;
-  --text-muted: #7c859b;
+  --bg: #f4f4f2;
+  --bg-alt: #ecece8;
+  --surface: #ffffff;
+  --border: #e4e3de;
+  --border-strong: #d3d2cb;
 
-  --brand: #8b7cff;
-  --brand-ink: #a99dff;
+  --text: #0b0b0a;
+  --text-soft: #4c4c47;
+  --text-muted: #82827a;
 
-  /* A darker violet used only where white text sits on top of it.
-     --brand itself is 3.27:1 against white, which fails AA for text at
-     this size and weight; these are 4.88:1 and 6.36:1. --brand stays as
-     it is for borders, focus rings and icons, where the 3:1 non-text
-     threshold is the one that applies. */
-  --brand-strong: #7358e8;
-  --brand-strong-hover: #6244d6;
+  /* Sage green. --brand is the graphical fill (3:1 threshold); --brand-ink
+     and --brand-strong are darkened so text on white and white text on
+     the button both clear AA. */
+  --brand: #86d1ab;
+  --brand-ink: #1b6a49;
+  --brand-strong: #1c7a53;
+  --brand-strong-hover: #16643f;
 
-  --good: #3fd5a0;
-  --mid: #e3be5c;
-  --bad: #ff7a66;
+  --good: #2e7d5b;
+  --mid: #a9751a;
+  --bad: #bd4630;
 
-  --wrap: 1120px;
-  --radius: 14px;
+  --wrap: 1200px;
+  --radius: 16px;
+
+  /* Overrides for the app.css layer, retuned from dark-amber-glass to
+     light minimalism. */
+  --gold: #86d1ab;
+  --gold-ink: #1b6a49;
+  --gold-strong: #1c7a53;
+
+  --glass-bg: color-mix(in srgb, var(--surface) 78%, transparent);
+  --glass-border: color-mix(in srgb, #000000 8%, transparent);
+  --glass-highlight: color-mix(in srgb, #ffffff 60%, transparent);
+
+  --depth-1: 0 1px 2px rgba(17, 17, 17, 0.05);
+  --depth-2: 0 10px 30px -12px rgba(17, 17, 17, 0.12);
+  --depth-3: 0 24px 60px -20px rgba(17, 17, 17, 0.16);
 }
 
 * {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import SiteNav from "@/components/SiteNav";
+import PillNav from "@/components/PillNav";
 import SiteFooter from "@/components/SiteFooter";
 import WatchlistView from "@/components/WatchlistView";
 
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function WatchlistPage() {
   return (
     <>
-      <SiteNav />
+      <PillNav />
       <main id="main" className="page">
         <div className="page-head">
           <h1>Watchlist</h1>

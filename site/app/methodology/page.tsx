@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import SiteNav from "@/components/SiteNav";
+import PillNav from "@/components/PillNav";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function MethodologyPage() {
   return (
     <>
-      <SiteNav />
+      <PillNav />
       <main id="main" className="page page-narrow">
         <div className="page-head">
           <h1>Method</h1>

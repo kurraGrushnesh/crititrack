@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import SiteNav from "@/components/SiteNav";
+import PillNav from "@/components/PillNav";
 import SiteFooter from "@/components/SiteFooter";
 import CategoryRail from "@/components/CategoryRail";
 import CategoryBrowser from "@/components/CategoryBrowser";
@@ -46,7 +46,7 @@ export default async function CategoryPage({
 
   return (
     <>
-      <SiteNav />
+      <PillNav />
       <header className="app-hero">
         <div className="wrap">
           <div className="breadcrumb">

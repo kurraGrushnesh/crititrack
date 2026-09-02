@@ -1,0 +1,340 @@
+/*
+ * Editorial minimalism layer: the floating pill nav, the oversized
+ * display hero, the profile stat table, the portrait frame, and the
+ * page-transition mechanics. Colours come from globals.css.
+ *
+ * Motion is CSS only. Every animated rule is inside a
+ * `prefers-reduced-motion: no-preference` guard or collapses via the
+ * global reduced-motion block.
+ */
+
+body {
+  font-family:
+    "Söhne", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: -0.03em;
+}
+
+/* ── Floating pill nav ─────────────────────────────────────────── */
+
+.pillnav-wrap {
+  position: sticky;
+  top: 16px;
+  z-index: 60;
+  padding: 0 16px;
+  pointer-events: none;
+}
+
+.pillnav {
+  pointer-events: auto;
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px 10px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--depth-2);
+}
+
+.pillnav-brand {
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  text-decoration: none;
+  flex: none;
+}
+
+.pillnav-search {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 14px;
+  background: var(--bg-alt);
+  border-radius: 999px;
+}
+
+.pillnav-search svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  color: var(--text-muted);
+}
+
+.pillnav-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  outline: none;
+}
+
+.pillnav-search input::placeholder {
+  color: var(--text-muted);
+}
+
+.pillnav-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+}
+
+.pillnav-links a {
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.pillnav-links a:hover {
+  background: var(--bg-alt);
+  color: var(--text);
+}
+
+.pillnav-cta {
+  flex: none;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #08281b;
+  font-weight: 700;
+  font-size: 0.88rem;
+  text-decoration: none;
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.pillnav-cta:hover {
+  background: color-mix(in srgb, var(--brand) 80%, #000);
+}
+
+@media (max-width: 860px) {
+  .pillnav {
+    flex-wrap: wrap;
+    border-radius: 22px;
+    padding: 12px 14px;
+  }
+  .pillnav-search {
+    order: 3;
+    flex-basis: 100%;
+  }
+  .pillnav-links {
+    display: none;
+  }
+}
+
+/* ── Display hero ──────────────────────────────────────────────── */
+
+.display-hero {
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding: 72px 24px 40px;
+}
+
+.display-hero .eyebrow {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 20px;
+}
+
+.display-hero h1 {
+  font-size: clamp(2.6rem, 1.2rem + 6vw, 6rem);
+  font-weight: 800;
+  line-height: 0.98;
+  margin: 0 0 20px;
+  max-width: 14ch;
+}
+
+.display-hero .sub {
+  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+  color: var(--text-soft);
+  max-width: 52ch;
+  margin: 0;
+}
+
+/* ── Profile: name block + stat table (ref: portfolio header) ──── */
+
+.profile-head {
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding: 56px 24px 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 42%);
+  gap: 40px;
+  align-items: start;
+}
+
+.profile-head h1 {
+  font-size: clamp(2.6rem, 1rem + 7vw, 6.5rem);
+  font-weight: 800;
+  line-height: 0.92;
+  margin: 0;
+}
+
+.profile-head .subtitle {
+  margin: 18px 0 0;
+  font-size: 1.05rem;
+  color: var(--text-soft);
+}
+
+.stat-table {
+  margin-top: 40px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  overflow: hidden;
+  max-width: 520px;
+}
+
+.stat-table-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.stat-table-row + .stat-table-row {
+  border-top: 1px solid var(--border-strong);
+}
+
+.stat-cell {
+  padding: 14px 10px;
+  text-align: center;
+}
+
+.stat-cell + .stat-cell {
+  border-left: 1px solid var(--border-strong);
+}
+
+.stat-cell .k {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.stat-cell .v {
+  font-size: 1.4rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.portrait-frame {
+  aspect-ratio: 4 / 5;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  display: grid;
+  place-items: center;
+}
+
+.portrait-frame .mono-xl {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 800;
+  color: var(--text);
+  filter: grayscale(1);
+}
+
+@media (max-width: 820px) {
+  .profile-head {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .portrait-frame {
+    max-width: 360px;
+  }
+}
+
+/* ── 3D tilt on cards (pointer only, reduced-motion safe) ──────── */
+
+@media (prefers-reduced-motion: no-preference) and (pointer: fine) {
+  .tilt {
+    transform: perspective(900px) rotateX(var(--rx, 0deg))
+      rotateY(var(--ry, 0deg)) translateZ(0);
+    transition: transform 220ms var(--ease-out, ease);
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+}
+
+/* ── Page transition ──────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: no-preference) {
+  .page-fade {
+    animation: page-fade-in 320ms var(--ease-out, ease) both;
+  }
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Section rhythm ───────────────────────────────────────────── */
+
+.min-section {
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding: 56px 24px;
+}
+
+.min-section > .head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.min-section > .head h2 {
+  font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.2rem);
+  font-weight: 800;
+  margin: 0;
+}
+
+.min-section > .head a {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--brand-ink);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.divider-rule {
+  border: 0;
+  border-top: 1px solid var(--border);
+  max-width: var(--wrap);
+  margin: 0 auto;
+}

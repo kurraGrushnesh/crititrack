@@ -1,21 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Newsreader } from "next/font/google";
+import { Manrope } from "next/font/google";
 import "./globals.css";
+import PageFade from "@/components/PageFade";
 
 /**
- * Headlines are set in a serif; body copy stays on the system sans.
- *
- * The pairing is the editorial one rather than a decorative choice: this
- * page makes claims about evidence and sourcing, and a serif headline
- * reads as published rather than as marketing. Body text stays sans
- * because it carries dense technical prose at small sizes.
+ * One tight grotesk for the whole site — display and body. The design is
+ * editorial minimalism: oversized weights carry the hierarchy, so the
+ * type only needs to be clean and to hold up large.
  *
  * Self-hosted by next/font at build time — no runtime request to Google,
  * and `display: swap` with a matched fallback keeps the layout stable.
  */
-const display = Newsreader({
+const display = Manrope({
   subsets: ["latin"],
-  weight: ["600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
   variable: "--font-display",
 });
@@ -71,10 +69,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#0E1119" },
-    { media: "(prefers-color-scheme: light)", color: "#0E1119" },
-  ],
+  themeColor: "#f4f4f2",
   width: "device-width",
   initialScale: 1,
 };
@@ -93,7 +88,7 @@ export default function RootLayout({
         <a className="skip-link" href="#main">
           Skip to content
         </a>
-        {children}
+        <PageFade>{children}</PageFade>
       </body>
     </html>
   );
