@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Button from "./Button";
 import { Skeleton, SkeletonText } from "./Skeleton";
 
 /**
@@ -154,9 +155,9 @@ export function FigureNotFound({
       <h1>No match</h1>
       <p>{message}</p>
       <div className="figure-state-actions">
-        <button type="button" className="pillnav-cta" onClick={onHome}>
+        <Button type="button" onClick={onHome}>
           Back to home
-        </button>
+        </Button>
         <Link href="/category/actors" className="figure-state-link">
           Browse by category
         </Link>
@@ -181,9 +182,9 @@ export function FigureError({
       <p>{message}</p>
       {canRetry && (
         <div className="figure-state-actions">
-          <button type="button" className="pillnav-cta" onClick={onRetry}>
+          <Button type="button" onClick={onRetry}>
             Try again
-          </button>
+          </Button>
         </div>
       )}
     </main>

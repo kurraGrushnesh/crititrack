@@ -46,6 +46,13 @@
   --senti-neu: #8f8f86;
   --senti-neg: #c33f28;
 
+  /* Controversy severity 1–5, minor → major. White label on each. */
+  --sev-1: #2f6b52;
+  --sev-2: #446a3b;
+  --sev-3: #77591f;
+  --sev-4: #8c4326;
+  --sev-5: #8a2f26;
+
   --wrap: 1200px;
   --radius: 16px;
 
@@ -98,6 +105,12 @@
     --senti-neu: #8f8f86;
     --senti-neg: #d0604a;
 
+    --sev-1: #3a8266;
+    --sev-2: #55814a;
+    --sev-3: #977330;
+    --sev-4: #a9553a;
+    --sev-5: #a83f34;
+
     --gold: #86d1ab;
     --gold-ink: #93dcb8;
     --gold-strong: #33a06f;
@@ -135,6 +148,12 @@
   --senti-neu: #8f8f86;
   --senti-neg: #d0604a;
 
+  --sev-1: #3a8266;
+  --sev-2: #55814a;
+  --sev-3: #977330;
+  --sev-4: #a9553a;
+  --sev-5: #a83f34;
+
   --gold: #86d1ab;
   --gold-ink: #93dcb8;
   --gold-strong: #33a06f;
@@ -150,12 +169,12 @@
 
 /* Dark-mode fixes for the few places that hardcode a colour rather than
    read a token. */
-:root[data-theme="dark"] .btn-primary,
+:root[data-theme="dark"] .ui-btn-primary,
 :root[data-theme="dark"] .skip-link {
   color: #06231a;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .btn-primary,
+  :root:not([data-theme="light"]) .ui-btn-primary,
   :root:not([data-theme="light"]) .skip-link {
     color: #06231a;
   }
@@ -315,17 +334,18 @@ a {
   line-height: 1.45;
 }
 
-.btn {
-  display: inline-block;
-  padding: 12px 22px;
-  border-radius: 999px;
+/* The one button (components/Button.tsx). */
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font: inherit;
   font-weight: 600;
-  font-size: 0.95rem;
   text-decoration: none;
+  cursor: pointer;
+  border-radius: 999px;
   border: 1px solid transparent;
-  /* Comfortably past the 44px minimum touch target. */
-  min-height: 46px;
-  line-height: 22px;
   /* Colour only — never `transition: all`, which would also animate the
      focus outline and delay the one affordance a keyboard user depends
      on being immediate. The reduced-motion block above collapses this
@@ -336,24 +356,47 @@ a {
     color 180ms ease;
 }
 
-.btn-primary {
+.ui-btn-md {
+  padding: 11px 20px;
+  font-size: 0.92rem;
+  min-height: 44px;
+}
+.ui-btn-sm {
+  padding: 7px 15px;
+  font-size: 0.85rem;
+  min-height: 36px;
+}
+
+.ui-btn-primary {
   background: var(--brand-strong);
   color: #fff;
 }
-.btn-primary:hover {
-  /* Darker on hover, not lighter. The old hover used --brand-ink, which
-     dropped the contrast further at exactly the moment the button is
-     being read. */
+.ui-btn-primary:hover {
   background: var(--brand-strong-hover);
 }
 
-.btn-ghost {
+.ui-btn-ghost {
   border-color: var(--border-strong);
   color: var(--text);
 }
-.btn-ghost:hover {
+.ui-btn-ghost:hover {
   border-color: var(--brand);
   color: var(--brand-ink);
+}
+
+.ui-btn-subtle {
+  background: var(--bg-alt);
+  color: var(--text);
+}
+.ui-btn-subtle:hover {
+  background: color-mix(in srgb, var(--brand) 14%, var(--bg-alt));
+  color: var(--brand-ink);
+}
+
+.ui-btn:disabled,
+.ui-btn[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .figure-list {
