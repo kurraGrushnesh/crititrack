@@ -699,3 +699,304 @@ h3 {
   font-weight: 500;
   color: var(--text-muted);
 }
+
+/* ── Sentiment analysis panel (carded + tabbed) ───────────────── */
+
+.senti {
+  display: grid;
+  gap: 24px;
+}
+
+.senti-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.senti-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 16px;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+
+.senti-card-value {
+  font-size: 1.7rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--text);
+}
+
+.senti-card-text {
+  font-size: 1.15rem;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.senti-card-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.senti-confidence {
+  display: grid;
+  gap: 10px;
+}
+
+.senti-confidence-line {
+  font-size: 0.92rem;
+  color: var(--text-soft);
+}
+
+.senti-range {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+}
+
+.senti-range-band {
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  background: color-mix(in srgb, var(--brand) 40%, transparent);
+  border-radius: 999px;
+}
+
+.senti-range-mark {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--surface);
+}
+
+.senti-sources {
+  display: grid;
+  gap: 12px;
+}
+
+.senti-sources-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.senti-tag {
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  font-size: 0.66rem;
+  letter-spacing: 0.03em;
+  color: var(--text-soft);
+}
+
+.senti-source-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.senti-source {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.senti-source-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.senti-source-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.senti-source-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg-alt);
+  overflow: hidden;
+}
+
+.senti-source-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.senti-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.senti-tab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 150ms ease, border-color 150ms ease;
+}
+
+.senti-tab:hover {
+  color: var(--text-soft);
+}
+
+.senti-tab.is-active {
+  color: var(--brand-ink);
+  border-bottom-color: var(--brand-strong);
+}
+
+.senti-tabpanel {
+  padding-top: 20px;
+  min-height: 180px;
+}
+
+.senti-empty {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.senti-evidence {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.senti-evidence > summary {
+  cursor: pointer;
+  padding: 14px 16px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  list-style: none;
+}
+
+.senti-evidence > summary::-webkit-details-marker {
+  display: none;
+}
+
+.senti-evidence > summary::after {
+  content: " ▸";
+  color: var(--text-muted);
+}
+
+.senti-evidence[open] > summary::after {
+  content: " ▾";
+}
+
+.senti-evidence ul {
+  list-style: none;
+  margin: 0;
+  padding: 0 16px 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.senti-evidence li {
+  display: grid;
+  gap: 3px;
+  font-size: 0.92rem;
+  color: var(--text-soft);
+}
+
+.senti-evidence-src {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.senti-analysis {
+  border-left: 3px solid var(--brand);
+  padding: 4px 0 4px 16px;
+}
+
+.senti-analysis-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand-ink);
+  margin-bottom: 6px;
+}
+
+.senti-analysis p {
+  margin: 0;
+  color: var(--text-soft);
+  max-width: 68ch;
+}
+
+.mention-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 160px;
+  padding-top: 8px;
+}
+
+.mention-bar {
+  flex: 1 1 0;
+  max-width: 64px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+.mention-bar-fill {
+  width: 100%;
+  min-height: 2px;
+  background: color-mix(in srgb, var(--brand) 55%, transparent);
+  border-radius: 4px 4px 0 0;
+}
+
+.mention-bar-value {
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  order: -1;
+}
+
+.mention-bar-date {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}

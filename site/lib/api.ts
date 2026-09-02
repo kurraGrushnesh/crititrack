@@ -28,6 +28,7 @@ export interface EvidenceFragment {
 export interface TrendPoint {
   date: string;
   score: number;
+  mentions: number;
 }
 export interface MediaLink {
   id: string;
@@ -256,6 +257,11 @@ function mapProfile(j: Json): RealProfile {
       .map((d) => ({
         date: str(d.date) || str(d.day),
         score: num(d.score) ?? 50,
+        mentions:
+          num(d.totalMentions) ??
+          (num(d.positiveCount) ?? 0) +
+            (num(d.neutralCount) ?? 0) +
+            (num(d.negativeCount) ?? 0),
       }))
       .filter((d) => d.date),
     evidence: list(s.evidence)

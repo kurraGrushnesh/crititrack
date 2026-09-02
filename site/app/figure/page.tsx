@@ -7,12 +7,9 @@ import PillNav from "@/components/PillNav";
 import SiteFooter from "@/components/SiteFooter";
 import ControversyIndexGauge from "@/components/ControversyIndexGauge";
 import ControversyRecord from "@/components/ControversyRecord";
-import SentimentTrend from "@/components/SentimentTrend";
-import EvidenceList from "@/components/EvidenceList";
 import WatchButton from "@/components/WatchButton";
-import ConfidenceMeter, { confidenceLabel } from "@/components/ConfidenceMeter";
-import ScoreBreakdown from "@/components/ScoreBreakdown";
-import SentimentDonut from "@/components/SentimentDonut";
+import { confidenceLabel } from "@/components/ConfidenceMeter";
+import SentimentPanel from "@/components/SentimentPanel";
 import AttentionChart from "@/components/AttentionChart";
 import StatTable from "@/components/StatTable";
 import ClassificationPanel from "@/components/ClassificationPanel";
@@ -92,11 +89,6 @@ function ProfileView({ profile }: { profile: RealProfile }) {
     [profile.controversies],
   );
   const kept = profile.controversies;
-  const parts = [
-    { label: "News", value: profile.scoreNews },
-    { label: "YouTube", value: profile.scoreYoutube },
-    { label: "Instagram", value: profile.scoreInstagram },
-  ];
   const fetched = new Date(profile.fetchedAt);
   const hasClassification = useMemo(
     () => buildClassification(profile).length > 0,
@@ -215,47 +207,10 @@ function ProfileView({ profile }: { profile: RealProfile }) {
 
       <section className="min-section">
         <div className="head">
-          <h2>Sentiment</h2>
+          <h2>Sentiment analysis</h2>
         </div>
-        {profile.explanation && (
-          <p className="sub" style={{ marginBottom: 24, maxWidth: "68ch" }}>
-            {profile.explanation}
-          </p>
-        )}
-        <div className="record" style={{ display: "grid", gap: 24 }}>
-          <SentimentDonut
-            positive={sentimentCounts.positive}
-            neutral={sentimentCounts.neutral}
-            negative={sentimentCounts.negative}
-            sampleSize={profile.sampleSize}
-          />
-          <ScoreBreakdown overall={profile.sentimentScore} parts={parts} />
-          {profile.confidence != null && (
-            <ConfidenceMeter value={profile.confidence} />
-          )}
-        </div>
+        <SentimentPanel profile={profile} counts={sentimentCounts} />
       </section>
-
-      {profile.trend.length > 1 && (
-        <>
-          <hr className="divider-rule" />
-          <section className="min-section">
-            <div className="head">
-              <h2>Sentiment trend</h2>
-            </div>
-            <div className="record">
-              <SentimentTrend
-                points={profile.trend}
-                current={profile.sentimentScore}
-                direction={profile.trendDirection}
-              />
-              <p className="form-note" style={{ marginTop: 12 }}>
-                A query over stored dated snapshots, not a forecast.
-              </p>
-            </div>
-          </section>
-        </>
-      )}
 
       {profile.attention && profile.attention.series.length > 1 && (
         <>
@@ -295,18 +250,6 @@ function ProfileView({ profile }: { profile: RealProfile }) {
           </>
         )}
       </section>
-
-      {profile.evidence.length > 0 && (
-        <>
-          <hr className="divider-rule" />
-          <section className="min-section">
-            <div className="head">
-              <h2>Evidence</h2>
-            </div>
-            <EvidenceList items={profile.evidence} />
-          </section>
-        </>
-      )}
 
       {profile.media.length > 0 && (
         <>
