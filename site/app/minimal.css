@@ -256,6 +256,15 @@ h3 {
   margin: 0;
 }
 
+/* Hero load-in (HeroReveal). The children start hidden only for readers
+   who accept motion and have JS — reduced-motion never matches this
+   rule, and a <noscript> style in the component un-hides for no-JS. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-reveal > :not(noscript) {
+    opacity: 0;
+  }
+}
+
 /* ── Profile: name block + stat table (ref: portfolio header) ──── */
 
 .profile-head {
