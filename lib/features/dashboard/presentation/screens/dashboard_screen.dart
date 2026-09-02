@@ -284,8 +284,8 @@ class _DashboardContent extends ConsumerWidget {
 }
 
 // ── Ambient glow ────────────────────────────────────────────────
-// The warm radial wash behind the dashboard, echoing the web app's
-// hero. Purely decorative: ignores pointer events and does not animate.
+// A soft sage radial wash behind the dashboard, echoing the web hero.
+// Purely decorative: ignores pointer events and does not animate.
 
 class _AmbientGlow extends StatelessWidget {
   const _AmbientGlow();
