@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { sentimentBand, sentimentColorVar, sentimentLabel } from "./sentiment";
+import {
+  sentimentBand,
+  sentimentColorVar,
+  sentimentComposition,
+  sentimentLabel,
+} from "./sentiment";
 
 describe("sentimentBand", () => {
   it("splits at 65 and 40, matching the app palette", () => {
@@ -25,5 +30,65 @@ describe("sentimentLabel", () => {
     expect(sentimentLabel(70)).toMatch(/positive/);
     expect(sentimentLabel(50)).toMatch(/mixed/);
     expect(sentimentLabel(20)).toMatch(/negative/);
+  });
+});
+
+describe("sentimentComposition", () => {
+  it("returns fixed positive/neutral/negative order with fractions summing to 1", () => {
+    const { slices, total } = sentimentComposition({
+      positive: 6,
+      neutral: 5,
+      negative: 0,
+    });
+    expect(total).toBe(11);
+    expect(slices.map((s) => s.key)).toEqual([
+      "positive",
+      "neutral",
+      "negative",
+    ]);
+    expect(slices.reduce((n, s) => n + s.fraction, 0)).toBeCloseTo(1);
+    expect(slices[0].fraction).toBeCloseTo(6 / 11);
+  });
+
+  it("keeps zero-count slices in the list with a zero fraction", () => {
+    const { slices } = sentimentComposition({
+      positive: 3,
+      neutral: 0,
+      negative: 1,
+    });
+    expect(slices[1]).toMatchObject({ key: "neutral", count: 0, fraction: 0 });
+  });
+
+  it("reports total 0 and all-zero fractions for an empty sample", () => {
+    const { slices, total } = sentimentComposition({
+      positive: 0,
+      neutral: 0,
+      negative: 0,
+    });
+    expect(total).toBe(0);
+    expect(slices.every((s) => s.fraction === 0)).toBe(true);
+  });
+
+  it("clamps negative inputs to zero", () => {
+    const { slices, total } = sentimentComposition({
+      positive: -4,
+      neutral: 2,
+      negative: 0,
+    });
+    expect(total).toBe(2);
+    expect(slices[0].count).toBe(0);
+  });
+
+  it("assigns each slice its own colour token", () => {
+    const { slices } = sentimentComposition({
+      positive: 1,
+      neutral: 1,
+      negative: 1,
+    });
+    expect(slices.map((s) => s.colorVar)).toEqual([
+      "var(--senti-pos)",
+      "var(--senti-neu)",
+      "var(--senti-neg)",
+    ]);
   });
 });
