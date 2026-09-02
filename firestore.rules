@@ -54,13 +54,14 @@ service cloud.firestore {
         && request.auth.uid == userId;
     }
 
-    // ── Corrections (server-owned, write-only from clients) ────────
+    // ── Corrections (server-owned, no client access) ─────────────
     // A correction report is filed through POST /report-correction,
-    // which writes it with the Admin SDK after validating and rate-
-    // limiting. Clients never read the collection back — a dispute may
-    // name a third party and quote unpublished claims — and never write
-    // it directly, so the review queue cannot be flooded past the
-    // per-user quota the endpoint enforces.
+    // which validates it, applies a per-IP rate limit, and writes it
+    // with the Admin SDK. That endpoint is deliberately not behind App
+    // Check or a Firebase token — the marketing-site form cannot obtain
+    // either — so the rate limit is the only spam control, and the
+    // collection is sealed to clients on both sides: a dispute may name
+    // a third party and quote unpublished claims.
     match /corrections/{correctionId} {
       allow read, write: if false;
     }

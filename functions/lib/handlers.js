@@ -41,6 +41,7 @@ const {
   requireAppCheck,
   consumeUserQuota,
   consumeGlobalBudget,
+  consumeCorrectionQuota,
   GuardError,
 } = require("./guard");
 
@@ -154,20 +155,23 @@ async function handleGetCelebrity(keys, req, res) {
 /**
  * Records a dispute about something on a profile.
  *
- * Gated the same way as getCelebrity: App Check, an authenticated (at
- * least anonymous) user, and the per-user quota, so the endpoint cannot
- * be scripted into a spam firehose. The body is validated with the
- * shared `validateCorrection` before anything is written.
+ * Unlike getCelebrity, this endpoint is *not* behind App Check or a
+ * Firebase token: the correction form on the static marketing site loads
+ * no Firebase SDK and has no way to obtain either. It costs nothing to
+ * run (a single Firestore write), so the exposure is a spam queue rather
+ * than a bill. Two controls stand in front of it:
+ *
+ *   1. `validateCorrection` -- the shared schema, length bounds, safe-URL
+ *      check and injection-marker filter.
+ *   2. `consumeCorrectionQuota` -- a low per-IP cap (see guard.js).
  *
  * @param {import("express").Request} req
  * @param {import("express").Response} res
  */
 async function handleReportCorrection(req, res) {
-  let uid;
+  let ipHash;
   try {
-    await requireAppCheck(req);
-    uid = await requireUser(req);
-    await consumeUserQuota(uid);
+    ipHash = await consumeCorrectionQuota(req);
   } catch (e) {
     if (e instanceof GuardError) {
       for (const [h, v] of Object.entries(e.headers)) res.set(h, v);
@@ -193,7 +197,7 @@ async function handleReportCorrection(req, res) {
   }
 
   try {
-    const id = await writeCorrection(clean, {uid});
+    const id = await writeCorrection(clean, {ipHash});
     res.status(201).json({ok: true, id});
   } catch (e) {
     logger.error("report-correction write failed", {message: e && e.message});

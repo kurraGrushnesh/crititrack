@@ -367,7 +367,8 @@ const CORRECTIONS = "corrections";
  *
  * @param {{slug: string, field: string, claim: string,
  *   correction: string, evidenceUrl: string|null, email: string|null}} clean
- * @param {{uid: string}} meta
+ * @param {{ipHash: string}} meta a non-reversible tag for the source
+ *   address, so repeated abuse is visible without storing the address
  * @return {Promise<string>} the new document id
  */
 async function writeCorrection(clean, meta) {
@@ -379,7 +380,7 @@ async function writeCorrection(clean, meta) {
     correction: clean.correction,
     evidenceUrl: orNull(clean.evidenceUrl),
     email: orNull(clean.email),
-    reportedBy: meta.uid,
+    reportedByHash: orNull(meta && meta.ipHash),
     status: "open",
     createdAt: FieldValue.serverTimestamp(),
   });

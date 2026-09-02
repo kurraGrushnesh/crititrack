@@ -20,6 +20,8 @@
  * needs no console configuration.
  */
 
+const crypto = require("node:crypto");
+
 const {getAuth} = require("firebase-admin/auth");
 const {getAppCheck} = require("firebase-admin/app-check");
 const {getFirestore, FieldValue} = require("firebase-admin/firestore");
@@ -28,11 +30,35 @@ const logger = require("./logger");
 /** True inside `firebase emulators:start`. */
 const IS_EMULATOR = process.env.FUNCTIONS_EMULATOR === "true";
 
+/**
+ * App Check attestation is enforced unless `APP_CHECK_ENFORCED=false` is
+ * set in the environment.
+ *
+ * The web client can only produce an App Check token with a reCAPTCHA
+ * Enterprise site key, which needs a Google Cloud console setup. A
+ * deployment that has not done that yet can turn enforcement off: the
+ * endpoint is still behind a Firebase ID token (anonymous is fine), the
+ * per-user rate limit, and the global daily budget cap, so the spend is
+ * still bounded. What is lost is the guarantee that a call came from a
+ * build we published rather than a script.
+ */
+const APP_CHECK_ENFORCED = process.env.APP_CHECK_ENFORCED !== "false";
+
 // ── Tunables ────────────────────────────────────────────────────────
 const RATE_PER_HOUR = 20;
 const RATE_PER_DAY = 100;
 /** Upper bound on paid lookups per day across all users. */
 const GLOBAL_DAILY_LOOKUPS = 500;
+
+/**
+ * Correction reports are not gated by App Check or a Firebase token --
+ * the marketing-site form has no way to obtain either -- so the only
+ * thing standing between the endpoint and a spam flood is a per-IP cap.
+ * Kept deliberately low: a real person filing corrections sends one or
+ * two, not dozens.
+ */
+const CORRECTION_PER_HOUR = 5;
+const CORRECTION_PER_DAY = 20;
 
 const USAGE = "usage";
 const COUNTERS = "counters";
@@ -88,7 +114,7 @@ async function requireUser(req) {
  * @throws {GuardError} 401 when attestation fails
  */
 async function requireAppCheck(req) {
-  if (IS_EMULATOR) return;
+  if (IS_EMULATOR || !APP_CHECK_ENFORCED) return;
 
   const token = req.get("X-Firebase-AppCheck");
   if (!token) {
@@ -217,16 +243,118 @@ function secondsUntilNextDay(now) {
   return Math.max(1, Math.ceil((next - now) / 1000));
 }
 
+/**
+ * The caller's IP, from `X-Forwarded-For` (the host sits behind a proxy)
+ * with a fall back to the socket address. Returns "unknown" when nothing
+ * usable is present rather than throwing.
+ *
+ * @param {import("express").Request} req
+ * @return {string}
+ */
+function clientIp(req) {
+  const fwd = req.headers && req.headers["x-forwarded-for"];
+  if (typeof fwd === "string" && fwd.length > 0) {
+    return fwd.split(",")[0].trim();
+  }
+  return (
+    (req.ip && String(req.ip)) ||
+    (req.socket && req.socket.remoteAddress) ||
+    "unknown"
+  );
+}
+
+/**
+ * A short, stable, non-reversible tag for an IP. Stored on the counter
+ * document and the correction record so repeated abuse from one address
+ * can be spotted, without keeping the address itself.
+ *
+ * @param {string} ip
+ * @return {string} 16 lowercase hex chars
+ */
+function hashIp(ip) {
+  return crypto
+      .createHash("sha256")
+      .update(`crititrack:${ip}`)
+      .digest("hex")
+      .slice(0, 16);
+}
+
+/**
+ * Consumes one unit from this IP's correction-report budget. Same
+ * transaction-guarded, best-effort-on-outage shape as
+ * {@link consumeUserQuota}.
+ *
+ * @param {import("express").Request} req
+ * @return {Promise<string>} the IP hash, for the stored record
+ * @throws {GuardError} 429 when either budget is exhausted
+ */
+async function consumeCorrectionQuota(req) {
+  const tag = hashIp(clientIp(req));
+  if (IS_EMULATOR) return tag;
+
+  const now = new Date();
+  const hourKey = now.toISOString().slice(0, 13);
+  const dayKey = now.toISOString().slice(0, 10);
+  const ref = getFirestore().collection(USAGE).doc(`corr_${tag}`);
+
+  try {
+    await getFirestore().runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      const d = snap.exists ? snap.data() : {};
+
+      const hourCount = d.hourKey === hourKey ? (d.hourCount || 0) : 0;
+      const dayCount = d.dayKey === dayKey ? (d.dayCount || 0) : 0;
+
+      if (hourCount >= CORRECTION_PER_HOUR) {
+        throw new GuardError(
+            "rate_limited",
+            `Limit of ${CORRECTION_PER_HOUR} reports per hour reached.`,
+            429,
+            {"Retry-After": String(secondsUntilNextHour(now))},
+        );
+      }
+      if (dayCount >= CORRECTION_PER_DAY) {
+        throw new GuardError(
+            "rate_limited",
+            `Limit of ${CORRECTION_PER_DAY} reports per day reached.`,
+            429,
+            {"Retry-After": String(secondsUntilNextDay(now))},
+        );
+      }
+
+      tx.set(
+          ref,
+          {
+            hourKey, hourCount: hourCount + 1,
+            dayKey, dayCount: dayCount + 1,
+            updatedAt: FieldValue.serverTimestamp(),
+          },
+          {merge: true},
+      );
+    });
+  } catch (e) {
+    if (e instanceof GuardError) throw e;
+    logger.warn(`correction quota check skipped for ${tag}: ${e.message}`);
+  }
+  return tag;
+}
+
 module.exports = {
   requireUser,
   requireAppCheck,
   consumeUserQuota,
   consumeGlobalBudget,
+  consumeCorrectionQuota,
+  clientIp,
+  hashIp,
   GuardError,
   IS_EMULATOR,
+  APP_CHECK_ENFORCED,
   RATE_PER_HOUR,
   RATE_PER_DAY,
   GLOBAL_DAILY_LOOKUPS,
+  CORRECTION_PER_HOUR,
+  CORRECTION_PER_DAY,
   secondsUntilNextHour,
   secondsUntilNextDay,
 };
