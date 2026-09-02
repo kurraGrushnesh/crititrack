@@ -20,6 +20,7 @@ import {
   FigureError,
 } from "@/components/FigureStates";
 import Button from "@/components/Button";
+import Reveal from "@/components/Reveal";
 import { computeControversyIndex, roundedScore } from "@/lib/controversy-index";
 import { useCelebrity } from "@/lib/use-celebrity";
 import type { RealProfile } from "@/lib/api";
@@ -132,27 +133,29 @@ function ProfileView({ profile }: { profile: RealProfile }) {
         </div>
       )}
 
-      <hr className="divider-rule" />
+      <Reveal>
+        <hr className="divider-rule" />
+        <section className="min-section">
+          <div className="head">
+            <h2>Controversy Index</h2>
+            <Link href="/controversy-index">How it is calculated</Link>
+          </div>
+          <ControversyIndexGauge index={index} />
+        </section>
+      </Reveal>
 
-      <section className="min-section">
-        <div className="head">
-          <h2>Controversy Index</h2>
-          <Link href="/controversy-index">How it is calculated</Link>
-        </div>
-        <ControversyIndexGauge index={index} />
-      </section>
-
-      <hr className="divider-rule" />
-
-      <section className="min-section">
-        <div className="head">
-          <h2>Sentiment analysis</h2>
-        </div>
-        <SentimentPanel profile={profile} counts={sentimentCounts} />
-      </section>
+      <Reveal>
+        <hr className="divider-rule" />
+        <section className="min-section">
+          <div className="head">
+            <h2>Sentiment analysis</h2>
+          </div>
+          <SentimentPanel profile={profile} counts={sentimentCounts} />
+        </section>
+      </Reveal>
 
       {profile.attention && profile.attention.series.length > 1 && (
-        <>
+        <Reveal>
           <hr className="divider-rule" />
           <section className="min-section">
             <div className="head">
@@ -160,38 +163,40 @@ function ProfileView({ profile }: { profile: RealProfile }) {
             </div>
             <AttentionChart data={profile.attention} />
           </section>
-        </>
+        </Reveal>
       )}
 
-      <hr className="divider-rule" />
-
-      <section className="min-section">
-        <div className="head">
-          <h2>Documented controversies</h2>
-        </div>
-        {kept.length === 0 ? (
-          <p className="state-block">
-            <span className="sb-title">No documented controversies</span>
-            Nothing in the retrieved coverage met the bar for a typed, sourced
-            record.
-          </p>
-        ) : (
-          <>
-            <p className="sub" style={{ marginBottom: 24 }}>
-              {kept.length} shown, sorted by severity. Severity 4–5 claims with
-              no corroborating source are dropped before they reach this list.
+      <Reveal>
+        <hr className="divider-rule" />
+        <section className="min-section">
+          <div className="head">
+            <h2>Documented controversies</h2>
+          </div>
+          {kept.length === 0 ? (
+            <p className="state-block">
+              <span className="sb-title">No documented controversies</span>
+              Nothing in the retrieved coverage met the bar for a typed,
+              sourced record.
             </p>
-            {[...kept]
-              .sort((a, b) => b.severity - a.severity)
-              .map((c, i) => (
-                <ControversyRecord key={i} item={c} />
-              ))}
-          </>
-        )}
-      </section>
+          ) : (
+            <>
+              <p className="sub" style={{ marginBottom: 24 }}>
+                {kept.length} shown, sorted by severity. Severity 4–5 claims
+                with no corroborating source are dropped before they reach
+                this list.
+              </p>
+              {[...kept]
+                .sort((a, b) => b.severity - a.severity)
+                .map((c, i) => (
+                  <ControversyRecord key={i} item={c} />
+                ))}
+            </>
+          )}
+        </section>
+      </Reveal>
 
       {profile.media.length > 0 && (
-        <>
+        <Reveal>
           <hr className="divider-rule" />
           <section className="min-section">
             <div className="head">
@@ -199,7 +204,7 @@ function ProfileView({ profile }: { profile: RealProfile }) {
             </div>
             <MediaCoverage items={profile.media} />
           </section>
-        </>
+        </Reveal>
       )}
     </main>
   );
