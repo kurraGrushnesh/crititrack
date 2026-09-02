@@ -3,12 +3,19 @@ import type { RealProfile } from "@/lib/api";
 
 /**
  * The biography block: a short model-written summary, the longer
- * background behind a "Read more" disclosure, and the notable-work list.
+ * background, and the notable-work list. Everything is shown inline —
+ * the background is not worth a click.
  *
- * All of it comes from the backend's Groq-written `biography` — there is
- * no Wikidata here. The disclosure is a native `<details>`, so it needs
- * no client JS and works from the keyboard.
+ * All of it comes from the backend's Groq-written `biography`. No
+ * Wikidata.
  */
+function paragraphs(text: string): string[] {
+  return text
+    .split(/\n{2,}|(?<=\.)\s{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+}
+
 export default function BioSection({
   profile,
   fetchedLabel,
@@ -28,10 +35,11 @@ export default function BioSection({
       {summary && <p className="bio-summary">{summary}</p>}
 
       {hasBackground && (
-        <details className="bio-more">
-          <summary>Read more</summary>
-          <p>{background}</p>
-        </details>
+        <div className="bio-background">
+          {paragraphs(background).map((p, i) => (
+            <p key={i}>{p}</p>
+          ))}
+        </div>
       )}
 
       {works.length > 0 && (

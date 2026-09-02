@@ -102,7 +102,7 @@ function ProfileView({ profile }: { profile: RealProfile }) {
   }, [profile]);
 
   return (
-    <main id="main" className="page-fade">
+    <main id="main" className="page-fade figure-main">
       <div className="profile-head">
         <div>
           <div className="breadcrumb">

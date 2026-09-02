@@ -107,78 +107,136 @@ export default function MediaCoverage({ items }: { items: MediaLink[] }) {
       )}
 
       <ul className="media-list">
-        {shown.map((m) => {
-          const href = parseSafeUrl(m.url);
-          const thumb = parseSafeUrl(m.thumbnailUrl);
-          const video = isVideo(m);
-          const when = m.publishedAt ? relativeTime(m.publishedAt) : "";
-          const score =
-            m.sentimentScore != null ? Math.round(m.sentimentScore) : null;
-
-          return (
-            <li key={m.id} className="media-card">
-              <span
-                className="media-thumb"
-                data-kind={video ? "video" : "news"}
-              >
-                {thumb ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={thumb.toString()} alt="" loading="lazy" />
-                ) : video ? (
-                  <VideoGlyph />
-                ) : (
-                  <NewsGlyph />
-                )}
-              </span>
-
-              <div className="media-body">
-                <a
-                  className="media-title"
-                  href={href ? href.toString() : undefined}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                >
-                  {m.title}
-                  <svg
-                    className="media-ext"
-                    viewBox="0 0 24 24"
-                    width="14"
-                    height="14"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M14 5h5v5M19 5l-8 8M11 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </a>
-
-                <div className="media-meta">
-                  <span className="media-source">
-                    {m.source || displayHost(m.url) || (video ? "Video" : "News")}
-                  </span>
-                  {when && <span className="media-when">· {when}</span>}
-                  {score != null && (
-                    <span
-                      className="media-score"
-                      style={{ color: sentimentColorVar(score) }}
-                      title={`Sentiment ${score}${
-                        m.sentimentTag ? ` · ${m.sentimentTag}` : ""
-                      }`}
-                    >
-                      {score}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </li>
-          );
-        })}
+        {shown.map((m) =>
+          isVideo(m) ? (
+            <VideoCard key={m.id} m={m} />
+          ) : (
+            <NewsRow key={m.id} m={m} />
+          ),
+        )}
       </ul>
     </div>
+  );
+}
+
+function ExtGlyph() {
+  return (
+    <svg
+      className="media-ext"
+      viewBox="0 0 24 24"
+      width="14"
+      height="14"
+      aria-hidden="true"
+    >
+      <path
+        d="M14 5h5v5M19 5l-8 8M11 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ScorePill({ m }: { m: MediaLink }) {
+  if (m.sentimentScore == null) return null;
+  const score = Math.round(m.sentimentScore);
+  return (
+    <span
+      className="media-score"
+      style={{ color: sentimentColorVar(score) }}
+      title={`Sentiment ${score}${m.sentimentTag ? ` · ${m.sentimentTag}` : ""}`}
+    >
+      {score}
+    </span>
+  );
+}
+
+/** Compact horizontal row — news and everything that isn't a video. */
+function NewsRow({ m }: { m: MediaLink }) {
+  const href = parseSafeUrl(m.url);
+  const thumb = parseSafeUrl(m.thumbnailUrl);
+  const when = m.publishedAt ? relativeTime(m.publishedAt) : "";
+
+  return (
+    <li className="media-card">
+      <span className="media-thumb" data-kind="news">
+        {thumb ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={thumb.toString()} alt="" loading="lazy" />
+        ) : (
+          <NewsGlyph />
+        )}
+      </span>
+      <div className="media-body">
+        <a
+          className="media-title"
+          href={href ? href.toString() : undefined}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+        >
+          {m.title}
+          <ExtGlyph />
+        </a>
+        <div className="media-meta">
+          <span className="media-source">
+            {m.source || displayHost(m.url) || "News"}
+          </span>
+          {when && <span className="media-when">· {when}</span>}
+          <ScorePill m={m} />
+        </div>
+      </div>
+    </li>
+  );
+}
+
+/** Big 16:9 card for a video — the thumbnail leads. */
+function VideoCard({ m }: { m: MediaLink }) {
+  const href = parseSafeUrl(m.url);
+  const thumb = parseSafeUrl(m.thumbnailUrl);
+  const when = m.publishedAt ? relativeTime(m.publishedAt) : "";
+
+  return (
+    <li className="media-video">
+      <a
+        className="media-video-thumb"
+        href={href ? href.toString() : undefined}
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+        aria-label={m.title}
+      >
+        {thumb ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={thumb.toString()} alt="" loading="lazy" />
+        ) : (
+          <span className="media-video-placeholder">
+            <VideoGlyph />
+          </span>
+        )}
+        <span className="media-video-play" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22">
+            <path d="M8 5v14l11-7Z" fill="currentColor" />
+          </svg>
+        </span>
+      </a>
+      <div className="media-video-body">
+        <a
+          className="media-title"
+          href={href ? href.toString() : undefined}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+        >
+          {m.title}
+          <ExtGlyph />
+        </a>
+        <div className="media-meta">
+          <span className="media-source">YouTube</span>
+          {when && <span className="media-when">· {when}</span>}
+          <ScorePill m={m} />
+        </div>
+      </div>
+    </li>
   );
 }
