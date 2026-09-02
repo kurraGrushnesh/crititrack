@@ -1,4 +1,5 @@
 import Hero from "@/components/Hero";
+import SiteNav from "@/components/SiteNav";
 import type { Figure } from "@/components/SentimentGlobe";
 
 /**
@@ -68,6 +69,7 @@ const STEPS = [
 export default function Home() {
   return (
     <>
+      <SiteNav />
       <Hero figures={FIGURES} />
 
       <main>

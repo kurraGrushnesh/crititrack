@@ -8,6 +8,8 @@
  * borrowed from the host.
  */
 
+@import "./reference.css";
+
 :root {
   --bg: #0e1119;
   --bg-alt: #12161f;
