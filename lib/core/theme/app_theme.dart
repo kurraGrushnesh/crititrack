@@ -35,14 +35,16 @@ import 'package:flutter/services.dart';
 abstract final class AppTheme {
   // ── Brand Palette ─────────────────────────────────────────────────
   //
-  // Premium editorial: a single warm amber accent on near-black, shared
-  // with the web client (site/app/app.css: --gold #d9a441, --gold-strong
-  // #b9832b, --gold-ink #e7bd6b). `primary` is a fill that takes
-  // near-black text (5.7:1), `primaryLight` is the amber that reads as
-  // text on a dark surface, `primaryDeep` reads as text on white (~6:1).
-  static const Color primary = Color(0xFFB9832B); // Amber, white-on-it AA
-  static const Color primaryDeep = Color(0xFF8A5A12); // Pressed / light text
-  static const Color primaryLight = Color(0xFFE7BD6B); // Amber ink on dark
+  // Editorial minimalism: a single restrained sage-green accent, shared
+  // with the web client (site/app/globals.css: --brand #86d1ab,
+  // --brand-strong #1c7a53, --brand-ink #1b6a49). `primary` is a light
+  // mint fill that takes near-black text (10:1); `primaryLight` is the
+  // mint that reads as text on a dark surface; `primaryDeep` is the dark
+  // sage that reads as text on white (~5.5:1) and doubles as the pressed
+  // fill with white text.
+  static const Color primary = Color(0xFF86D1AB); // Mint fill, dark text
+  static const Color primaryDeep = Color(0xFF1B6A49); // Pressed / light text
+  static const Color primaryLight = Color(0xFF8FD9B4); // Mint ink on dark
   static const Color secondary = Color(0xFF17C3B2); // Refined teal
   static const Color accent = Color(0xFFF368A0); // Orchid pink
   static const Color warning = Color(0xFFF2B544); // Amber gold
@@ -56,7 +58,7 @@ abstract final class AppTheme {
 
   // ── Gradients ─────────────────────────────────────────────────────
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFFB9832B), Color(0xFF8A5A12)],
+    colors: [Color(0xFF1C7A53), Color(0xFF15603F)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -87,7 +89,7 @@ abstract final class AppTheme {
     // Lightened from 0xFF656C82, which sat at a 3.17 contrast ratio
     // against the elevated surface — below the WCAG AA floor of 4.5.
     textMuted: Color(0xFF8A92A8),
-    brandText: primaryLight, // #E7BD6B amber ink, high contrast on dark
+    brandText: primaryLight, // mint ink, high contrast on dark
     // Positive and neutral already clear 4.5:1 on their own tint here;
     // negative did not (4.29 on card, 3.84 on elevated), so it is
     // lightened. The other two are unchanged.
@@ -96,7 +98,7 @@ abstract final class AppTheme {
     sentimentNegativeText: Color(0xFFE57667),
     chartGrid: Color(0xFF272B3B),
     scrim: Color(0xFF0A0B12),
-    heroTint: Color(0xFF2E2210), // warm amber-brown, was deep violet
+    heroTint: Color(0xFF0E2A1E), // deep green-black
     shadowColor: Color(0xFF000000),
     shadowOpacity: 0.45,
   );
@@ -112,7 +114,7 @@ abstract final class AppTheme {
     textSecondary: Color(0xFF545C71),
     // Darkened from 0xFF8A92A6, which sat at a 2.76 contrast ratio.
     textMuted: Color(0xFF636A7C),
-    brandText: primaryDeep, // #8A5A12 dark amber, ~6:1 on white
+    brandText: primaryDeep, // dark sage, ~5.5:1 on white
     // All three fill hues are far too light to read on white — 2.29,
     // 1.68 and 3.03 on their own tint. Darkened to 4.56, 4.59 and 4.53.
     sentimentPositiveText: Color(0xFF0F7652),
@@ -120,7 +122,7 @@ abstract final class AppTheme {
     sentimentNegativeText: Color(0xFFBE3321),
     chartGrid: Color(0xFFD9DFEC),
     scrim: Color(0xFFF5F6FB),
-    heroTint: Color(0xFFF3E7CE), // warm cream, was pale violet
+    heroTint: Color(0xFFE6F2EB), // pale mint
     shadowColor: Color(0xFF3C4670),
     shadowOpacity: 0.14,
   );
@@ -148,10 +150,10 @@ abstract final class AppTheme {
   static ThemeData _build(Brightness brightness, AppPalette palette) {
     final isDark = brightness == Brightness.dark;
     final brand = isDark ? primary : primaryDeep;
-    // The amber `brand` fill is light in dark mode and dark in light
-    // mode, so the text that sits on it flips. White on #B9832B is only
-    // 3.3:1; a near-black brown is 5.7:1.
-    final onBrand = isDark ? const Color(0xFF1A1206) : Colors.white;
+    // The sage `brand` fill is a light mint in dark mode and a dark
+    // sage in light mode, so the text on it flips: near-black green on
+    // the mint (10:1), white on the dark sage (5.5:1).
+    final onBrand = isDark ? const Color(0xFF08281B) : Colors.white;
     final textTheme = _textTheme(palette);
 
     final colorScheme = ColorScheme(
