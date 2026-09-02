@@ -16,7 +16,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 
-import 'package:crititrack/core/constants/app_constants.dart';
 import 'package:crititrack/core/domain/models/celebrity.dart';
 import 'package:crititrack/core/constants/api_config.dart';
 import 'package:crititrack/core/error/failures.dart';
@@ -30,6 +29,7 @@ import 'package:crititrack/features/controversy/presentation/widgets/controversy
 import 'package:crititrack/features/dashboard/presentation/widgets/biography_card.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/disambiguation_bar.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/editorial_header.dart';
+import 'package:crititrack/features/dashboard/presentation/widgets/profile_section.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/media_feed_section.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/sentiment_section.dart';
 import 'package:crititrack/features/watchlist/domain/watched_figure.dart';
@@ -67,26 +67,10 @@ class _DashboardContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isWide = screenWidth >= AppConstants.mobileBreakpoint;
-    final palette = context.palette;
-
-    return Stack(
-      children: [
-        // A single warm glow bleeding down from the top-right, matching
-        // the web hero. Static and behind everything, so it costs a
-        // paint and nothing else.
-        const Positioned.fill(child: _AmbientGlow()),
-        _dashboardScroll(context, isWide, palette),
-      ],
-    );
+    return _dashboardScroll(context, context.palette);
   }
 
-  Widget _dashboardScroll(
-    BuildContext context,
-    bool isWide,
-    AppPalette palette,
-  ) {
+  Widget _dashboardScroll(BuildContext context, AppPalette palette) {
     return CustomScrollView(
       slivers: [
         // ── Slim app bar ────────────────────────────────────────
@@ -168,124 +152,57 @@ class _DashboardContent extends ConsumerWidget {
         ),
 
         // ── Content ─────────────────────────────────────────────
-        if (isWide)
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        // A single editorial column, capped for readability, sections
+        // separated by hairlines rather than stacked in cards.
+        SliverToBoxAdapter(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 680),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Left column: Bio + Media
-                  Expanded(
-                    child: Column(
-                      children: [
-                        BiographyCard(
-                          biography: celebrity.biography,
-                          name: celebrity.name,
-                          imageUrl: celebrity.imageUrl,
-                          facts: celebrity.facts,
-                          verified: celebrity.verified,
-                        ),
-                        const SizedBox(height: 16),
-                        MediaFeedSection(
-                          mediaItems: celebrity.mediaItems,
-                          slug: celebrity.slug,
-                        ),
-                      ],
+                  ProfileSection(
+                    label: 'Biography',
+                    child: BiographyCard(
+                      biography: celebrity.biography,
+                      name: celebrity.name,
+                      imageUrl: celebrity.imageUrl,
+                      facts: celebrity.facts,
+                      verified: celebrity.verified,
+                      flat: true,
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  // Right column: Controversy + Sentiment
-                  Expanded(
-                    child: Column(
-                      children: [
-                        ControversySection(
-                          controversies: celebrity.biography.controversies,
-                          name: celebrity.name,
-                        ),
-                        const SizedBox(height: 16),
-                        SentimentSection(
-                          sentimentData: celebrity.sentimentData,
-                          mediaItems: celebrity.mediaItems,
-                        ),
-                      ],
+                  ProfileSection(
+                    label: 'Controversies',
+                    child: ControversySection(
+                      controversies: celebrity.biography.controversies,
+                      name: celebrity.name,
+                      flat: true,
                     ),
                   ),
+                  ProfileSection(
+                    label: 'Sentiment',
+                    child: SentimentSection(
+                      sentimentData: celebrity.sentimentData,
+                      mediaItems: celebrity.mediaItems,
+                      flat: true,
+                    ),
+                  ),
+                  ProfileSection(
+                    label: 'Coverage',
+                    child: MediaFeedSection(
+                      mediaItems: celebrity.mediaItems,
+                      slug: celebrity.slug,
+                      flat: true,
+                    ),
+                  ),
+                  const SizedBox(height: 48),
                 ],
               ),
             ),
-          )
-        else ...[
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: BiographyCard(
-                biography: celebrity.biography,
-                name: celebrity.name,
-                imageUrl: celebrity.imageUrl,
-                facts: celebrity.facts,
-                verified: celebrity.verified,
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: ControversySection(
-                controversies: celebrity.biography.controversies,
-                name: celebrity.name,
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: MediaFeedSection(
-                mediaItems: celebrity.mediaItems,
-                slug: celebrity.slug,
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: SentimentSection(
-                sentimentData: celebrity.sentimentData,
-                mediaItems: celebrity.mediaItems,
-              ),
-            ),
-          ),
-        ],
-        const SliverToBoxAdapter(child: SizedBox(height: 32)),
-      ],
-    );
-  }
-}
-
-// ── Ambient glow ────────────────────────────────────────────────
-// A soft sage radial wash behind the dashboard, echoing the web hero.
-// Purely decorative: ignores pointer events and does not animate.
-
-class _AmbientGlow extends StatelessWidget {
-  const _AmbientGlow();
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return IgnorePointer(
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: const Alignment(0.9, -1.1),
-            radius: 1.1,
-            colors: [
-              AppTheme.primary.withValues(alpha: 0.16),
-              palette.background.withValues(alpha: 0),
-            ],
-            stops: const [0, 0.6],
           ),
         ),
-      ),
+      ],
     );
   }
 }

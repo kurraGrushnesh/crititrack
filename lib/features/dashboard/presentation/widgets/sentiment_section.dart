@@ -32,7 +32,12 @@ class SentimentSection extends StatefulWidget {
     super.key,
     required this.sentimentData,
     this.mediaItems = const [],
+    this.flat = false,
   });
+
+  /// Editorial mode: no card frame, the section rule and label are
+  /// provided by the enclosing [ProfileSection].
+  final bool flat;
   final SentimentData sentimentData;
 
   /// Media items for displaying on spike-tap. Grouped by day internally.
@@ -114,17 +119,20 @@ class _SentimentSectionState extends State<SentimentSection>
     final data = widget.sentimentData;
 
     return Container(
-      decoration: BoxDecoration(
-        color: palette.card,
-        borderRadius: AppTheme.radiusLg,
-        border: Border.all(color: palette.border),
-        boxShadow: palette.softShadow,
-      ),
+      decoration: widget.flat
+          ? null
+          : BoxDecoration(
+              color: palette.card,
+              borderRadius: AppTheme.radiusLg,
+              border: Border.all(color: palette.border),
+              boxShadow: palette.softShadow,
+            ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Header ──────────────────────────────────────────────
-          Padding(
+          if (!widget.flat)
+            Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
             child: Row(
               children: [
@@ -138,7 +146,7 @@ class _SentimentSectionState extends State<SentimentSection>
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          if (!widget.flat) const SizedBox(height: 16),
 
           // ── Stat Cards ──────────────────────────────────────────
           Padding(

@@ -24,7 +24,12 @@ class MediaFeedSection extends ConsumerStatefulWidget {
     super.key,
     required this.mediaItems,
     required this.slug,
+    this.flat = false,
   });
+
+  /// Editorial mode: no card frame; the enclosing ProfileSection owns
+  /// the rule and label.
+  final bool flat;
 
   final List<MediaItem> mediaItems;
   final String slug;
@@ -75,6 +80,7 @@ class _MediaFeedSectionState extends ConsumerState<MediaFeedSection> {
 
     if (items.isEmpty) {
       return _Shell(
+        flat: widget.flat,
         child: Row(
           children: [
             Icon(Icons.feed_rounded, size: 20, color: palette.textMuted),
@@ -104,6 +110,7 @@ class _MediaFeedSectionState extends ConsumerState<MediaFeedSection> {
     final visible = _visible;
 
     return _Shell(
+      flat: widget.flat,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -493,21 +500,24 @@ class _FilterChip extends StatelessWidget {
 // ── Shared shell (mirrors ControversySection) ─────────────────────
 
 class _Shell extends StatelessWidget {
-  const _Shell({required this.child});
+  const _Shell({required this.child, this.flat = false});
   final Widget child;
+  final bool flat;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: palette.card,
-        borderRadius: AppTheme.radiusLg,
-        border: Border.all(color: palette.border),
-        boxShadow: palette.softShadow,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: flat ? 0 : 20),
+      decoration: flat
+          ? null
+          : BoxDecoration(
+              color: palette.card,
+              borderRadius: AppTheme.radiusLg,
+              border: Border.all(color: palette.border),
+              boxShadow: palette.softShadow,
+            ),
       child: child,
     );
   }

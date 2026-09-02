@@ -16,7 +16,13 @@ class BiographyCard extends StatefulWidget {
     this.imageUrl,
     this.facts = PersonFacts.empty,
     this.verified = false,
+    this.flat = false,
   });
+
+  /// Editorial mode: no card, no gradient header (the name and portrait
+  /// already sit in the page header), just the sourced facts and prose
+  /// with the section's own padding.
+  final bool flat;
 
   final Biography biography;
   final String name;
@@ -81,75 +87,78 @@ class _BiographyCardState extends State<BiographyCard>
     final bio = widget.biography;
 
     return Container(
-      decoration: BoxDecoration(
-        gradient: palette.cardGradient,
-        borderRadius: AppTheme.radiusLg,
-        border: Border.all(color: palette.border),
-        boxShadow: palette.cardShadow,
-      ),
+      decoration: widget.flat
+          ? null
+          : BoxDecoration(
+              gradient: palette.cardGradient,
+              borderRadius: AppTheme.radiusLg,
+              border: Border.all(color: palette.border),
+              boxShadow: palette.cardShadow,
+            ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Gradient Header ──────────────────────────────────────
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: AppTheme.primaryGradient,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
+          // Skipped in editorial mode: the name, portrait and
+          // verification already sit in the page header.
+          if (!widget.flat)
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: AppTheme.primaryGradient,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
               ),
-            ),
-            child: Row(
-              children: [
-                _Portrait(imageUrl: widget.imageUrl),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.name,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
+              child: Row(
+                children: [
+                  _Portrait(imageUrl: widget.imageUrl),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.name,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: AppTheme.radiusSm,
-                            ),
-                            child: Text(
-                              bio.profession,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
+                        const SizedBox(height: 4),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                borderRadius: AppTheme.radiusSm,
+                              ),
+                              child: Text(
+                                bio.profession,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
-                          ),
-                          // An unverified subject must not look as
-                          // authoritative as a confirmed one.
-                          _VerificationChip(verified: widget.verified),
-                        ],
-                      ),
-                    ],
+                            _VerificationChip(verified: widget.verified),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
           // ── Structured facts ────────────────────────────────────
           // Above the prose, because that is the distinction worth

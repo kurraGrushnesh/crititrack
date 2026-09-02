@@ -22,8 +22,12 @@ class ControversySection extends StatelessWidget {
     super.key,
     required this.controversies,
     required this.name,
+    this.flat = false,
   });
 
+  /// Editorial mode: no card frame; the section rule and label come from
+  /// the enclosing [ProfileSection].
+  final bool flat;
   final List<Controversy> controversies;
   final String name;
 
@@ -34,6 +38,7 @@ class ControversySection extends StatelessWidget {
 
     if (controversies.isEmpty) {
       return _Shell(
+        flat: flat,
         child: Row(
           children: [
             const Icon(
@@ -60,6 +65,7 @@ class ControversySection extends StatelessWidget {
     }
 
     return _Shell(
+      flat: flat,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -249,21 +255,24 @@ class _IndexPanel extends StatelessWidget {
 // ── Shared shell ──────────────────────────────────────────────────
 
 class _Shell extends StatelessWidget {
-  const _Shell({required this.child});
+  const _Shell({required this.child, this.flat = false});
   final Widget child;
+  final bool flat;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: palette.card,
-        borderRadius: AppTheme.radiusLg,
-        border: Border.all(color: palette.border),
-        boxShadow: palette.softShadow,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: flat ? 0 : 20),
+      decoration: flat
+          ? null
+          : BoxDecoration(
+              color: palette.card,
+              borderRadius: AppTheme.radiusLg,
+              border: Border.all(color: palette.border),
+              boxShadow: palette.softShadow,
+            ),
       child: child,
     );
   }
