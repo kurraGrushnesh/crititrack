@@ -7,7 +7,9 @@
     "dev": "next dev",
     "build": "next build",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@react-three/fiber": "9.7.0",
@@ -23,6 +25,7 @@
     "@types/three": "0.185.0",
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.3",
-    "typescript": "5.7.3"
+    "typescript": "5.7.3",
+    "vitest": "^3.2.7"
   }
 }
