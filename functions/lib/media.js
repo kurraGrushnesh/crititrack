@@ -76,6 +76,7 @@ async function fetchVideos(apiKey, name) {
         url: `https://www.youtube.com/watch?v=${videoId}`,
         thumbnailUrl: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
         source: "YouTube",
+        channel: s.channelTitle || null,
         publishedAt: s.publishedAt || null,
         description: s.description || null,
       };
