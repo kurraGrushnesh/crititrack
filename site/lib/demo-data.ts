@@ -30,10 +30,15 @@ export interface DemoProfile {
   profession: string;
   summary: string;
   sentimentScore: number;
+  /** 0..1, mirrors the backend ensemble's confidence output. */
+  confidence: number;
   trendDirection: "up" | "down" | "stable";
   trend: TrendPoint[];
   evidence: EvidenceFragment[];
   controversies: Controversy[];
+  /** Per-source sentiment, 0..100, or null when a source produced nothing. */
+  scoreNews: number | null;
+  scoreYoutube: number | null;
 }
 
 export const DEMO_PROFILES: DemoProfile[] = [
@@ -44,6 +49,9 @@ export const DEMO_PROFILES: DemoProfile[] = [
     summary:
       "A fabricated composite of a touring musician whose album cycle drew both strong reviews and a run of off-stage disputes.",
     sentimentScore: 58,
+    confidence: 0.71,
+    scoreNews: 61,
+    scoreYoutube: 52,
     trendDirection: "down",
     trend: [
       { date: "2026-06-01", score: 71 },
@@ -96,6 +104,9 @@ export const DEMO_PROFILES: DemoProfile[] = [
     summary:
       "A fabricated composite of a startup founder whose public statements and workplace record have both drawn sustained coverage.",
     sentimentScore: 39,
+    confidence: 0.58,
+    scoreNews: 37,
+    scoreYoutube: 43,
     trendDirection: "down",
     trend: [
       { date: "2026-06-01", score: 52 },
@@ -148,6 +159,9 @@ export const DEMO_PROFILES: DemoProfile[] = [
     summary:
       "A fabricated composite of a filmmaker whose work is well reviewed and whose public profile is mostly free of dispute.",
     sentimentScore: 74,
+    confidence: 0.83,
+    scoreNews: 76,
+    scoreYoutube: null,
     trendDirection: "stable",
     trend: [
       { date: "2026-06-01", score: 72 },

@@ -9,6 +9,7 @@
  */
 
 @import "./reference.css";
+@import "./app.css";
 
 :root {
   --bg: #0e1119;

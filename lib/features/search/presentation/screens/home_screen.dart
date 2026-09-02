@@ -23,7 +23,11 @@ import 'package:crititrack/features/watchlist/domain/watched_figure.dart';
 import 'package:crititrack/features/watchlist/presentation/providers/watchlist_providers.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.initialQuery});
+
+  /// Prefilled from a `?q=` deep link (e.g. the web app hands off a
+  /// person the reader picked). Runs the search once on open.
+  final String? initialQuery;
 
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
@@ -32,6 +36,18 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    final q = widget.initialQuery?.trim() ?? '';
+    if (q.isNotEmpty) {
+      _controller.text = q;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _search();
+      });
+    }
+  }
 
   /// Long enough that typing a name does not recompute on every
   /// keystroke, short enough that the list feels attached to the field.
