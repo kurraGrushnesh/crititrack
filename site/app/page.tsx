@@ -6,7 +6,7 @@ import CategoryRail from "@/components/CategoryRail";
 import PersonCard from "@/components/PersonCard";
 import Reveal from "@/components/Reveal";
 import HeroGradient from "@/components/HeroGradient";
-import HeroHeadline from "@/components/HeroHeadline";
+import HeroReveal from "@/components/HeroReveal";
 import { CATEGORIES, topTen } from "@/lib/catalog";
 import { DEMO_PROFILES } from "@/lib/demo-data";
 import { corroborated } from "@/lib/controversy";
@@ -36,15 +36,17 @@ export default function Home() {
         <div className="display-hero-band">
           <HeroGradient speed={0.35} />
           <header className="display-hero">
-            <p className="eyebrow">
-              Accountability tracking for public figures
-            </p>
-            <HeroHeadline>What have they actually been criticised for?</HeroHeadline>
-            <p className="sub">
-              Every serious claim typed, dated, severity-scored, and backed by
-              a source. Search a name in the bar above, or start from a
-              category.
-            </p>
+            <HeroReveal>
+              <p className="eyebrow">
+                Accountability tracking for public figures
+              </p>
+              <h1>What have they actually been criticised for?</h1>
+              <p className="sub">
+                Every serious claim typed, dated, severity-scored, and backed
+                by a source. Search a name in the bar above, or start from a
+                category.
+              </p>
+            </HeroReveal>
           </header>
         </div>
 
