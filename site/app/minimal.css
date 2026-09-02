@@ -144,10 +144,57 @@ h3 {
 
 /* ── Display hero ──────────────────────────────────────────────── */
 
+/* Full-bleed band so the gradient reaches the viewport edges; the text
+   inside stays on the normal content measure. */
+.display-hero-band {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
 .display-hero {
+  position: relative;
+  z-index: 1;
   max-width: var(--wrap);
   margin: 0 auto;
-  padding: 72px 24px 40px;
+  padding: 96px 24px 72px;
+}
+
+/* The ShaderGradient canvas + a scrim that fades it into the page so the
+   headline never fights the colour. Decorative only. */
+.hero-gradient {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hero-gradient canvas {
+  display: block;
+}
+
+.hero-gradient-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg) 55%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 30%, transparent) 45%,
+    var(--bg) 100%
+  );
+}
+
+/* No motion: the canvas is frozen by the component; the scrim can also
+   stand alone as a soft static wash. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-gradient-scrim {
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, #d97757 10%, var(--bg)) 0%,
+      var(--bg) 60%
+    );
+  }
 }
 
 .display-hero .eyebrow {
