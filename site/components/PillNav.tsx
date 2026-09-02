@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import ThemeToggle from "./ThemeToggle";
 
 const FIGURE = "/figure/";
 
@@ -59,6 +60,8 @@ export default function PillNav() {
           <Link href="/methodology">Method</Link>
           <Link href="/about">About</Link>
         </div>
+
+        <ThemeToggle />
 
         <Link href={FIGURE} className="pillnav-cta">
           Search

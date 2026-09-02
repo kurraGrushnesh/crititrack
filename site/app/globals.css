@@ -64,6 +64,103 @@
   --depth-3: 0 24px 60px -20px rgba(17, 17, 17, 0.16);
 }
 
+/*
+ * Dark theme. Same sage accent, same structure — surfaces get elevation
+ * from lightness steps, the accent text tokens (--brand-ink) lighten so
+ * they read on a dark ground, and the mint --brand fill is left alone
+ * because it already sits well on black.
+ *
+ * A boot script in <head> stamps data-theme="light|dark" before paint,
+ * so [data-theme="dark"] is the real path. The @media block only covers
+ * the no-JS case (no attribute at all -> follow the OS).
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f100e;
+    --bg-alt: #171815;
+    --surface: #1b1c1a;
+    --border: #2c2e29;
+    --border-strong: #3c3f39;
+
+    --text: #f1f1ec;
+    --text-soft: #b7b7af;
+    --text-muted: #8a8a80;
+
+    --brand-ink: #93dcb8;
+    --brand-strong: #33a06f;
+    --brand-strong-hover: #3cb47e;
+
+    --good: #46b985;
+    --mid: #cc9a48;
+    --bad: #e0664e;
+
+    --senti-pos: #3aa06e;
+    --senti-neu: #8f8f86;
+    --senti-neg: #d0604a;
+
+    --gold: #86d1ab;
+    --gold-ink: #93dcb8;
+    --gold-strong: #33a06f;
+
+    --glass-bg: color-mix(in srgb, var(--surface) 82%, transparent);
+    --glass-border: color-mix(in srgb, #ffffff 9%, transparent);
+    --glass-highlight: color-mix(in srgb, #ffffff 6%, transparent);
+
+    --depth-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --depth-2: 0 12px 34px -14px rgba(0, 0, 0, 0.55);
+    --depth-3: 0 26px 64px -22px rgba(0, 0, 0, 0.62);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0f100e;
+  --bg-alt: #171815;
+  --surface: #1b1c1a;
+  --border: #2c2e29;
+  --border-strong: #3c3f39;
+
+  --text: #f1f1ec;
+  --text-soft: #b7b7af;
+  --text-muted: #8a8a80;
+
+  --brand-ink: #93dcb8;
+  --brand-strong: #33a06f;
+  --brand-strong-hover: #3cb47e;
+
+  --good: #46b985;
+  --mid: #cc9a48;
+  --bad: #e0664e;
+
+  --senti-pos: #3aa06e;
+  --senti-neu: #8f8f86;
+  --senti-neg: #d0604a;
+
+  --gold: #86d1ab;
+  --gold-ink: #93dcb8;
+  --gold-strong: #33a06f;
+
+  --glass-bg: color-mix(in srgb, var(--surface) 82%, transparent);
+  --glass-border: color-mix(in srgb, #ffffff 9%, transparent);
+  --glass-highlight: color-mix(in srgb, #ffffff 6%, transparent);
+
+  --depth-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --depth-2: 0 12px 34px -14px rgba(0, 0, 0, 0.55);
+  --depth-3: 0 26px 64px -22px rgba(0, 0, 0, 0.62);
+}
+
+/* Dark-mode fixes for the few places that hardcode a colour rather than
+   read a token. */
+:root[data-theme="dark"] .btn-primary,
+:root[data-theme="dark"] .skip-link {
+  color: #06231a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .btn-primary,
+  :root:not([data-theme="light"]) .skip-link {
+    color: #06231a;
+  }
+}
+
 * {
   box-sizing: border-box;
 }

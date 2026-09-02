@@ -69,17 +69,28 @@ Everything else depends on one set of tokens.
 
 ---
 
-## Phase 3 — The product UI, one feature per day (7 days)
+## Phase 3 — The product UI, one feature per day
 
-| Day | Feature | Done when |
+Done so far:
+
+| # | Feature | Status |
 |---|---|---|
-| 3.1 | **Search** component + results: the real profile rendered on the site (bio, index, sentiment, sourced timeline, evidence links, confidence). Mobile-first. | Search → full real profile on any screen size. |
-| 3.2 | **Compare** — two figures side by side, same scales, differences marked. Stacks (or swipes) on mobile. | Compare works and adapts cleanly at 375px. |
-| 3.3 | **Celebrity card** + **Comparison card** as reusable components; used on home, category, compare. | One card component, three placements. |
-| 3.4 | **Stats / info sections** component — the index gauge, the score breakdown, the confidence meter, all one system. | Consistent everywhere a score appears. |
-| 3.5 | **Navigation** unified — the pill nav responsive down to mobile (no hidden links), same on every page. | Nav is one component, works at every breakpoint. |
-| 3.6 | **Loading / skeleton, empty, error** states — designed, matching the final skeleton shape, for every async surface. | No blank flashes, no raw spinners, no disappearing sections. |
-| 3.7 | **Badges / inputs / buttons** — the last primitives into the system; audit and remove any style that isn't from a token. | The component library is complete. |
+| 3.1 | Real profile rendered on `/figure` — bio, index, sentiment, evidence, confidence. | Done. |
+| 3.2 | Classification section — extensible facet schema from Wikidata (nationality, occupations, education, awards, links). | Done — `lib/classification.ts`. |
+| 3.3 | Sentiment composition donut (positive / neutral / negative). | Done — `SentimentDonut`. |
+| 3.4 | Public-attention chart — Wikipedia pageview area chart + stat row. | Done — `AttentionChart`. |
+| 3.5 | **Dark theme + Light/Dark/System toggle** — full dark palette, no-flash boot script, persisted preference, toggle in the pill nav. | Done — `lib/theme.ts`, `ThemeToggle`. |
+
+Queued (the "all" from the Tony Stark reference, one per day, now built theme-aware):
+
+| # | Feature | Done when |
+|---|---|---|
+| 3.6 | **Sentiment section, carded + tabbed** — Overall / Emotion / Trend stat cards, Source Breakdown as News/YouTube cards, a Split / Trend / Daily-mentions tab switcher, collapsible "what the model pointed to" (evidence), generated-analysis callout. Uses data already mapped. | The section matches the reference layout in both themes. |
+| 3.7 | **Media as horizontal cards** — news + YouTube as medium cards with thumbnail, source, time, per-item sentiment badge; All / News / Videos tabs. | Coverage reads like the reference; adapts at 375px. |
+| 3.8 | **Disambiguation + bio sections** — render the `candidates` "also matches" chips at the top; expandable Lifestyle / Recent works / Skills / background pulled from `biography` + `entity.facts`. | Wrong-entity matches are visible and switchable; bio is browsable. |
+| 3.9 | **Stats / info sections** unified — index gauge, score breakdown, confidence meter, one system. | Consistent everywhere a score appears. |
+| 3.10 | **Loading / skeleton, empty, error** states — designed, matching the final skeleton shape, every async surface. | No blank flashes, no raw spinners. |
+| 3.11 | **Badges / inputs / buttons** — last primitives into the token system; remove any non-token style. | Component library complete. |
 
 ---
 

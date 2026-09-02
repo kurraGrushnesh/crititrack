@@ -127,6 +127,35 @@ h3 {
   background: color-mix(in srgb, var(--brand) 80%, #000);
 }
 
+.theme-toggle {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-soft);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.theme-toggle:hover {
+  color: var(--text);
+  border-color: var(--brand);
+}
+
+.theme-toggle svg {
+  flex: none;
+}
+
 @media (max-width: 860px) {
   .pillnav {
     flex-wrap: wrap;
@@ -139,6 +168,12 @@ h3 {
   }
   .pillnav-links {
     display: none;
+  }
+  .theme-toggle-label {
+    display: none;
+  }
+  .theme-toggle {
+    padding: 8px;
   }
 }
 
