@@ -21,6 +21,17 @@ const MEDIA_ITEMS = "media_items";
 const SENTIMENT_SNAPSHOTS = "sentiment_snapshots";
 const DEVICES = "devices";
 
+/**
+ * A second collection holding the complete assembled payload as one JSON
+ * blob, keyed by slug. The `celebrities/*` docs above are flattened for
+ * the Flutter models and lose fields the web response needs
+ * (sampleSize, scoreLow/High, per-source counts, the full entity). This
+ * is the lossless copy the `getCelebrity` endpoint serves on a cache
+ * hit — a full round of Groq + News + YouTube takes ~15-20s, and a few
+ * hours of staleness on a reputation profile is acceptable.
+ */
+const PAYLOAD_CACHE = "celebrity_payloads";
+
 /** Firestore rejects `undefined`; the SDK's ignoreUndefinedProperties is
  * not enabled here, so normalise to null explicitly.
  * @param {any} v @return {any} */
@@ -164,11 +175,18 @@ async function writeCelebrity(payload, meta = {trigger: "request"}) {
       sentimentTag: orNull(item.sentimentTag),
       sentimentScore: orNull(item.sentimentScore),
       videoId: item.type === "youtube" ? String(item.id) : null,
-      channelTitle: orNull(item.channelTitle),
+      channelTitle: orNull(item.channel || item.channelTitle),
       mediaUrl: orNull(item.mediaUrl),
       permalink: orNull(item.permalink),
     });
   }
+
+  // The lossless JSON copy the web endpoint serves on a cache hit.
+  batch.set(db.collection(PAYLOAD_CACHE).doc(payload.slug), {
+    json: JSON.stringify(payload),
+    fetchedAt: payload.fetchedAt || new Date().toISOString(),
+    refreshedAt: FieldValue.serverTimestamp(),
+  });
 
   // Keyed by date and merged, so several refreshes in one day
   // update that day rather than piling up.
@@ -181,6 +199,45 @@ async function writeCelebrity(payload, meta = {trigger: "request"}) {
 
   await batch.commit();
   logger.info(`stored ${payload.slug} (${meta.trigger})`);
+}
+
+/**
+ * Whether a cache entry stamped `fetchedAt` is still usable: parseable,
+ * not in the future, and younger than `maxAgeMs`.
+ *
+ * @param {string} fetchedAt ISO timestamp
+ * @param {number} maxAgeMs
+ * @param {number} [now]
+ * @return {boolean}
+ */
+function isCacheFresh(fetchedAt, maxAgeMs, now = Date.now()) {
+  const age = now - Date.parse(fetchedAt || "");
+  return Number.isFinite(age) && age >= 0 && age <= maxAgeMs;
+}
+
+/**
+ * Returns the cached assembled payload for `slug` when one exists and is
+ * younger than `maxAgeMs`, else null. Used by the request path to skip a
+ * full re-assembly.
+ *
+ * @param {string} slug
+ * @param {number} maxAgeMs
+ * @return {Promise<object|null>}
+ */
+async function readCelebrityCache(slug, maxAgeMs) {
+  try {
+    const snap = await getFirestore()
+        .collection(PAYLOAD_CACHE)
+        .doc(slug)
+        .get();
+    if (!snap.exists) return null;
+    const data = snap.data() || {};
+    if (!isCacheFresh(data.fetchedAt, maxAgeMs)) return null;
+    return JSON.parse(data.json);
+  } catch (e) {
+    logger.warn(`payload-cache read failed for ${slug}: ${e.message}`);
+    return null;
+  }
 }
 
 /**
@@ -392,6 +449,8 @@ async function writeCorrection(clean, meta) {
 
 module.exports = {
   writeCelebrity,
+  readCelebrityCache,
+  isCacheFresh,
   markRequested,
   listTracked,
   todaySnapshot,

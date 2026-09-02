@@ -20,6 +20,7 @@ const {validateCorrection, CorrectionError} = require("./correction");
 const {resolvePerson, resolveByQid} = require("./entity");
 const {
   writeCelebrity,
+  readCelebrityCache,
   markRequested,
   listTracked,
   readSnapshotHistory,
@@ -51,6 +52,14 @@ function messaging() {
 }
 
 // ── GET /getCelebrity ────────────────────────────────────────────────
+
+/**
+ * How stale a cached payload may be before the request path re-assembles
+ * it. Six hours: reputation and coverage move over days, not minutes,
+ * the scheduled refresher keeps popular figures fresher than this, and
+ * `?fresh=1` forces a rebuild.
+ */
+const CACHE_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 
 /**
  * Serves one assembled celebrity payload and caches it.
@@ -109,6 +118,24 @@ async function handleGetCelebrity(keys, req, res) {
       await resolvePerson(name);
     const canonicalName = entity ? entity.label : name;
     const canonicalSlug = entity ? toSlug(entity.label) : slug;
+
+    // Serve a recent cached assembly rather than re-running the whole
+    // Groq + News + YouTube pipeline (~15-20s). Skipped when the reader
+    // pinned a specific Wikidata id or asked for a fresh copy.
+    if (!/^Q\d+$/.test(pinned) && req.query.fresh !== "1") {
+      const cached = await readCelebrityCache(canonicalSlug, CACHE_MAX_AGE_MS);
+      if (cached) {
+        cached.query = name;
+        if (cached.sentiment) {
+          cached.sentiment.trendData =
+            await readSnapshotHistory(canonicalSlug);
+        }
+        markRequested(canonicalSlug, canonicalName).catch(() => {});
+        res.set("X-CritiTrack-Cache", "hit");
+        res.json(cached);
+        return;
+      }
+    }
 
     const payload = await assembleCelebrity(
         keys,
