@@ -12,8 +12,6 @@ import { confidenceLabel } from "@/components/ConfidenceMeter";
 import SentimentPanel from "@/components/SentimentPanel";
 import AttentionChart from "@/components/AttentionChart";
 import StatTable from "@/components/StatTable";
-import ClassificationPanel from "@/components/ClassificationPanel";
-import { buildClassification } from "@/lib/classification";
 import { computeControversyIndex, roundedScore } from "@/lib/controversy-index";
 import { displayHost, parseSafeUrl } from "@/lib/safe-url";
 import { useCelebrity } from "@/lib/use-celebrity";
@@ -90,10 +88,6 @@ function ProfileView({ profile }: { profile: RealProfile }) {
   );
   const kept = profile.controversies;
   const fetched = new Date(profile.fetchedAt);
-  const hasClassification = useMemo(
-    () => buildClassification(profile).length > 0,
-    [profile],
-  );
   const sentimentCounts = useMemo(() => {
     const fromRatio = (r: number | null) =>
       r != null && profile.sampleSize != null
@@ -116,10 +110,7 @@ function ProfileView({ profile }: { profile: RealProfile }) {
             <span>{profile.name}</span>
           </div>
           <h1>{profile.name}</h1>
-          <p className="subtitle">
-            {profile.profession || "Public figure"}
-            {profile.verified ? " · resolved on Wikidata" : ""}
-          </p>
+          <p className="subtitle">{profile.profession || "Public figure"}</p>
 
           <StatTable
             stats={[
@@ -163,34 +154,12 @@ function ProfileView({ profile }: { profile: RealProfile }) {
           </p>
           <p className="form-note" style={{ marginTop: 16 }}>
             Compiled {fetched.toLocaleDateString()} from public coverage.{" "}
-            {profile.wikidataId ? `Wikidata ${profile.wikidataId}. ` : ""}
             <Link href={`/report-correction?slug=${profile.slug}`}>
               Report a correction
             </Link>
             .
           </p>
         </div>
-      )}
-
-      {hasClassification && (
-        <>
-          <hr className="divider-rule" />
-          <section className="min-section">
-            <div className="head">
-              <h2>Classification</h2>
-              <span
-                style={{
-                  whiteSpace: "nowrap",
-                  fontSize: "0.9rem",
-                  color: "var(--text-muted)",
-                }}
-              >
-                from Wikidata
-              </span>
-            </div>
-            <ClassificationPanel profile={profile} />
-          </section>
-        </>
       )}
 
       <hr className="divider-rule" />
