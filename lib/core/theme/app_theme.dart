@@ -34,9 +34,15 @@ import 'package:flutter/services.dart';
 
 abstract final class AppTheme {
   // ── Brand Palette ─────────────────────────────────────────────────
-  static const Color primary = Color(0xFF6D5DF6); // Vivid indigo-violet
-  static const Color primaryDeep = Color(0xFF4B3FD4); // Pressed / light-mode
-  static const Color primaryLight = Color(0xFFA79CFF); // Soft lavender
+  //
+  // Premium editorial: a single warm amber accent on near-black, shared
+  // with the web client (site/app/app.css: --gold #d9a441, --gold-strong
+  // #b9832b, --gold-ink #e7bd6b). `primary` is a fill that takes
+  // near-black text (5.7:1), `primaryLight` is the amber that reads as
+  // text on a dark surface, `primaryDeep` reads as text on white (~6:1).
+  static const Color primary = Color(0xFFB9832B); // Amber, white-on-it AA
+  static const Color primaryDeep = Color(0xFF8A5A12); // Pressed / light text
+  static const Color primaryLight = Color(0xFFE7BD6B); // Amber ink on dark
   static const Color secondary = Color(0xFF17C3B2); // Refined teal
   static const Color accent = Color(0xFFF368A0); // Orchid pink
   static const Color warning = Color(0xFFF2B544); // Amber gold
@@ -50,7 +56,7 @@ abstract final class AppTheme {
 
   // ── Gradients ─────────────────────────────────────────────────────
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF7C6BFF), Color(0xFF5B3FE0)],
+    colors: [Color(0xFFB9832B), Color(0xFF8A5A12)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -81,7 +87,7 @@ abstract final class AppTheme {
     // Lightened from 0xFF656C82, which sat at a 3.17 contrast ratio
     // against the elevated surface — below the WCAG AA floor of 4.5.
     textMuted: Color(0xFF8A92A8),
-    brandText: primaryLight,
+    brandText: primaryLight, // #E7BD6B amber ink, high contrast on dark
     // Positive and neutral already clear 4.5:1 on their own tint here;
     // negative did not (4.29 on card, 3.84 on elevated), so it is
     // lightened. The other two are unchanged.
@@ -90,7 +96,7 @@ abstract final class AppTheme {
     sentimentNegativeText: Color(0xFFE57667),
     chartGrid: Color(0xFF272B3B),
     scrim: Color(0xFF0A0B12),
-    heroTint: Color(0xFF221A55),
+    heroTint: Color(0xFF2E2210), // warm amber-brown, was deep violet
     shadowColor: Color(0xFF000000),
     shadowOpacity: 0.45,
   );
@@ -106,7 +112,7 @@ abstract final class AppTheme {
     textSecondary: Color(0xFF545C71),
     // Darkened from 0xFF8A92A6, which sat at a 2.76 contrast ratio.
     textMuted: Color(0xFF636A7C),
-    brandText: primaryDeep,
+    brandText: primaryDeep, // #8A5A12 dark amber, ~6:1 on white
     // All three fill hues are far too light to read on white — 2.29,
     // 1.68 and 3.03 on their own tint. Darkened to 4.56, 4.59 and 4.53.
     sentimentPositiveText: Color(0xFF0F7652),
@@ -114,7 +120,7 @@ abstract final class AppTheme {
     sentimentNegativeText: Color(0xFFBE3321),
     chartGrid: Color(0xFFD9DFEC),
     scrim: Color(0xFFF5F6FB),
-    heroTint: Color(0xFFE7E3FF),
+    heroTint: Color(0xFFF3E7CE), // warm cream, was pale violet
     shadowColor: Color(0xFF3C4670),
     shadowOpacity: 0.14,
   );
@@ -142,12 +148,16 @@ abstract final class AppTheme {
   static ThemeData _build(Brightness brightness, AppPalette palette) {
     final isDark = brightness == Brightness.dark;
     final brand = isDark ? primary : primaryDeep;
+    // The amber `brand` fill is light in dark mode and dark in light
+    // mode, so the text that sits on it flips. White on #B9832B is only
+    // 3.3:1; a near-black brown is 5.7:1.
+    final onBrand = isDark ? const Color(0xFF1A1206) : Colors.white;
     final textTheme = _textTheme(palette);
 
     final colorScheme = ColorScheme(
       brightness: brightness,
       primary: brand,
-      onPrimary: Colors.white,
+      onPrimary: onBrand,
       primaryContainer: brand.withValues(alpha: isDark ? 0.22 : 0.12),
       onPrimaryContainer: palette.brandText,
       secondary: secondary,
@@ -252,7 +262,7 @@ abstract final class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: brand,
-          foregroundColor: Colors.white,
+          foregroundColor: onBrand,
           disabledBackgroundColor: palette.elevated,
           disabledForegroundColor: palette.textMuted,
           elevation: 0,
@@ -269,7 +279,7 @@ abstract final class AppTheme {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: brand,
-          foregroundColor: Colors.white,
+          foregroundColor: onBrand,
           shape: RoundedRectangleBorder(borderRadius: radiusMd),
           padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
         ),
@@ -284,7 +294,7 @@ abstract final class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: brand,
+          foregroundColor: palette.brandText,
           shape: RoundedRectangleBorder(borderRadius: radiusSm),
           textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
         ),
