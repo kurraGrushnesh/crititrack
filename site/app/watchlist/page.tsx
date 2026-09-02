@@ -13,7 +13,7 @@ export default function WatchlistPage() {
   return (
     <>
       <SiteNav />
-      <main className="page">
+      <main id="main" className="page">
         <div className="page-head">
           <h1>Watchlist</h1>
           <p>

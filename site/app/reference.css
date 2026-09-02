@@ -577,6 +577,11 @@ textarea {
   color: var(--bad);
 }
 
+.req {
+  color: var(--bad);
+  font-weight: 700;
+}
+
 .field-invalid input,
 .field-invalid textarea,
 .field-invalid select {

@@ -12,9 +12,12 @@ export default function PrivacyPage() {
   return (
     <>
       <SiteNav />
-      <main className="page page-narrow">
+      <main id="main" className="page page-narrow">
         <div className="page-head">
           <h1>Privacy</h1>
+          <p className="form-note" style={{ marginBottom: 12 }}>
+            Last updated 2 September 2026
+          </p>
           <p>
             What CritiTrack collects, why, and what you can do about it.
             Written against the actual code. If something here does not

@@ -13,7 +13,7 @@ export default function ComparePage() {
   return (
     <>
       <SiteNav />
-      <main className="page">
+      <main id="main" className="page">
         <div className="page-head">
           <h1>Compare</h1>
           <p>

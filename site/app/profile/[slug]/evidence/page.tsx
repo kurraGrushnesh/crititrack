@@ -42,7 +42,7 @@ export default async function EvidencePage({
   return (
     <>
       <SiteNav />
-      <main className="page page-narrow">
+      <main id="main" className="page page-narrow">
         <div className="breadcrumb">
           <Link href="/explore">Explore</Link>
           <span>/</span>

@@ -52,20 +52,22 @@ export const metadata: Metadata = {
     "media coverage",
     "celebrity reputation",
   ],
+  // No `title` / `description` / `url` here on purpose: setting them
+  // freezes the value site-wide, so every subpage would advertise the
+  // homepage. Leaving them unset lets Next fill og:title and
+  // og:description from each page's own `title` and `description`.
   openGraph: {
     type: "website",
-    url: SITE,
     siteName: "CritiTrack",
-    title: "CritiTrack — accountability tracking for public figures",
-    description: DESCRIPTION,
+    locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "CritiTrack",
-    description: DESCRIPTION,
   },
   robots: { index: true, follow: true },
-  alternates: { canonical: SITE },
+  // Relative, so each page resolves its own canonical against
+  // metadataBase and its path rather than all pointing at the root.
+  alternates: { canonical: "./" },
 };
 
 export const viewport: Viewport = {
@@ -85,9 +87,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={display.variable}>
       <body>
-        {/* Keyboard users should not have to tab through the hero to
-            reach the content. */}
-        <a className="skip-link" href="#how">
+        {/* Keyboard users should not have to tab through the nav to
+            reach the content. Every page marks its main region with
+            id="main". */}
+        <a className="skip-link" href="#main">
           Skip to content
         </a>
         {children}

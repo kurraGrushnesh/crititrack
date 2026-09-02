@@ -139,8 +139,13 @@ export default function CorrectionForm({
 
   return (
     <form onSubmit={onSubmit} noValidate>
+      <p className="form-note" style={{ marginTop: 0 }}>
+        Fields marked <span className="req">*</span> are required.
+      </p>
       <div className={`field${errors.slug ? " field-invalid" : ""}`}>
-        <label htmlFor="cf-slug">Profile</label>
+        <label htmlFor="cf-slug">
+          Profile <span className="req">*</span>
+        </label>
         <select id="cf-slug" name="slug" defaultValue={defaultSlug}>
           <option value="">Select a profile</option>
           {DEMO_PROFILES.map((p) => (
@@ -153,7 +158,9 @@ export default function CorrectionForm({
       </div>
 
       <div className={`field${errors.field ? " field-invalid" : ""}`}>
-        <label htmlFor="cf-field">Which part is wrong?</label>
+        <label htmlFor="cf-field">
+          Which part is wrong? <span className="req">*</span>
+        </label>
         <select id="cf-field" name="field" defaultValue="">
           <option value="">Select</option>
           {CORRECTION_FIELDS.map((f) => (
@@ -166,7 +173,9 @@ export default function CorrectionForm({
       </div>
 
       <div className={`field${errors.claim ? " field-invalid" : ""}`}>
-        <label htmlFor="cf-claim">What does it currently say?</label>
+        <label htmlFor="cf-claim">
+          What does it currently say? <span className="req">*</span>
+        </label>
         <span className="hint">
           Quote or paraphrase the part you are disputing.
         </span>
@@ -175,7 +184,9 @@ export default function CorrectionForm({
       </div>
 
       <div className={`field${errors.correction ? " field-invalid" : ""}`}>
-        <label htmlFor="cf-correction">What should it say instead?</label>
+        <label htmlFor="cf-correction">
+          What should it say instead? <span className="req">*</span>
+        </label>
         <textarea id="cf-correction" name="correction" maxLength={1200} />
         {errors.correction && (
           <span className="err">{errors.correction}</span>

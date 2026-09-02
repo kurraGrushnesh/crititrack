@@ -13,7 +13,7 @@ export default function AboutPage() {
   return (
     <>
       <SiteNav />
-      <main className="page page-narrow">
+      <main id="main" className="page page-narrow">
         <div className="page-head">
           <h1>About</h1>
           <p>

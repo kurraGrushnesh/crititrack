@@ -47,7 +47,7 @@ export default function ControversyIndexPage() {
   return (
     <>
       <SiteNav />
-      <main className="page page-narrow">
+      <main id="main" className="page page-narrow">
         <div className="page-head">
           <h1>The Controversy Index</h1>
           <p>

@@ -13,7 +13,7 @@ export default function MethodologyPage() {
   return (
     <>
       <SiteNav />
-      <main className="page page-narrow">
+      <main id="main" className="page page-narrow">
         <div className="page-head">
           <h1>Method</h1>
           <p>

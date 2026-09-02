@@ -14,7 +14,7 @@ export default function ReportCorrectionPage() {
   return (
     <>
       <SiteNav />
-      <main className="page page-narrow">
+      <main id="main" className="page page-narrow">
         <div className="page-head">
           <h1>Report a correction</h1>
           <p>
@@ -29,6 +29,20 @@ export default function ReportCorrectionPage() {
           form validates your input and then tells you it was not submitted.
           The same form in the app posts to the real endpoint.
         </div>
+
+        <noscript>
+          <p className="no-records">
+            This form needs JavaScript to validate and send your report. With
+            it turned off, please open an issue on the repository instead:{" "}
+            <a
+              href="https://github.com/kurraGrushnesh/crititrack/issues/new"
+              rel="noopener noreferrer"
+            >
+              github.com/kurraGrushnesh/crititrack/issues
+            </a>
+            .
+          </p>
+        </noscript>
 
         <Suspense fallback={<p className="no-records">Loading the form.</p>}>
           <CorrectionFormSection />

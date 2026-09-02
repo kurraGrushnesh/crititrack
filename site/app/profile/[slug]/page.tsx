@@ -48,7 +48,7 @@ export default async function ProfilePage({
   return (
     <>
       <SiteNav />
-      <main className="page">
+      <main id="main" className="page">
         <div className="breadcrumb">
           <Link href="/explore">Explore</Link>
           <span>/</span>

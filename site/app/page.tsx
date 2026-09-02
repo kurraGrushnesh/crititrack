@@ -1,5 +1,6 @@
 import Hero from "@/components/Hero";
 import SiteNav from "@/components/SiteNav";
+import SiteFooter from "@/components/SiteFooter";
 import type { Figure } from "@/components/SentimentGlobe";
 
 /**
@@ -72,7 +73,7 @@ export default function Home() {
       <SiteNav />
       <Hero figures={FIGURES} />
 
-      <main>
+      <main id="main">
         <section id="how" className="band">
           <div className="wrap">
             <p className="section-label">Why it is different</p>
@@ -165,18 +166,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="site-footer">
-        <div className="wrap">
-          <p>
-            <strong>CritiTrack</strong> — accountability tracking for public
-            figures.
-          </p>
-          <p className="fine">
-            Scores are algorithmically assessed from public reporting and are
-            not verified fact. Figures shown on this page are illustrative.
-          </p>
-        </div>
-      </footer>
+      <SiteFooter />
     </>
   );
 }

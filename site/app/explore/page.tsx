@@ -16,7 +16,7 @@ export default function ExplorePage() {
   return (
     <>
       <SiteNav />
-      <main className="page">
+      <main id="main" className="page">
         <div className="page-head">
           <h1>Explore</h1>
           <p>

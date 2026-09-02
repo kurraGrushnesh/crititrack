@@ -33,6 +33,10 @@ export default function SiteFooter() {
           verified fact. Profiles shown on this site are fabricated composites
           used to demonstrate the format.
         </p>
+        <p className="fine">
+          &copy; {new Date().getFullYear()} CritiTrack. Content on this site is
+          available under the terms in the repository.
+        </p>
       </div>
     </footer>
   );
