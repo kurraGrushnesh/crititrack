@@ -12,6 +12,7 @@ import EvidenceList from "@/components/EvidenceList";
 import WatchButton from "@/components/WatchButton";
 import ConfidenceMeter, { confidenceLabel } from "@/components/ConfidenceMeter";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
+import SentimentDonut from "@/components/SentimentDonut";
 import StatTable from "@/components/StatTable";
 import ClassificationPanel from "@/components/ClassificationPanel";
 import { buildClassification } from "@/lib/classification";
@@ -100,6 +101,17 @@ function ProfileView({ profile }: { profile: RealProfile }) {
     () => buildClassification(profile).length > 0,
     [profile],
   );
+  const sentimentCounts = useMemo(() => {
+    const fromRatio = (r: number | null) =>
+      r != null && profile.sampleSize != null
+        ? Math.round(r * profile.sampleSize)
+        : 0;
+    return {
+      positive: profile.positiveCount ?? fromRatio(profile.positiveRatio),
+      neutral: profile.neutralCount ?? fromRatio(profile.neutralRatio),
+      negative: profile.negativeCount ?? fromRatio(profile.negativeRatio),
+    };
+  }, [profile]);
 
   return (
     <main id="main" className="page-fade">
@@ -209,7 +221,13 @@ function ProfileView({ profile }: { profile: RealProfile }) {
             {profile.explanation}
           </p>
         )}
-        <div className="record" style={{ display: "grid", gap: 20 }}>
+        <div className="record" style={{ display: "grid", gap: 24 }}>
+          <SentimentDonut
+            positive={sentimentCounts.positive}
+            neutral={sentimentCounts.neutral}
+            negative={sentimentCounts.negative}
+            sampleSize={profile.sampleSize}
+          />
           <ScoreBreakdown overall={profile.sentimentScore} parts={parts} />
           {profile.confidence != null && (
             <ConfidenceMeter value={profile.confidence} />

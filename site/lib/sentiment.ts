@@ -37,3 +37,53 @@ export function sentimentLabel(score: number): string {
       return "Coverage skews negative";
   }
 }
+
+/**
+ * The positive / neutral / negative make-up of a sample, as ordered
+ * slices ready to draw. Order is fixed (positive, neutral, negative) so
+ * the colour of a slice is redundant with its position — the donut and
+ * its legend agree, and a filter can never repaint a slice.
+ *
+ * `fraction` is the share of the total; slices with a zero count are
+ * still returned (the caller drops them from the ring but may keep them
+ * in the legend).
+ */
+export interface SentimentSlice {
+  key: "positive" | "neutral" | "negative";
+  label: string;
+  count: number;
+  fraction: number;
+  colorVar: string;
+}
+
+export function sentimentComposition(counts: {
+  positive: number;
+  neutral: number;
+  negative: number;
+}): { slices: SentimentSlice[]; total: number } {
+  const clamp = (n: number) => (Number.isFinite(n) && n > 0 ? n : 0);
+  const pos = clamp(counts.positive);
+  const neu = clamp(counts.neutral);
+  const neg = clamp(counts.negative);
+  const total = pos + neu + neg;
+  const slice = (
+    key: SentimentSlice["key"],
+    label: string,
+    count: number,
+    colorVar: string,
+  ): SentimentSlice => ({
+    key,
+    label,
+    count,
+    fraction: total > 0 ? count / total : 0,
+    colorVar,
+  });
+  return {
+    total,
+    slices: [
+      slice("positive", "Positive", pos, "var(--senti-pos)"),
+      slice("neutral", "Neutral", neu, "var(--senti-neu)"),
+      slice("negative", "Negative", neg, "var(--senti-neg)"),
+    ],
+  };
+}

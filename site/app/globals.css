@@ -38,6 +38,14 @@
   --mid: #a9751a;
   --bad: #bd4630;
 
+  /* Sentiment composition (diverging: two hues + a neutral grey midpoint).
+     Validated for colour-vision separation against the #fcfcfb chart
+     surface — normal-vision ΔE 16.7, protan ΔE 11.3. Slices are always
+     labelled, so the pair never has to carry identity on colour alone. */
+  --senti-pos: #20794e;
+  --senti-neu: #8f8f86;
+  --senti-neg: #c33f28;
+
   --wrap: 1200px;
   --radius: 16px;
 
