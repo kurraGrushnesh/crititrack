@@ -48,6 +48,19 @@ test("budgets are ordered so the hourly cap binds before the daily one", () => {
       "one user must not be able to exhaust the global ceiling alone");
 });
 
+test("App Check is enforced by default", () => {
+  // The module read the env at require time; with nothing set it must
+  // default to enforced. APP_CHECK_ENFORCED=false is the only way off.
+  const {APP_CHECK_ENFORCED} = require("../lib/guard");
+  assert.equal(
+      APP_CHECK_ENFORCED,
+      process.env.APP_CHECK_ENFORCED !== "false",
+  );
+  if (process.env.APP_CHECK_ENFORCED === undefined) {
+    assert.equal(APP_CHECK_ENFORCED, true);
+  }
+});
+
 test("correction budgets are low and ordered", () => {
   assert.ok(CORRECTION_PER_HOUR < CORRECTION_PER_DAY);
   assert.ok(CORRECTION_PER_DAY <= RATE_PER_DAY,

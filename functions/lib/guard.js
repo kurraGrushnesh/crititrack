@@ -30,6 +30,20 @@ const logger = require("./logger");
 /** True inside `firebase emulators:start`. */
 const IS_EMULATOR = process.env.FUNCTIONS_EMULATOR === "true";
 
+/**
+ * App Check attestation is enforced unless `APP_CHECK_ENFORCED=false` is
+ * set in the environment.
+ *
+ * The web client can only produce an App Check token with a reCAPTCHA
+ * Enterprise site key, which needs a Google Cloud console setup. A
+ * deployment that has not done that yet can turn enforcement off: the
+ * endpoint is still behind a Firebase ID token (anonymous is fine), the
+ * per-user rate limit, and the global daily budget cap, so the spend is
+ * still bounded. What is lost is the guarantee that a call came from a
+ * build we published rather than a script.
+ */
+const APP_CHECK_ENFORCED = process.env.APP_CHECK_ENFORCED !== "false";
+
 // ── Tunables ────────────────────────────────────────────────────────
 const RATE_PER_HOUR = 20;
 const RATE_PER_DAY = 100;
@@ -100,7 +114,7 @@ async function requireUser(req) {
  * @throws {GuardError} 401 when attestation fails
  */
 async function requireAppCheck(req) {
-  if (IS_EMULATOR) return;
+  if (IS_EMULATOR || !APP_CHECK_ENFORCED) return;
 
   const token = req.get("X-Firebase-AppCheck");
   if (!token) {
@@ -335,6 +349,7 @@ module.exports = {
   hashIp,
   GuardError,
   IS_EMULATOR,
+  APP_CHECK_ENFORCED,
   RATE_PER_HOUR,
   RATE_PER_DAY,
   GLOBAL_DAILY_LOOKUPS,

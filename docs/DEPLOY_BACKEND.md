@@ -73,6 +73,20 @@ site key:
 Without this the app loads and every search returns
 `attestation_required`.
 
+### Running without App Check
+
+If the reCAPTCHA setup is not done yet, set `APP_CHECK_ENFORCED=false` in
+the Render environment. `requireAppCheck` then passes through, so a build
+with no `RECAPTCHA_SITE_KEY` works. The endpoint is still behind a
+Firebase ID token (anonymous is fine), the per-user rate limit and the
+global daily budget cap, so the spend stays bounded — what is lost is the
+guarantee that a call came from a build we published. The server logs a
+warning at boot while the flag is set. Remove it once a
+`RECAPTCHA_SITE_KEY` build is deployed.
+
+`POST /report-correction` is unaffected either way: it is not behind App
+Check, only a per-IP rate limit.
+
 ## Firestore rules
 
 Deploy once (free, no Blaze):

@@ -300,11 +300,24 @@ app.post("/refresh", async (req, res) => {
 });
 
 const port = process.env.PORT || 8080;
+const {APP_CHECK_ENFORCED} = require("./lib/guard");
+
 app.listen(port, async () => {
   logger.info(`CritiTrack API listening on ${port}`, {
     origins: ALLOWED_ORIGINS,
     project: serviceAccount.project_id,
+    appCheck: APP_CHECK_ENFORCED ? "enforced" : "DISABLED",
   });
+
+  if (!APP_CHECK_ENFORCED) {
+    logger.warn(
+        "APP_CHECK_ENFORCED=false — calls are not attested. The endpoint " +
+        "is still behind a Firebase token, the per-user rate limit and " +
+        "the daily budget cap, but it can be scripted from outside the " +
+        "app. Set a RECAPTCHA_SITE_KEY build and remove this flag to " +
+        "restore attestation.",
+    );
+  }
 
   // Exercise the credential at boot rather than discovering on the first
   // request that it never worked. Logged, not fatal: the API still
