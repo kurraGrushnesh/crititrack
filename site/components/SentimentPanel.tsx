@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import SentimentDonut from "./SentimentDonut";
 import SentimentTrend from "./SentimentTrend";
+import { Stat, StatRow } from "./Stat";
 import type { RealProfile } from "@/lib/api";
 import { sentimentBand, sentimentColorVar } from "@/lib/sentiment";
 import { formatCompact, shortDate } from "@/lib/attention";
@@ -53,34 +54,28 @@ export default function SentimentPanel({
 
   return (
     <div className="senti">
-      <div className="senti-cards">
-        <div className="senti-card">
-          <span className="senti-card-value" style={{ color }}>
-            {overall}
-          </span>
-          <span className="senti-card-label">Overall · {BAND_WORD[band]}</span>
-        </div>
+      <StatRow>
+        <Stat label="Overall" value={overall} sub={BAND_WORD[band]} tone={color} />
         {profile.dominantEmotion && (
-          <div className="senti-card">
-            <span
-              className="senti-card-value senti-card-text"
-              title={cap(profile.dominantEmotion)}
-            >
-              {cap(profile.dominantEmotion)}
-            </span>
-            <span className="senti-card-label">Dominant emotion</span>
-          </div>
+          <Stat
+            label="Dominant emotion"
+            value={cap(profile.dominantEmotion)}
+            compact
+          />
         )}
-        <div className="senti-card">
-          <span className="senti-card-value">
-            <span aria-hidden="true">
-              {TREND_ARROW[profile.trendDirection]}
-            </span>{" "}
-            {TREND_WORD[profile.trendDirection]}
-          </span>
-          <span className="senti-card-label">Trend</span>
-        </div>
-      </div>
+        <Stat
+          label="Trend"
+          compact
+          value={
+            <>
+              <span aria-hidden="true">
+                {TREND_ARROW[profile.trendDirection]}
+              </span>{" "}
+              {TREND_WORD[profile.trendDirection]}
+            </>
+          }
+        />
+      </StatRow>
 
       {profile.confidence != null && (
         <div className="senti-confidence">
@@ -124,28 +119,17 @@ export default function SentimentPanel({
             <span>Source breakdown</span>
             <span className="senti-tag">Algorithmically generated</span>
           </div>
-          <div className="senti-source-grid">
+          <StatRow>
             {sources.map((src) => (
-              <div key={src.label} className="senti-source">
-                <span className="senti-source-name">{src.label}</span>
-                <span
-                  className="senti-source-value"
-                  style={{ color: sentimentColorVar(src.value) }}
-                >
-                  {Math.round(src.value)}
-                </span>
-                <span className="senti-source-track">
-                  <span
-                    className="senti-source-fill"
-                    style={{
-                      width: `${src.value}%`,
-                      background: sentimentColorVar(src.value),
-                    }}
-                  />
-                </span>
-              </div>
+              <Stat
+                key={src.label}
+                label={src.label}
+                value={Math.round(src.value)}
+                tone={sentimentColorVar(src.value)}
+                meter={src.value}
+              />
             ))}
-          </div>
+          </StatRow>
         </div>
       )}
 

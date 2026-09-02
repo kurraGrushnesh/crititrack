@@ -11,7 +11,7 @@ import WatchButton from "@/components/WatchButton";
 import { confidenceLabel } from "@/components/ConfidenceMeter";
 import SentimentPanel from "@/components/SentimentPanel";
 import AttentionChart from "@/components/AttentionChart";
-import StatTable from "@/components/StatTable";
+import { Stat, StatRow } from "@/components/Stat";
 import MediaCoverage from "@/components/MediaCoverage";
 import BioSection from "@/components/BioSection";
 import { computeControversyIndex, roundedScore } from "@/lib/controversy-index";
@@ -113,21 +113,24 @@ function ProfileView({ profile }: { profile: RealProfile }) {
           <h1>{profile.name}</h1>
           <p className="subtitle">{profile.profession || "Public figure"}</p>
 
-          <StatTable
-            stats={[
-              { k: "Index", v: roundedScore(index) },
-              { k: "Sentiment", v: Math.round(profile.sentimentScore) },
-              { k: "Records", v: kept.length },
-              {
-                k: "Confidence",
-                v:
-                  profile.confidenceLabel ??
-                  (profile.confidence != null
-                    ? confidenceLabel(profile.confidence)
-                    : "—"),
-              },
-            ]}
-          />
+          <StatRow>
+            <Stat label="Index" value={roundedScore(index)} />
+            <Stat
+              label="Sentiment"
+              value={Math.round(profile.sentimentScore)}
+            />
+            <Stat label="Records" value={kept.length} />
+            <Stat
+              label="Confidence"
+              compact
+              value={
+                profile.confidenceLabel ??
+                (profile.confidence != null
+                  ? confidenceLabel(profile.confidence)
+                  : "—")
+              }
+            />
+          </StatRow>
 
           <div style={{ marginTop: 24 }}>
             <WatchButton slug={profile.slug} name={profile.name} />
