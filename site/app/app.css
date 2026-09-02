@@ -54,14 +54,15 @@
 @media (prefers-reduced-motion: no-preference) {
   .reveal[data-reveal="pending"] {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translate3d(0, 16px, 0);
+    will-change: opacity, transform;
   }
   .reveal[data-reveal="shown"] {
     opacity: 1;
-    transform: none;
+    transform: translate3d(0, 0, 0);
     transition:
-      opacity 0.5s var(--ease-out),
-      transform 0.5s var(--ease-out);
+      opacity 0.55s var(--ease-out),
+      transform 0.55s var(--ease-out);
   }
 }
 
