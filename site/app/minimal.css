@@ -620,51 +620,72 @@ h3 {
   color: var(--text-muted);
 }
 
-/* ── Sentiment analysis panel (carded + tabbed) ───────────────── */
+/* ── Stat tile — the one KPI primitive ────────────────────────── */
 
-.senti {
+.stat-row {
   display: grid;
-  gap: 24px;
-}
-
-.senti-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
   gap: 12px;
 }
 
-.senti-card {
+.stat {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 18px 16px;
+  padding: 16px;
   display: grid;
-  gap: 6px;
+  gap: 5px;
   align-content: start;
 }
 
-.senti-card-value {
-  font-size: 1.7rem;
+.stat-value {
+  font-size: 1.65rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
+  line-height: 1.05;
   color: var(--text);
 }
 
-.senti-card-text {
-  font-size: 1.15rem;
-  line-height: 1.2;
+.stat-value-compact {
+  font-size: 1.1rem;
+  line-height: 1.25;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.senti-card-label {
-  font-size: 0.74rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+.stat-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text-muted);
+}
+
+.stat-sub {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+.stat-meter {
+  margin-top: 4px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg-alt);
+  overflow: hidden;
+}
+
+.stat-meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+/* ── Sentiment analysis panel (carded + tabbed) ───────────────── */
+
+.senti {
+  display: grid;
+  gap: 24px;
 }
 
 .senti-confidence {
@@ -729,46 +750,6 @@ h3 {
   color: var(--text-soft);
 }
 
-.senti-source-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
-}
-
-.senti-source {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 16px;
-  display: grid;
-  gap: 8px;
-}
-
-.senti-source-name {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-soft);
-}
-
-.senti-source-value {
-  font-size: 1.4rem;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-.senti-source-track {
-  height: 6px;
-  border-radius: 999px;
-  background: var(--bg-alt);
-  overflow: hidden;
-}
-
-.senti-source-fill {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-}
 
 .senti-tabs {
   display: flex;
