@@ -38,9 +38,9 @@ export default function SiteNav() {
         </Link>
         <div className="site-nav-links">
           <Link href="/explore">Explore</Link>
+          <Link href="/category/actors">Categories</Link>
           <Link href="/compare">Compare</Link>
           <Link href="/methodology">Method</Link>
-          <Link href="/controversy-index">The index</Link>
           <Link href="/report-correction">Report a correction</Link>
           <a href="/app/" className="nav-cta">
             Open the app
