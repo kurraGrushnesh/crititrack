@@ -107,13 +107,9 @@ export default function MediaCoverage({ items }: { items: MediaLink[] }) {
       )}
 
       <ul className="media-list">
-        {shown.map((m) =>
-          isVideo(m) ? (
-            <VideoCard key={m.id} m={m} />
-          ) : (
-            <NewsRow key={m.id} m={m} />
-          ),
-        )}
+        {shown.map((m) => (
+          <MediaCard key={m.id} m={m} />
+        ))}
       </ul>
     </div>
   );
@@ -179,72 +175,47 @@ function ScorePill({ m }: { m: MediaLink }) {
   );
 }
 
-/** Compact horizontal row — news and everything that isn't a video. */
-function NewsRow({ m }: { m: MediaLink }) {
+/**
+ * One card for every item — news and video alike: a 16:9 thumbnail that
+ * leads, then the title and a meta line. Video gets a play badge; the
+ * source line is the channel for a video, the publication for news.
+ */
+function MediaCard({ m }: { m: MediaLink }) {
   const href = parseSafeUrl(m.url);
   const thumb = parseSafeUrl(m.thumbnailUrl);
   const when = m.publishedAt ? relativeTime(m.publishedAt) : "";
+  const video = isVideo(m);
+  const source = video
+    ? (m.channel ?? "YouTube")
+    : m.source || displayHost(m.url) || "News";
 
   return (
     <li className="media-card">
-      <span className="media-thumb" data-kind="news">
-        <ThumbImg
-          src={thumb ? thumb.toString() : null}
-          placeholder={<NewsGlyph />}
-        />
-      </span>
-      <div className="media-body">
-        <a
-          className="media-title"
-          href={href ? href.toString() : undefined}
-          target="_blank"
-          rel="noopener noreferrer nofollow"
-        >
-          {m.title}
-          <ExtGlyph />
-        </a>
-        <div className="media-meta">
-          <span className="media-source">
-            {m.source || displayHost(m.url) || "News"}
-          </span>
-          {when && <span className="media-when">· {when}</span>}
-          <ScorePill m={m} />
-        </div>
-      </div>
-    </li>
-  );
-}
-
-/** Big 16:9 card for a video — the thumbnail leads. */
-function VideoCard({ m }: { m: MediaLink }) {
-  const href = parseSafeUrl(m.url);
-  const thumb = parseSafeUrl(m.thumbnailUrl);
-  const when = m.publishedAt ? relativeTime(m.publishedAt) : "";
-
-  return (
-    <li className="media-video">
       <a
-        className="media-video-thumb"
+        className="media-card-thumb"
         href={href ? href.toString() : undefined}
         target="_blank"
         rel="noopener noreferrer nofollow"
         aria-label={m.title}
+        tabIndex={-1}
       >
         <ThumbImg
           src={thumb ? thumb.toString() : null}
           placeholder={
-            <span className="media-video-placeholder">
-              <VideoGlyph />
+            <span className="media-card-glyph">
+              {video ? <VideoGlyph /> : <NewsGlyph />}
             </span>
           }
         />
-        <span className="media-video-play" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="22" height="22">
-            <path d="M8 5v14l11-7Z" fill="currentColor" />
-          </svg>
-        </span>
+        {video && (
+          <span className="media-video-play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22">
+              <path d="M8 5v14l11-7Z" fill="currentColor" />
+            </svg>
+          </span>
+        )}
       </a>
-      <div className="media-video-body">
+      <div className="media-card-body">
         <a
           className="media-title"
           href={href ? href.toString() : undefined}
@@ -255,7 +226,7 @@ function VideoCard({ m }: { m: MediaLink }) {
           <ExtGlyph />
         </a>
         <div className="media-meta">
-          <span className="media-source">{m.channel ?? "YouTube"}</span>
+          <span className="media-source">{source}</span>
           {when && <span className="media-when">· {when}</span>}
           <ScorePill m={m} />
         </div>
