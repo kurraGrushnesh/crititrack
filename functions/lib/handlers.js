@@ -16,6 +16,7 @@ const logger = require("./logger");
 
 const {assembleCelebrity, ApiError} = require("./assemble");
 const {validateName, toSlug, ValidationError} = require("./validate");
+const {validateCorrection, CorrectionError} = require("./correction");
 const {resolvePerson, resolveByQid} = require("./entity");
 const {
   writeCelebrity,
@@ -26,6 +27,7 @@ const {
   markAlerted,
   readDevicesForSlug,
   deleteDevices,
+  writeCorrection,
 } = require("./store");
 const {detectSpike, shouldAlert, buildAlertMessage} = require("./alerts");
 const {
@@ -143,6 +145,61 @@ async function handleGetCelebrity(keys, req, res) {
     res.status(status).json({
       error: (e && e.code) || "internal",
       message: (e && e.message) || "Unexpected error",
+    });
+  }
+}
+
+// ── POST /report-correction ─────────────────────────────────────────
+
+/**
+ * Records a dispute about something on a profile.
+ *
+ * Gated the same way as getCelebrity: App Check, an authenticated (at
+ * least anonymous) user, and the per-user quota, so the endpoint cannot
+ * be scripted into a spam firehose. The body is validated with the
+ * shared `validateCorrection` before anything is written.
+ *
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ */
+async function handleReportCorrection(req, res) {
+  let uid;
+  try {
+    await requireAppCheck(req);
+    uid = await requireUser(req);
+    await consumeUserQuota(uid);
+  } catch (e) {
+    if (e instanceof GuardError) {
+      for (const [h, v] of Object.entries(e.headers)) res.set(h, v);
+      res.status(e.status).json({error: e.code, message: e.message});
+      return;
+    }
+    throw e;
+  }
+
+  let clean;
+  try {
+    clean = validateCorrection(req.body || {});
+  } catch (e) {
+    if (e instanceof CorrectionError) {
+      res.status(e.status).json({
+        error: e.code,
+        field: e.field,
+        message: e.message,
+      });
+      return;
+    }
+    throw e;
+  }
+
+  try {
+    const id = await writeCorrection(clean, {uid});
+    res.status(201).json({ok: true, id});
+  } catch (e) {
+    logger.error("report-correction write failed", {message: e && e.message});
+    res.status(500).json({
+      error: "internal",
+      message: "Could not record the report. Please try again later.",
     });
   }
 }
@@ -319,4 +376,8 @@ async function deliverPush({slug, message, spike, score}) {
   return accepted;
 }
 
-module.exports = {handleGetCelebrity, runScheduledRefresh};
+module.exports = {
+  handleGetCelebrity,
+  handleReportCorrection,
+  runScheduledRefresh,
+};

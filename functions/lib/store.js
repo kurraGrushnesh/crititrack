@@ -358,6 +358,37 @@ async function deleteDevices(ids) {
   return unique.length;
 }
 
+const CORRECTIONS = "corrections";
+
+/**
+ * Records a correction report for review. Server-owned: the client never
+ * reads this collection back, so the write is done here with the Admin
+ * SDK and the security rules deny client reads entirely.
+ *
+ * @param {{slug: string, field: string, claim: string,
+ *   correction: string, evidenceUrl: string|null, email: string|null}} clean
+ * @param {{uid: string}} meta
+ * @return {Promise<string>} the new document id
+ */
+async function writeCorrection(clean, meta) {
+  const db = getFirestore();
+  const ref = await db.collection(CORRECTIONS).add({
+    slug: clean.slug,
+    field: clean.field,
+    claim: clean.claim,
+    correction: clean.correction,
+    evidenceUrl: orNull(clean.evidenceUrl),
+    email: orNull(clean.email),
+    reportedBy: meta.uid,
+    status: "open",
+    createdAt: FieldValue.serverTimestamp(),
+  });
+  logger.info(`correction filed for ${clean.slug} (${clean.field})`, {
+    id: ref.id,
+  });
+  return ref.id;
+}
+
 module.exports = {
   writeCelebrity,
   markRequested,
@@ -368,4 +399,5 @@ module.exports = {
   markAlerted,
   readDevicesForSlug,
   deleteDevices,
+  writeCorrection,
 };
