@@ -12,8 +12,8 @@ import { confidenceLabel } from "@/components/ConfidenceMeter";
 import SentimentPanel from "@/components/SentimentPanel";
 import AttentionChart from "@/components/AttentionChart";
 import StatTable from "@/components/StatTable";
+import MediaCoverage from "@/components/MediaCoverage";
 import { computeControversyIndex, roundedScore } from "@/lib/controversy-index";
-import { displayHost, parseSafeUrl } from "@/lib/safe-url";
 import { useCelebrity } from "@/lib/use-celebrity";
 import type { RealProfile } from "@/lib/api";
 
@@ -225,34 +225,9 @@ function ProfileView({ profile }: { profile: RealProfile }) {
           <hr className="divider-rule" />
           <section className="min-section">
             <div className="head">
-              <h2>Coverage</h2>
+              <h2>Media coverage</h2>
             </div>
-            <ul className="evidence-list">
-              {profile.media.slice(0, 12).map((m) => {
-                const safe = parseSafeUrl(m.url);
-                return (
-                  <li key={m.id}>
-                    <span className="ev-source">
-                      {m.source || displayHost(m.url) || m.type}
-                    </span>
-                    <span className="ev-frag">
-                      {safe ? (
-                        <a
-                          className="source-link"
-                          href={safe.toString()}
-                          rel="noopener noreferrer nofollow"
-                          target="_blank"
-                        >
-                          {m.title}
-                        </a>
-                      ) : (
-                        m.title
-                      )}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+            <MediaCoverage items={profile.media} />
           </section>
         </>
       )}
