@@ -3,7 +3,7 @@
 /* eslint-disable react-hooks/set-state-in-effect -- comparison scaffolding, deleted once a hero variant is chosen */
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Float, RoundedBox, Environment } from "@react-three/drei";
+import { Float, RoundedBox } from "@react-three/drei";
 import { useEffect, useRef, useState } from "react";
 import type { Mesh } from "three";
 
@@ -76,7 +76,6 @@ export default function HeroObjectScene() {
       <ambientLight intensity={0.7} />
       <directionalLight position={[3, 4, 5]} intensity={1.1} />
       <directionalLight position={[-4, -2, -3]} intensity={0.3} color="#FAF7F2" />
-      <Environment preset="apartment" />
       <Shape paused={paused} />
     </Canvas>
   );
