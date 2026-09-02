@@ -76,21 +76,21 @@ Done so far:
 | # | Feature | Status |
 |---|---|---|
 | 3.1 | Real profile rendered on `/figure` — bio, index, sentiment, evidence, confidence. | Done. |
-| 3.2 | Classification section — extensible facet schema from Wikidata (nationality, occupations, education, awards, links). | Done — `lib/classification.ts`. |
+| 3.2 | ~~Classification section from Wikidata~~ | **Removed** at the user's call — Wikidata entity resolution matched the wrong person for ambiguous names (a niche "Tony Stark"), and the user chose to drop the section rather than add an entity picker. `lib/classification.*` and `entity.facts` mapping deleted. |
 | 3.3 | Sentiment composition donut (positive / neutral / negative). | Done — `SentimentDonut`. |
-| 3.4 | Public-attention chart — Wikipedia pageview area chart + stat row. | Done — `AttentionChart`. |
-| 3.5 | **Dark theme + Light/Dark/System toggle** — full dark palette, no-flash boot script, persisted preference, toggle in the pill nav. | Done — `lib/theme.ts`, `ThemeToggle`. |
+| 3.4 | Public-attention chart — Wikipedia pageview area chart + stat row. | Done — `AttentionChart`. Uses Wikipedia *pageviews* (engagement), not Wikidata facts — kept. |
+| 3.5 | **Dark theme + Light/Dark/System toggle**. | Done — `lib/theme.ts`, `ThemeToggle`. |
+| 3.6 | **Sentiment section, carded + tabbed** — stat cards, source-breakdown cards, Split / Trend / Daily-mentions tabs, collapsible evidence, generated-analysis callout. | Done — `SentimentPanel`. |
 
-Queued (the "all" from the Tony Stark reference, one per day, now built theme-aware):
+Queued (one per day, theme-aware):
 
 | # | Feature | Done when |
 |---|---|---|
-| 3.6 | **Sentiment section, carded + tabbed** — Overall / Emotion / Trend stat cards, Source Breakdown as News/YouTube cards, a Split / Trend / Daily-mentions tab switcher, collapsible "what the model pointed to" (evidence), generated-analysis callout. Uses data already mapped. | The section matches the reference layout in both themes. |
 | 3.7 | **Media as horizontal cards** — news + YouTube as medium cards with thumbnail, source, time, per-item sentiment badge; All / News / Videos tabs. | Coverage reads like the reference; adapts at 375px. |
-| 3.8 | **Disambiguation + bio sections** — render the `candidates` "also matches" chips at the top; expandable Lifestyle / Recent works / Skills / background pulled from `biography` + `entity.facts`. | Wrong-entity matches are visible and switchable; bio is browsable. |
+| 3.8 | **Bio sections** — expandable background / recent works from `biography` (Groq-written, not Wikidata). | Bio is browsable without a wall of text. |
 | 3.9 | **Stats / info sections** unified — index gauge, score breakdown, confidence meter, one system. | Consistent everywhere a score appears. |
-| 3.10 | **Loading / skeleton, empty, error** states — designed, matching the final skeleton shape, every async surface. | No blank flashes, no raw spinners. |
-| 3.11 | **Badges / inputs / buttons** — last primitives into the token system; remove any non-token style. | Component library complete. |
+| 3.10 | **Loading / skeleton, empty, error** states for every async surface. | No blank flashes, no raw spinners. |
+| 3.11 | **Badges / inputs / buttons** — last primitives into the token system. | Component library complete. |
 
 ---
 

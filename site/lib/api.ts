@@ -3,12 +3,12 @@
 /**
  * The real backend, called from the web the same way the app calls it:
  * `GET /getCelebrity?name=` with a Firebase ID token and an App Check
- * token. Returns the full profile shape the page components render.
+ * token. Returns the profile shape the page components render.
  *
- * The mapper is deliberately total: every block the backend sends
- * (`biography`, `sentiment`, `attention`, `media`, `entity.facts`) is
- * captured here, so a new UI section never has to reach past this file
- * to a raw response.
+ * The mapper captures every block the page uses — `biography`,
+ * `sentiment`, `attention`, `media` — plus `entity.candidates` for
+ * name disambiguation. `entity.facts` (the Wikidata classification) is
+ * intentionally not read: that section was removed.
  */
 
 import { getAuthedHeaders } from "./firebase";
@@ -28,6 +28,7 @@ export interface EvidenceFragment {
 export interface TrendPoint {
   date: string;
   score: number;
+  mentions: number;
 }
 export interface MediaLink {
   id: string;
@@ -61,30 +62,11 @@ export interface Attention {
   summary: AttentionSummary | null;
 }
 
-export interface Award {
-  label: string;
-  year?: number;
-}
-export interface EntityFacts {
-  birthDate?: string;
-  deathDate?: string;
-  birthPlace?: string;
-  citizenship: string[];
-  occupations: string[];
-  education: string[];
-  awards: Award[];
-  notableWorks: string[];
-  links: Record<string, string>;
-}
-
 export interface RealProfile {
   slug: string;
   name: string;
   verified: boolean;
   wikidataId?: string;
-  entityLabel?: string;
-  entityDescription?: string;
-  aliases: string[];
   imageUrl?: string;
   imageSource?: string;
 
@@ -119,7 +101,6 @@ export interface RealProfile {
   controversies: Controversy[];
   media: MediaLink[];
   attention: Attention | null;
-  facts: EntityFacts;
   candidates: { name: string; description?: string; qid?: string }[];
 }
 
@@ -181,27 +162,6 @@ function mapAttention(v: unknown): Attention | null {
   };
 }
 
-function mapFacts(v: unknown): EntityFacts {
-  const f = obj(v);
-  const links: Record<string, string> = {};
-  for (const [k, val] of Object.entries(obj(f.links))) {
-    if (typeof val === "string" && val.length > 0) links[k] = val;
-  }
-  return {
-    birthDate: str(f.birthDate) || undefined,
-    deathDate: str(f.deathDate) || undefined,
-    birthPlace: str(f.birthPlace) || undefined,
-    citizenship: strs(f.citizenship),
-    occupations: strs(f.occupations),
-    education: strs(f.education),
-    awards: list(f.awards)
-      .map((a) => ({ label: str(a.label), year: num(a.year) ?? undefined }))
-      .filter((a) => a.label),
-    notableWorks: strs(f.notableWorks),
-    links,
-  };
-}
-
 function mapProfile(j: Json): RealProfile {
   const bio = obj(j.biography);
   const s = obj(j.sentiment);
@@ -221,9 +181,6 @@ function mapProfile(j: Json): RealProfile {
     name: str(j.name) || str(j.query),
     verified: Boolean(j.verified),
     wikidataId: str(entity.qid) || undefined,
-    entityLabel: str(entity.label) || undefined,
-    entityDescription: str(entity.description) || undefined,
-    aliases: strs(entity.aliases),
     imageUrl: str(image.url) || undefined,
     imageSource: str(image.source) || undefined,
 
@@ -256,6 +213,11 @@ function mapProfile(j: Json): RealProfile {
       .map((d) => ({
         date: str(d.date) || str(d.day),
         score: num(d.score) ?? 50,
+        mentions:
+          num(d.totalMentions) ??
+          (num(d.positiveCount) ?? 0) +
+            (num(d.neutralCount) ?? 0) +
+            (num(d.negativeCount) ?? 0),
       }))
       .filter((d) => d.date),
     evidence: list(s.evidence)
@@ -281,7 +243,6 @@ function mapProfile(j: Json): RealProfile {
       }))
       .filter((m) => m.title && m.url),
     attention: mapAttention(j.attention),
-    facts: mapFacts(entity.facts),
     candidates: list(entity.candidates).map((c) => ({
       name: str(c.name) || str(c.label),
       description: str(c.description) || undefined,
