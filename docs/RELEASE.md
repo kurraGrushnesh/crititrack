@@ -142,81 +142,55 @@ or verification fails for every user who installed from the store.
 
 ## Web hosting
 
-Two things share one Firebase Hosting site: the marketing site at the
-root, and the Flutter web app under `/app/`.
+The web app **is** the product. Firebase Hosting serves one thing: the
+`site/` Next.js static export at the root. `/figure/?q=<name>` is the
+live profile — it obtains a Firebase anonymous ID token and an App Check
+token in the browser and calls the same `getCelebrity` backend the
+Flutter app used to.
 
-Hosting serves a single directory, and neither build can write into the
-other's output — `next build` wipes `site/out` and `flutter build web`
-wipes `build/web`, so copying one into the other survives exactly until
-the next build of the destination. Both are copied into a third,
-disposable directory instead.
+The Flutter web build is no longer published. `firebase.json` redirects
+`/app` and `/app/**` (301) to `/figure/` so any old link still lands
+somewhere sensible.
 
 ```bash
-flutter build web --release --base-href /app/ \
-  --dart-define=DEMO_MODE=true --no-web-resources-cdn
 (cd site && npm run build)
-node tool/assemble_hosting.js          # -> dist/
+node tool/assemble_hosting.js          # site/out -> dist/
 npx firebase deploy --only hosting
 ```
 
-`DEMO_MODE=true` puts a standing notice above every screen saying no
-backend is deployed and searches will return nothing. Drop the flag the
-moment a real backend is reachable — it is opt-in precisely so a genuine
-deployment cannot inherit the notice by accident.
-
-`--base-href /app/` is not optional: without it the app requests its
-assets from the root and every one of them 404s. On Git Bash for Windows
-the value gets rewritten into a Windows path — run that command from
-PowerShell, or prefix it with `MSYS_NO_PATHCONV=1`.
-
-`--no-web-resources-cdn` is also not optional here. By default Flutter
-loads CanvasKit from `https://www.gstatic.com/flutter-canvaskit/...`,
-which the `Content-Security-Policy` in `firebase.json` blocks — the app
-renders blank. The flag makes the build serve CanvasKit from
-`/app/canvaskit/` instead, which `assemble_hosting.js` already copies in.
+`assemble_hosting.js` stages `site/out` into `dist/` (disposable,
+gitignored) so a later `next build` can't wipe the directory Hosting is
+serving.
 
 ### Content-Security-Policy
 
-`firebase.json` sets a strict CSP on the marketing pages and a looser one
-scoped to `/app/**`, because the Flutter app pulls the Firebase JS SDK
-and Google Identity Services from `https://www.gstatic.com` and
-`https://accounts.google.com` at runtime. If a future plugin adds another
-third-party script host, the app goes blank until that host is added to
-the `/app/**` `script-src`. Check the browser console after any dependency
-bump.
+`firebase.json` sets one CSP on `**`. It allows, beyond `'self'`:
 
-### The rewrite is scoped on purpose
+- `script-src` / `frame-src` — `https://www.google.com`,
+  `https://www.gstatic.com`, `https://recaptcha.net` for the reCAPTCHA
+  Enterprise widget App Check uses.
+- `connect-src` — `https://crititrack-api.onrender.com` (the analysis
+  backend) plus the Firebase Auth / App Check / Firestore / Installations
+  endpoints the JS SDK talks to.
+- `img-src https:` — profile portraits come from Wikimedia and other
+  upstream hosts that aren't known ahead of time.
 
-```json
-{ "source": "/app/**", "destination": "/app/index.html" }
-```
+If a dependency bump adds another third-party host, the relevant call
+fails silently — check the browser console and the network tab after any
+`firebase` or App Check upgrade.
 
-The Flutter app is a single-page app, so its client routes have no file
-on disk and must fall back to its index. The marketing site is a static
-export with real files and its own `404.html`, and a catch-all there
-would answer every wrong URL with the home page and a `200` — which is
-worse than a 404, because it tells a crawler the page exists.
+### The redirect, and why there's no catch-all rewrite
 
-### What the deployed app cannot do yet
+The static export has a real file for every route and its own
+`404.html`, so there is no SPA fallback rewrite — a catch-all would
+answer every wrong URL with a `200` and tell crawlers the page exists.
+`/figure/` is the one client-rendered route and it is a real file too;
+the `?q=` is read on the client.
 
-It loads, routes and renders. Every search fails.
+### What still needs a person
 
-A release build points `ApiConfig` at
-`us-central1-crititrack-f7430.cloudfunctions.net`, and **no functions are
-deployed** — `firebase functions:list` returns none, because the
-scheduled refresher needs the Blaze plan. Until they are deployed the app
-is a shell: the UI works, the data path returns nothing.
-
-The Blaze plan is not going to be enabled on this project, so the route
-to a working deployed app is hosting the Node backend somewhere with a
-genuinely free tier. No code change is needed — the origin is already a
-build-time flag. Drop `DEMO_MODE` from that build and the notice goes
-with it:
-
-```bash
-flutter build web --release --base-href /app/ \
-  --dart-define=API_BASE_URL=https://your-backend
-```
-
-App Check is also skipped on web without `RECAPTCHA_SITE_KEY`, which is
-moot while there is no backend to attest to.
+Nobody has yet confirmed a real search on the deployed site renders a
+real profile end to end — the sandbox can't reach `onrender.com`. Phase
+0.1 in `ROADMAP.md` is exactly that check. The backend sleeps when idle,
+so the first search after a quiet spell takes 20–30s; `/figure/` shows a
+"waking up" note during the wait.

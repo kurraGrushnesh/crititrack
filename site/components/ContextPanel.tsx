@@ -7,7 +7,7 @@ import {
   type RosterEntry,
 } from "@/lib/catalog";
 
-const APP = "/app/";
+const FIGURE = "/figure/";
 
 /**
  * The persistent desktop side panel. Hidden below 1040px (see app.css).
@@ -35,7 +35,7 @@ export default function ContextPanel({
           <ol className="cp-list">
             {top.map((r, i) => (
               <li key={r.name}>
-                <a href={`${APP}?q=${encodeURIComponent(r.name)}`}>
+                <a href={`${FIGURE}?q=${encodeURIComponent(r.name)}`}>
                   <span className="cp-rank">{i + 1}</span>
                   <span>{r.name}</span>
                 </a>
@@ -54,7 +54,7 @@ export default function ContextPanel({
           <ul className="cp-list">
             {related.map((r) => (
               <li key={r.name}>
-                <a href={`${APP}?q=${encodeURIComponent(r.name)}`}>
+                <a href={`${FIGURE}?q=${encodeURIComponent(r.name)}`}>
                   <span>{r.name}</span>
                 </a>
               </li>

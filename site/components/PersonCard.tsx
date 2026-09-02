@@ -1,13 +1,13 @@
 import type { RosterEntry } from "@/lib/catalog";
 import Monogram from "./Monogram";
 
-const APP = "/app/";
+const FIGURE = "/figure/";
 
 /**
  * A catalogue person. The card carries only public facts — name, field,
- * birth decade. It links into the real app, which is where the sourced,
- * confidence-rated, evidence-linked profile lives; the static site never
- * asserts a score about a real person.
+ * birth decade. It links to that figure's live profile, where the
+ * sourced, confidence-rated, evidence-linked analysis is built on
+ * demand; the card itself never asserts a score about a real person.
  */
 export default function PersonCard({
   entry,
@@ -16,7 +16,7 @@ export default function PersonCard({
   entry: RosterEntry;
   rank?: number;
 }) {
-  const href = `${APP}?q=${encodeURIComponent(entry.name)}`;
+  const href = `${FIGURE}?q=${encodeURIComponent(entry.name)}`;
   return (
     <a className="person-card glass" href={href}>
       {rank != null && <span className="pc-rank">{rank}</span>}
@@ -28,7 +28,7 @@ export default function PersonCard({
           b. <b>{entry.born}</b>
         </span>
         <span>
-          Open in app <b aria-hidden="true">&rarr;</b>
+          Open profile <b aria-hidden="true">&rarr;</b>
         </span>
       </span>
     </a>

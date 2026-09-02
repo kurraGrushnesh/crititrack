@@ -4,18 +4,13 @@
 /**
  * Assembles the one directory Firebase Hosting serves.
  *
- * Hosting serves a single `public` directory, and this project has two
- * things to publish: the marketing site at the root and the Flutter web
- * app under /app/. Neither build can write into the other's output —
- * `next build` wipes site/out, and `flutter build web` wipes build/web —
- * so copying one into the other would survive exactly until the next
- * build of whichever one was the destination.
- *
- * This copies both into a third directory instead, which is disposable
- * and gitignored.
+ * The web app *is* the product now: `site/` (Next.js static export) is
+ * the whole deploy. The Flutter build is no longer published — `/app/**`
+ * redirects to `/figure/` in `firebase.json` — so this just stages the
+ * one export into a disposable, gitignored directory that `next build`
+ * won't wipe out from under Hosting.
  *
  * Usage:
- *   flutter build web --release --base-href /app/
  *   (cd site && npm run build)
  *   node tool/assemble_hosting.js
  */
@@ -27,12 +22,7 @@ const root = path.resolve(__dirname, "..");
 const dist = path.join(root, "dist");
 
 const parts = [
-  {from: path.join(root, "site", "out"), to: dist, what: "marketing site"},
-  {
-    from: path.join(root, "build", "web"),
-    to: path.join(dist, "app"),
-    what: "Flutter web app",
-  },
+  {from: path.join(root, "site", "out"), to: dist, what: "web app"},
 ];
 
 for (const {from} of parts) {

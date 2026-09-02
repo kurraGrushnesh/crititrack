@@ -3,16 +3,16 @@ import type { MetadataRoute } from "next";
 const SITE = "https://crititrack-f7430.web.app";
 
 /**
- * Emitted as a static /robots.txt by the export. The Flutter app under
- * /app/ is a single-page shell with no crawlable content, so it is
- * disallowed; everything else is open.
+ * Emitted as a static /robots.txt by the export. `/figure/` renders its
+ * content client-side from the live API and carries nothing crawlable on
+ * its own, so it is disallowed; everything else is open.
  */
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: "/app/",
+      disallow: "/figure/",
     },
     sitemap: `${SITE}/sitemap.xml`,
   };

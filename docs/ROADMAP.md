@@ -19,14 +19,20 @@ decoration that costs usability or frames.
 
 - `site/` (Next.js static export, live at `crititrack-f7430.web.app`):
   light editorial look, floating pill nav with search, six categories,
-  three fabricated demo profiles, method/about/privacy pages. Links to
-  real figures currently bounce to `/app/?q=`.
-- Flutter app under `/app/`: real backend via Render, sage theme,
-  editorial dashboard header. 346 tests.
+  three fabricated demo profiles, method/about/privacy pages.
+- **`/figure/?q=<name>` is the product now.** It initialises Firebase in
+  the browser (anonymous auth + App Check via reCAPTCHA Enterprise) and
+  calls the real `getCelebrity` backend — `site/lib/{firebase,api,
+  use-celebrity}.ts` + `site/app/figure/page.tsx`. Every search entry
+  point (pill nav, person cards, category rails) routes here.
+- The Flutter web build is no longer published. `firebase.json`
+  redirects `/app/**` → `/figure/`. The Flutter source and its 346 tests
+  stay in the repo for the eventual Android release.
 - Backend: Node/Express on Render (free tier), `getCelebrity` +
   `report-correction`. reCAPTCHA / App Check configured.
-- **Unverified:** nobody has confirmed a real search renders a real
-  profile end to end.
+- **Unverified:** nobody has confirmed a real search on the deployed
+  site renders a real profile end to end (the sandbox can't reach
+  `onrender.com`).
 - **Open branches** (not merged): `feature/editorial-profile-sections`
   (Flutter dashboard sections go flat), `feature/hero-variants` (four
   swappable hero backgrounds behind `?hero=`).
@@ -54,14 +60,12 @@ Everything else depends on one set of tokens.
 
 ---
 
-## Phase 2 — Web calls the backend (2 days)
+## Phase 2 — Web calls the backend ✓ (built, not yet verified live)
 
-The website can't show real data until it can talk to the API.
-
-| Day | Feature | Done when |
+| Day | Feature | Status |
 |---|---|---|
-| 2.1 | Add Firebase JS SDK + anonymous auth + App Check to `site/`, behind a lazy chunk so it's not in the initial load. | The site can obtain the tokens `getCelebrity` needs. |
-| 2.2 | `useCelebrity(name)` hook: debounced input, request de-dup, a short client cache, typed loading / empty / error states. No call fires on every keystroke. | Searching a name on the site returns the real sourced profile. |
+| 2.1 | Firebase JS SDK + anonymous auth + App Check in `site/`, lazy-loaded. | Done — `site/lib/firebase.ts`. |
+| 2.2 | `useCelebrity(name)` hook: request de-dup, short client cache, typed loading / not-found / error states, abort on change. Route-driven, so no keystroke debounce. | Done — `site/lib/use-celebrity.ts`, `site/app/figure/page.tsx`. Needs a real end-to-end check (Phase 0.1). |
 
 ---
 
