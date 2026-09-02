@@ -47,10 +47,13 @@ class ThemeModeController extends Notifier<ThemeMode> {
     ThemeMode.system => 'system',
   };
 
+  /// Defaults to light: the app's editorial look is a light one, so a
+  /// first-time visitor should see it rather than whatever their OS
+  /// happens to be set to. "System" and "Dark" stay one tap away.
   static ThemeMode _decode(String? raw) => switch (raw) {
-    'light' => ThemeMode.light,
     'dark' => ThemeMode.dark,
-    _ => ThemeMode.system,
+    'system' => ThemeMode.system,
+    _ => ThemeMode.light,
   };
 }
 

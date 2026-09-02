@@ -98,25 +98,26 @@ void main() {
   });
 
   group('ThemeModeController', () {
-    test('defaults to system when no preference is stored', () {
+    test('defaults to light when no preference is stored', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
-      expect(container.read(themeModeProvider), ThemeMode.system);
+      expect(container.read(themeModeProvider), ThemeMode.light);
     });
 
-    test('cycles system → light → dark → system', () async {
+    test('cycles light → dark → system → light', () async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
       final controller = container.read(themeModeProvider.notifier);
 
-      await controller.cycle();
-      expect(container.read(themeModeProvider), ThemeMode.light);
+      // Starts at light (the default).
       await controller.cycle();
       expect(container.read(themeModeProvider), ThemeMode.dark);
       await controller.cycle();
       expect(container.read(themeModeProvider), ThemeMode.system);
+      await controller.cycle();
+      expect(container.read(themeModeProvider), ThemeMode.light);
     });
   });
 
@@ -143,11 +144,13 @@ void main() {
     await tester.tap(find.byType(ThemeToggle));
     await tester.pumpAndSettle();
 
+    // Each label appears at least once in the opened menu; the active
+    // mode's label also shows on the trigger, so use findsWidgets.
     expect(find.text('System'), findsWidgets);
-    expect(find.text('Light'), findsOneWidget);
-    expect(find.text('Dark'), findsOneWidget);
+    expect(find.text('Light'), findsWidgets);
+    expect(find.text('Dark'), findsWidgets);
 
-    await tester.tap(find.text('Dark'));
+    await tester.tap(find.text('Dark').last);
     await tester.pumpAndSettle();
 
     expect(container.read(themeModeProvider), ThemeMode.dark);

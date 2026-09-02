@@ -103,17 +103,20 @@ abstract final class AppTheme {
     shadowOpacity: 0.45,
   );
 
+  // Warm editorial light: an off-white paper ground, pure-white cards, a
+  // hairline warm-grey border. Matches the web client
+  // (site/app/globals.css: --bg #f4f4f2, --surface #fff, --border
+  // #e4e3de).
   static const AppPalette lightPalette = AppPalette(
-    background: Color(0xFFF5F6FB),
+    background: Color(0xFFF4F4F2),
     card: Color(0xFFFFFFFF),
-    elevated: Color(0xFFEFF1F8),
-    glass: Color(0x0F101828),
-    border: Color(0xFFE2E6F0),
-    borderStrong: Color(0xFFCBD2E2),
-    textPrimary: Color(0xFF10121A),
-    textSecondary: Color(0xFF545C71),
-    // Darkened from 0xFF8A92A6, which sat at a 2.76 contrast ratio.
-    textMuted: Color(0xFF636A7C),
+    elevated: Color(0xFFECECE8),
+    glass: Color(0x0F14140F),
+    border: Color(0xFFE4E3DE),
+    borderStrong: Color(0xFFD3D2CB),
+    textPrimary: Color(0xFF0B0B0A),
+    textSecondary: Color(0xFF4C4C47),
+    textMuted: Color(0xFF6C6C64),
     brandText: primaryDeep, // dark sage, ~5.5:1 on white
     // All three fill hues are far too light to read on white — 2.29,
     // 1.68 and 3.03 on their own tint. Darkened to 4.56, 4.59 and 4.53.

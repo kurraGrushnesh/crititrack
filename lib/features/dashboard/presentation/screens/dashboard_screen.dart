@@ -9,9 +9,7 @@
 /// Dependencies: [dashboardProvider] for async celebrity data.
 library;
 
-import 'dart:ui';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,6 +29,7 @@ import 'package:crititrack/features/dashboard/presentation/providers/dashboard_p
 import 'package:crititrack/features/controversy/presentation/widgets/controversy_section.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/biography_card.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/disambiguation_bar.dart';
+import 'package:crititrack/features/dashboard/presentation/widgets/editorial_header.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/media_feed_section.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/sentiment_section.dart';
 import 'package:crititrack/features/watchlist/domain/watched_figure.dart';
@@ -90,46 +89,22 @@ class _DashboardContent extends ConsumerWidget {
   ) {
     return CustomScrollView(
       slivers: [
-        // ── SliverAppBar ────────────────────────────────────────
+        // ── Slim app bar ────────────────────────────────────────
+        // Just the back button and the profile actions; the name,
+        // portrait and stats now open the scroll body (EditorialHeader).
         SliverAppBar(
-          expandedHeight: 120,
           floating: true,
-          pinned: true,
+          pinned: false,
           backgroundColor: palette.background,
+          surfaceTintColor: Colors.transparent,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
             tooltip: 'Back to search',
             onPressed: () => GoRouter.of(context).go('/'),
           ),
-          flexibleSpace: FlexibleSpaceBar(
-            titlePadding: const EdgeInsets.only(
-              left: 56,
-              bottom: 16,
-              right: 16,
-            ),
-            title: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  celebrity.name,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: palette.textPrimary,
-                  ),
-                ),
-                Text(
-                  cacheTimestamp(celebrity.fetchedAt),
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w400,
-                    color: palette.textMuted,
-                  ),
-                ),
-              ],
-            ),
-            background: _AppBarBackground(imageUrl: celebrity.imageUrl),
+          title: Text(
+            cacheTimestamp(celebrity.fetchedAt),
+            style: TextStyle(fontSize: 11, color: palette.textMuted),
           ),
           actions: [
             Container(
@@ -176,9 +151,13 @@ class _DashboardContent extends ConsumerWidget {
             const SizedBox(width: 4),
           ],
         ),
+
+        // ── Editorial header: name, subtitle, stats, portrait ───
+        SliverToBoxAdapter(child: EditorialHeader(celebrity: celebrity)),
+
         // ── Which person this is ────────────────────────────────
-        // Above everything, because it governs whether the rest of
-        // the screen is about the person the reader meant.
+        // Governs whether the rest of the screen is about the person
+        // the reader meant.
         SliverToBoxAdapter(
           child: DisambiguationBar(
             slug: celebrity.slug,
@@ -307,63 +286,6 @@ class _AmbientGlow extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-// ── SliverAppBar background ──────────────────────────────────────
-// A blurred, darkened portrait behind the app-bar title, falling back
-// to the brand gradient when there is no image.
-
-class _AppBarBackground extends StatelessWidget {
-  const _AppBarBackground({this.imageUrl});
-
-  final String? imageUrl;
-
-  /// Flat brand-tinted fill used when there is no portrait to show.
-  static BoxDecoration _fallback(AppPalette palette) => BoxDecoration(
-    gradient: LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [palette.heroTint, palette.background],
-    ),
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    final fallback = _fallback(palette);
-
-    if (imageUrl == null || imageUrl!.isEmpty) {
-      return DecoratedBox(decoration: fallback);
-    }
-
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        CachedNetworkImage(
-          imageUrl: imageUrl!,
-          fit: BoxFit.cover,
-          alignment: const Alignment(0, -0.35),
-          placeholder: (_, __) => DecoratedBox(decoration: fallback),
-          errorWidget: (_, __, ___) => DecoratedBox(decoration: fallback),
-        ),
-        BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  palette.scrim.withValues(alpha: 0.45),
-                  palette.scrim.withValues(alpha: 0.88),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
