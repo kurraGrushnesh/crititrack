@@ -1,5 +1,14 @@
+import { fileURLToPath } from "node:url";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // The app lives in its own package with its own lockfile, nested under
+  // the Flutter repo which has another. Point Turbopack at this directory
+  // so it stops guessing and warning about which root to use.
+  turbopack: {
+    root: fileURLToPath(new URL(".", import.meta.url)),
+  },
+
   // Static export: the site is entirely pre-rendered, so it can be hosted
   // on any static host and there is no server to attack. Most of the
   // advisories filed against Next target server-side surfaces — Server

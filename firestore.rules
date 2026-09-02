@@ -44,6 +44,27 @@ service cloud.firestore {
         && request.auth.uid == userId;
     }
 
+    // ── Watchlists ────────────────────────────────────────────────
+    // One document per user, keyed by uid, holding the slugs they
+    // follow. Same rule as search history: readable and writable only
+    // by its owner. Anyone can get a uid by signing in anonymously, so
+    // keying on the uid in the path is the restriction that matters.
+    match /watchlists/{userId} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == userId;
+    }
+
+    // ── Corrections (server-owned, write-only from clients) ────────
+    // A correction report is filed through POST /report-correction,
+    // which writes it with the Admin SDK after validating and rate-
+    // limiting. Clients never read the collection back — a dispute may
+    // name a third party and quote unpublished claims — and never write
+    // it directly, so the review queue cannot be flooded past the
+    // per-user quota the endpoint enforces.
+    match /corrections/{correctionId} {
+      allow read, write: if false;
+    }
+
     // ── Rate-limit and budget counters (SEC-02) ───────────────────
     // Written by Cloud Functions with the Admin SDK. A client that could
     // write these could reset its own quota, so nothing may touch them.

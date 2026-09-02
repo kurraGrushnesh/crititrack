@@ -19,7 +19,11 @@ const {defineSecret} = require("firebase-functions/params");
 const {setGlobalOptions} = require("firebase-functions/v2");
 const {initializeApp} = require("firebase-admin/app");
 
-const {handleGetCelebrity, runScheduledRefresh} = require("./lib/handlers");
+const {
+  handleGetCelebrity,
+  handleReportCorrection,
+  runScheduledRefresh,
+} = require("./lib/handlers");
 
 initializeApp();
 
@@ -51,6 +55,11 @@ function readKeys() {
 exports.getCelebrity = onRequest(
     {secrets: ALL_SECRETS, timeoutSeconds: 120, cors: ALLOWED_ORIGINS},
     (req, res) => handleGetCelebrity(readKeys(), req, res),
+);
+
+exports.reportCorrection = onRequest(
+    {timeoutSeconds: 30, cors: ALLOWED_ORIGINS},
+    (req, res) => handleReportCorrection(req, res),
 );
 
 exports.refreshTrackedCelebrities = onSchedule(

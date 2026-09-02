@@ -30,7 +30,11 @@ const cors = require("cors");
 const {initializeApp, cert} = require("firebase-admin/app");
 
 const logger = require("./lib/logger");
-const {handleGetCelebrity, runScheduledRefresh} = require("./lib/handlers");
+const {
+  handleGetCelebrity,
+  handleReportCorrection,
+  runScheduledRefresh,
+} = require("./lib/handlers");
 
 // ── Admin SDK credentials ──────────────────────────────────────────────
 
@@ -257,6 +261,21 @@ app.get("/getCelebrity", (req, res) => {
  * inside runScheduledRefresh (REFRESH_LIMIT figures per call), so the
  * secret only needs to stop idle traffic, not a determined attacker.
  */
+/**
+ * POST /report-correction — a dispute about something on a profile.
+ *
+ * JSON body, capped small: a correction is a few short fields, and a
+ * larger body is either a mistake or an attempt to run us out of memory.
+ */
+app.post("/report-correction", express.json({limit: "16kb"}), (req, res) => {
+  handleReportCorrection(req, res).catch((e) => {
+    logger.error("unhandled in /report-correction", {message: e && e.message});
+    if (!res.headersSent) {
+      res.status(500).json({error: "internal", message: "Unexpected error"});
+    }
+  });
+});
+
 app.post("/refresh", async (req, res) => {
   const expected = process.env.REFRESH_SECRET;
   const given = req.get("X-Refresh-Secret") || req.query.secret;

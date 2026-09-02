@@ -152,7 +152,8 @@ the next build of the destination. Both are copied into a third,
 disposable directory instead.
 
 ```bash
-flutter build web --release --base-href /app/ --dart-define=DEMO_MODE=true
+flutter build web --release --base-href /app/ \
+  --dart-define=DEMO_MODE=true --no-web-resources-cdn
 (cd site && npm run build)
 node tool/assemble_hosting.js          # -> dist/
 npx firebase deploy --only hosting
@@ -167,6 +168,22 @@ deployment cannot inherit the notice by accident.
 assets from the root and every one of them 404s. On Git Bash for Windows
 the value gets rewritten into a Windows path — run that command from
 PowerShell, or prefix it with `MSYS_NO_PATHCONV=1`.
+
+`--no-web-resources-cdn` is also not optional here. By default Flutter
+loads CanvasKit from `https://www.gstatic.com/flutter-canvaskit/...`,
+which the `Content-Security-Policy` in `firebase.json` blocks — the app
+renders blank. The flag makes the build serve CanvasKit from
+`/app/canvaskit/` instead, which `assemble_hosting.js` already copies in.
+
+### Content-Security-Policy
+
+`firebase.json` sets a strict CSP on the marketing pages and a looser one
+scoped to `/app/**`, because the Flutter app pulls the Firebase JS SDK
+and Google Identity Services from `https://www.gstatic.com` and
+`https://accounts.google.com` at runtime. If a future plugin adds another
+third-party script host, the app goes blank until that host is added to
+the `/app/**` `script-src`. Check the browser console after any dependency
+bump.
 
 ### The rewrite is scoped on purpose
 

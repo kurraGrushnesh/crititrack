@@ -1,0 +1,677 @@
+/*
+ * Reference-site styles: Explore, Profile, Compare, Methodology,
+ * Report a correction, Watchlist.
+ *
+ * Imported by globals.css. Uses the same tokens defined there -- the
+ * violet accent, the 14px radius, the dark surface stack. Nothing here
+ * introduces a second visual language; it extends the landing page's.
+ */
+
+/* -- Site nav -------------------------------------------------------- */
+
+.site-nav {
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(8px);
+}
+
+.site-nav-inner {
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.site-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text);
+  text-decoration: none;
+  flex: none;
+}
+
+.site-nav-brand svg {
+  width: 24px;
+  height: 24px;
+}
+
+.site-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  flex-wrap: nowrap;
+}
+
+.site-nav-links a {
+  color: var(--text-soft);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.site-nav-links a:hover {
+  color: var(--text);
+  background: var(--surface);
+}
+
+.site-nav-links a.nav-cta {
+  background: var(--brand-strong);
+  color: #fff;
+  margin-left: 8px;
+}
+
+.site-nav-links a.nav-cta:hover {
+  background: var(--brand-strong-hover);
+}
+
+@media (max-width: 720px) {
+  .site-nav-inner {
+    height: auto;
+    min-height: 64px;
+    flex-wrap: wrap;
+    padding: 10px 18px;
+    gap: 10px 16px;
+  }
+  .site-nav-links {
+    margin-left: 0;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* -- Page shell ---------------------------------------------------- */
+
+.page {
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding: 56px 24px 96px;
+}
+
+.page-narrow {
+  max-width: 760px;
+}
+
+.page-head {
+  margin-bottom: 40px;
+}
+
+.page-head h1 {
+  font-size: clamp(1.9rem, 1.3rem + 2.4vw, 2.7rem);
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+
+.page-head p {
+  color: var(--text-soft);
+  max-width: 68ch;
+  font-size: 1.03rem;
+}
+
+.breadcrumb {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+}
+
+.breadcrumb a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  color: var(--brand-ink);
+}
+
+.prose > * + * {
+  margin-top: 1rem;
+}
+
+.prose h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-top: 2.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.prose h3 {
+  font-size: 1.08rem;
+  font-weight: 700;
+  margin-top: 1.6rem;
+}
+
+.prose ul {
+  padding-left: 1.2rem;
+  color: var(--text-soft);
+}
+
+.prose li + li {
+  margin-top: 0.4rem;
+}
+
+.prose code {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 0.86em;
+}
+
+.prose a {
+  color: var(--brand-ink);
+}
+
+/* -- Disclaimer banner ------------------------------------------- */
+
+.disclaimer {
+  background: color-mix(in srgb, var(--mid) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--mid) 35%, var(--border));
+  border-left: 3px solid var(--mid);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 14px 18px;
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  margin-bottom: 28px;
+}
+
+.disclaimer strong {
+  color: var(--text);
+}
+
+/* -- Profile grid ---------------------------------------------------- */
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.profile-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+.profile-card .pc-name {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--text);
+}
+
+.profile-card .pc-role {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.profile-card .pc-metrics {
+  display: flex;
+  gap: 18px;
+  margin-top: 4px;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metric .m-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.metric .m-label {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* -- Controversy index gauge ----------------------------------------- */
+
+.index-panel {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 24px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+.gauge {
+  --gauge-size: 116px;
+  width: var(--gauge-size);
+  height: var(--gauge-size);
+  position: relative;
+  flex: none;
+}
+
+.gauge svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.gauge .g-track {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 10;
+}
+
+.gauge .g-fill {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+.gauge .g-value {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 1.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.index-panel .ip-label {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.index-panel .ip-meta {
+  font-size: 0.9rem;
+  color: var(--text-soft);
+}
+
+.index-panel .ip-note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+@media (max-width: 560px) {
+  .index-panel {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+}
+
+/* -- Controversy record card --------------------------------------- */
+
+.record {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+}
+
+.record + .record {
+  margin-top: 14px;
+}
+
+.record-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.record-top h3 {
+  font-size: 1.08rem;
+  font-weight: 700;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tag {
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+.tag-sev {
+  border-color: transparent;
+  color: #fff;
+}
+.tag-sev-1 {
+  background: #3f7d63;
+}
+.tag-sev-2 {
+  background: #4f7a45;
+}
+.tag-sev-3 {
+  background: #8a6d2f;
+}
+.tag-sev-4 {
+  background: #9a5433;
+}
+.tag-sev-5 {
+  background: #93382f;
+}
+
+.tag-status-ongoing {
+  border-color: color-mix(in srgb, var(--bad) 45%, var(--border));
+  color: var(--bad);
+}
+
+.record p {
+  color: var(--text-soft);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.record-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-top: 12px;
+  font-size: 0.84rem;
+}
+
+.record-sources .rs-label {
+  color: var(--text-muted);
+}
+
+.source-link {
+  color: var(--brand-ink);
+  text-decoration: none;
+}
+.source-link:hover {
+  text-decoration: underline;
+}
+.source-plain {
+  color: var(--text-soft);
+}
+
+.no-records {
+  background: var(--surface);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  padding: 28px;
+  text-align: center;
+  color: var(--text-soft);
+}
+
+/* -- Evidence list ------------------------------------------------- */
+
+.evidence-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.evidence-list li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.evidence-list .ev-source {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brand-ink);
+  font-weight: 700;
+  flex: none;
+  padding-top: 2px;
+  width: 62px;
+}
+
+.evidence-list .ev-frag {
+  color: var(--text-soft);
+  font-size: 0.94rem;
+}
+
+/* -- Sentiment trend sparkline ----------------------------------- */
+
+.trend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.trend svg {
+  overflow: visible;
+}
+
+.trend .t-current {
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.trend .t-dir {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* -- Compare ----------------------------------------------------- */
+
+.compare-pickers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.compare-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .compare-pickers,
+  .compare-cols {
+    grid-template-columns: 1fr;
+  }
+}
+
+select,
+input[type="text"],
+input[type="email"],
+input[type="url"],
+textarea {
+  width: 100%;
+  background: var(--bg-alt);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+
+textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+/* -- Forms ----------------------------------------------------------- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.field label {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.field .hint {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.field .err {
+  font-size: 0.84rem;
+  color: var(--bad);
+}
+
+.req {
+  color: var(--bad);
+  font-weight: 700;
+}
+
+.field-invalid input,
+.field-invalid textarea,
+.field-invalid select {
+  border-color: var(--bad);
+}
+
+.form-note {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.form-ok {
+  background: color-mix(in srgb, var(--good) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--good) 40%, var(--border));
+  border-radius: var(--radius);
+  padding: 20px;
+  color: var(--text-soft);
+}
+
+.form-ok strong {
+  color: var(--text);
+}
+
+/* -- Watchlist ------------------------------------------------------- */
+
+.watch-toggle {
+  background: none;
+  border: 1px solid var(--border-strong);
+  color: var(--text-soft);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 40px;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.watch-toggle[aria-pressed="true"] {
+  border-color: var(--brand);
+  color: var(--brand-ink);
+}
+
+.watch-toggle:hover {
+  border-color: var(--brand);
+}
+
+/* -- Detail rows --------------------------------------------------- */
+
+.detail-rows {
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+
+.detail-rows > div {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.94rem;
+}
+
+.detail-rows dt {
+  color: var(--text-muted);
+}
+
+.detail-rows dd {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+@media (max-width: 560px) {
+  .detail-rows > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+.section-gap {
+  margin-top: 44px;
+}
+
+.link-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  margin-top: 8px;
+}
