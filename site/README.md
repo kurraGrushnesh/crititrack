@@ -70,8 +70,12 @@ says so.
 See the "Web hosting" section of `docs/RELEASE.md`. In short:
 
 ```bash
-flutter build web --release --base-href /app/ --dart-define=DEMO_MODE=true
+flutter build web --release --base-href /app/ \
+  --dart-define=DEMO_MODE=true --no-web-resources-cdn
 (cd site && npm run build)
 node tool/assemble_hosting.js          # -> dist/
 npx firebase deploy --only hosting
 ```
+
+`--no-web-resources-cdn` keeps CanvasKit local so the `Content-Security-
+Policy` in `firebase.json` does not block it. See `docs/RELEASE.md`.
