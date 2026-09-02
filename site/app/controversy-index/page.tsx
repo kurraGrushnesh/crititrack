@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import SiteNav from "@/components/SiteNav";
+import PillNav from "@/components/PillNav";
 import SiteFooter from "@/components/SiteFooter";
 import ControversyIndexGauge from "@/components/ControversyIndexGauge";
 import { computeControversyIndex } from "@/lib/controversy-index";
@@ -46,7 +46,7 @@ export default function ControversyIndexPage() {
 
   return (
     <>
-      <SiteNav />
+      <PillNav />
       <main id="main" className="page page-narrow">
         <div className="page-head">
           <h1>The Controversy Index</h1>

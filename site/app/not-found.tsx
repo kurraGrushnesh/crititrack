@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import SiteNav from "@/components/SiteNav";
+import PillNav from "@/components/PillNav";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function NotFound() {
   return (
     <>
-      <SiteNav />
+      <PillNav />
       <main id="main" className="page page-narrow" tabIndex={-1}>
         <div className="page-head">
           <h1>That page does not exist</h1>

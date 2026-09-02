@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import SiteNav from "@/components/SiteNav";
+import PillNav from "@/components/PillNav";
 import SiteFooter from "@/components/SiteFooter";
 import CorrectionFormSection from "./CorrectionFormSection";
 
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function ReportCorrectionPage() {
   return (
     <>
-      <SiteNav />
+      <PillNav />
       <main id="main" className="page page-narrow">
         <div className="page-head">
           <h1>Report a correction</h1>

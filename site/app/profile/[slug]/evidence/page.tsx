@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import SiteNav from "@/components/SiteNav";
+import PillNav from "@/components/PillNav";
 import SiteFooter from "@/components/SiteFooter";
 import EvidenceList from "@/components/EvidenceList";
 import ControversyRecord from "@/components/ControversyRecord";
@@ -41,7 +41,7 @@ export default async function EvidencePage({
 
   return (
     <>
-      <SiteNav />
+      <PillNav />
       <main id="main" className="page page-narrow">
         <div className="breadcrumb">
           <Link href="/explore">Explore</Link>
