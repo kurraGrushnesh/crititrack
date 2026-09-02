@@ -19,6 +19,7 @@ import {
   FigureNotFound,
   FigureError,
 } from "@/components/FigureStates";
+import Button from "@/components/Button";
 import { computeControversyIndex, roundedScore } from "@/lib/controversy-index";
 import { useCelebrity } from "@/lib/use-celebrity";
 import type { RealProfile } from "@/lib/api";
@@ -43,9 +44,9 @@ function SearchPrompt() {
         sourced coverage — bio, Controversy Index, sentiment, evidence.
       </p>
       <p style={{ marginTop: 24 }}>
-        <Link href="/category/actors" className="pillnav-cta">
+        <Button href="/category/actors" variant="subtle">
           Browse by category
-        </Link>
+        </Button>
       </p>
     </div>
   );

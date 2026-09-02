@@ -8,6 +8,7 @@ import {
   type CleanCorrection,
 } from "@/lib/correction";
 import { DEMO_PROFILES } from "@/lib/demo-data";
+import Button from "./Button";
 
 /**
  * The report-a-correction form.
@@ -227,13 +228,9 @@ export default function CorrectionForm({
         </p>
       )}
 
-      <button
-        type="submit"
-        className="btn btn-primary"
-        disabled={status.kind === "submitting"}
-      >
-        {status.kind === "submitting" ? "Submitting" : "Submit report"}
-      </button>
+      <Button type="submit" disabled={status.kind === "submitting"}>
+        {status.kind === "submitting" ? "Submitting…" : "Submit report"}
+      </Button>
     </form>
   );
 }

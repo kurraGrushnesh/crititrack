@@ -387,19 +387,19 @@
   color: #fff;
 }
 .tag-sev-1 {
-  background: #2f6b52;
+  background: var(--sev-1);
 }
 .tag-sev-2 {
-  background: #446a3b;
+  background: var(--sev-2);
 }
 .tag-sev-3 {
-  background: #77591f;
+  background: var(--sev-3);
 }
 .tag-sev-4 {
-  background: #8c4326;
+  background: var(--sev-4);
 }
 .tag-sev-5 {
-  background: #8a2f26;
+  background: var(--sev-5);
 }
 
 .tag-status-ongoing {
