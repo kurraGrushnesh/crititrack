@@ -72,6 +72,22 @@ class _DashboardContent extends ConsumerWidget {
     final isWide = screenWidth >= AppConstants.mobileBreakpoint;
     final palette = context.palette;
 
+    return Stack(
+      children: [
+        // A single warm glow bleeding down from the top-right, matching
+        // the web hero. Static and behind everything, so it costs a
+        // paint and nothing else.
+        const Positioned.fill(child: _AmbientGlow()),
+        _dashboardScroll(context, isWide, palette),
+      ],
+    );
+  }
+
+  Widget _dashboardScroll(
+    BuildContext context,
+    bool isWide,
+    AppPalette palette,
+  ) {
     return CustomScrollView(
       slivers: [
         // ── SliverAppBar ────────────────────────────────────────
@@ -267,9 +283,37 @@ class _DashboardContent extends ConsumerWidget {
   }
 }
 
+// ── Ambient glow ────────────────────────────────────────────────
+// The warm radial wash behind the dashboard, echoing the web app's
+// hero. Purely decorative: ignores pointer events and does not animate.
+
+class _AmbientGlow extends StatelessWidget {
+  const _AmbientGlow();
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return IgnorePointer(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: const Alignment(0.9, -1.1),
+            radius: 1.1,
+            colors: [
+              AppTheme.primary.withValues(alpha: 0.16),
+              palette.background.withValues(alpha: 0),
+            ],
+            stops: const [0, 0.6],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ── SliverAppBar background ──────────────────────────────────────
 // A blurred, darkened portrait behind the app-bar title, falling back
-// to the violet gradient when there is no image.
+// to the brand gradient when there is no image.
 
 class _AppBarBackground extends StatelessWidget {
   const _AppBarBackground({this.imageUrl});
