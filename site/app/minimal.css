@@ -385,3 +385,83 @@ h3 {
   max-width: var(--wrap);
   margin: 0 auto;
 }
+
+/* ── Classification panel (schema-driven facets) ───────────────── */
+
+.classification {
+  display: grid;
+  gap: 40px;
+}
+
+.classification-group-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 16px;
+}
+
+.facet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px 32px;
+}
+
+.facet-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 10px;
+}
+
+.facet-tags {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.facet-text,
+.facet-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.facet-text li {
+  color: var(--text-soft);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.facet-links li {
+  font-size: 0.95rem;
+}
+
+.facet-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.facet-timeline li {
+  display: grid;
+  grid-template-columns: 3.2em 1fr;
+  gap: 10px;
+  font-size: 0.92rem;
+  color: var(--text-soft);
+  line-height: 1.4;
+}
+
+.facet-year {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  font-weight: 600;
+}
