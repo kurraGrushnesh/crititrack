@@ -187,10 +187,31 @@ answer every wrong URL with a `200` and tell crawlers the page exists.
 `/figure/` is the one client-rendered route and it is a real file too;
 the `?q=` is read on the client.
 
+### Verifying the data path without a browser
+
+`GET /getCelebrity` needs a Firebase ID token and an App Check token. You
+can mint both from a script and hit the real endpoint — no browser, no
+reCAPTCHA — using an App Check **debug token**:
+
+1. Firebase Console → App Check → Apps → the web app → ⋮ → Manage debug
+   tokens → add one, copy the UUID. It is a shared secret; delete it when
+   done.
+2. Anonymous ID token: `POST
+   https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=<API_KEY>`
+   with `{"returnSecureToken":true}` → `idToken`.
+3. App Check token: `POST
+   https://firebaseappcheck.googleapis.com/v1/projects/1042019566653/apps/1:1042019566653:web:e126a8504cec33a523d654:exchangeDebugToken?key=<API_KEY>`
+   with `{"debugToken":"<uuid>"}` → `token`.
+4. `GET https://crititrack-api.onrender.com/getCelebrity?name=<name>` with
+   `Authorization: Bearer <idToken>` and `X-Firebase-AppCheck: <token>`.
+
+The backend sleeps when idle, so the first call after a quiet spell takes
+20–40s; `/figure/` shows a "waking up" note during the wait.
+
 ### What still needs a person
 
-Nobody has yet confirmed a real search on the deployed site renders a
-real profile end to end — the sandbox can't reach `onrender.com`. Phase
-0.1 in `ROADMAP.md` is exactly that check. The backend sleeps when idle,
-so the first search after a quiet spell takes 20–30s; `/figure/` shows a
-"waking up" note during the wait.
+The terminal check above proves the data path. What it does not exercise
+is the actual `/figure/` page in a real browser — reCAPTCHA Enterprise is
+domain-locked to `crititrack-f7430.web.app`, so the full render + App
+Check attestation + all 8 roadmap searches still need a person on the
+deployed site.

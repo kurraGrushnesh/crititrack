@@ -13,6 +13,8 @@ import WatchButton from "@/components/WatchButton";
 import ConfidenceMeter, { confidenceLabel } from "@/components/ConfidenceMeter";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
 import StatTable from "@/components/StatTable";
+import ClassificationPanel from "@/components/ClassificationPanel";
+import { buildClassification } from "@/lib/classification";
 import { computeControversyIndex, roundedScore } from "@/lib/controversy-index";
 import { displayHost, parseSafeUrl } from "@/lib/safe-url";
 import { useCelebrity } from "@/lib/use-celebrity";
@@ -94,6 +96,10 @@ function ProfileView({ profile }: { profile: RealProfile }) {
     { label: "Instagram", value: profile.scoreInstagram },
   ];
   const fetched = new Date(profile.fetchedAt);
+  const hasClassification = useMemo(
+    () => buildClassification(profile).length > 0,
+    [profile],
+  );
 
   return (
     <main id="main" className="page-fade">
@@ -159,6 +165,27 @@ function ProfileView({ profile }: { profile: RealProfile }) {
             .
           </p>
         </div>
+      )}
+
+      {hasClassification && (
+        <>
+          <hr className="divider-rule" />
+          <section className="min-section">
+            <div className="head">
+              <h2>Classification</h2>
+              <span
+                style={{
+                  whiteSpace: "nowrap",
+                  fontSize: "0.9rem",
+                  color: "var(--text-muted)",
+                }}
+              >
+                from Wikidata
+              </span>
+            </div>
+            <ClassificationPanel profile={profile} />
+          </section>
+        </>
       )}
 
       <hr className="divider-rule" />
