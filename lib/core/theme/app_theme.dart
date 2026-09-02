@@ -345,6 +345,27 @@ abstract final class AppTheme {
         thickness: 1,
         space: 1,
       ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: palette.card,
+        indicatorColor: brand.withValues(alpha: isDark ? 0.24 : 0.16),
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            color: states.contains(WidgetState.selected)
+                ? palette.brandText
+                : palette.textMuted,
+          ),
+        ),
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) => textTheme.labelSmall!.copyWith(
+            color: states.contains(WidgetState.selected)
+                ? palette.textPrimary
+                : palette.textMuted,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: brand,
         linearTrackColor: palette.elevated,
