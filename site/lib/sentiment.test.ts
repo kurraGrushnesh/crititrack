@@ -4,6 +4,7 @@ import {
   sentimentColorVar,
   sentimentComposition,
   sentimentLabel,
+  confidenceExplainer,
 } from "./sentiment";
 
 describe("sentimentBand", () => {
@@ -30,6 +31,18 @@ describe("sentimentLabel", () => {
     expect(sentimentLabel(70)).toMatch(/positive/);
     expect(sentimentLabel(50)).toMatch(/mixed/);
     expect(sentimentLabel(20)).toMatch(/negative/);
+  });
+});
+
+describe("confidenceExplainer", () => {
+  it("gives a distinct gloss for each band", () => {
+    const high = confidenceExplainer(0.8);
+    const mid = confidenceExplainer(0.6);
+    const low = confidenceExplainer(0.3);
+    expect(high).not.toBe(mid);
+    expect(mid).not.toBe(low);
+    expect(low).toMatch(/rough direction/);
+    expect(high).toMatch(/face value/);
   });
 });
 

@@ -39,6 +39,21 @@ export function sentimentLabel(score: number): string {
 }
 
 /**
+ * A plain-language gloss on the confidence value, so "Low confidence"
+ * isn't a bare label. Confidence blends how much the per-source scores
+ * agreed with how much coverage was sampled.
+ */
+export function confidenceExplainer(confidence: number): string {
+  if (confidence >= 0.75) {
+    return "The news, YouTube and overall scores agree and the sample is healthy — take the number at face value.";
+  }
+  if (confidence >= 0.5) {
+    return "The per-source scores mostly line up. Read the number as a solid estimate.";
+  }
+  return "The per-source scores pull in different directions, or too few items were found. Read the number as a rough direction, not a precise figure.";
+}
+
+/**
  * The positive / neutral / negative make-up of a sample, as ordered
  * slices ready to draw. Order is fixed (positive, neutral, negative) so
  * the colour of a slice is redundant with its position — the donut and

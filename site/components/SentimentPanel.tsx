@@ -5,7 +5,11 @@ import SentimentDonut from "./SentimentDonut";
 import SentimentTrend from "./SentimentTrend";
 import { Stat, StatRow } from "./Stat";
 import type { RealProfile } from "@/lib/api";
-import { sentimentBand, sentimentColorVar } from "@/lib/sentiment";
+import {
+  sentimentBand,
+  sentimentColorVar,
+  confidenceExplainer,
+} from "@/lib/sentiment";
 import { formatCompact, shortDate } from "@/lib/attention";
 
 type Tab = "split" | "trend" | "mentions";
@@ -89,6 +93,9 @@ export default function SentimentPanel({
             )}
             {profile.sampleSize != null && ` from ${profile.sampleSize} items`}
           </div>
+          <p className="senti-confidence-note">
+            {confidenceExplainer(profile.confidence)}
+          </p>
           {hasRange && (
             <div
               className="senti-range"
