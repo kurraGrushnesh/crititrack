@@ -13,6 +13,7 @@ import SentimentPanel from "@/components/SentimentPanel";
 import AttentionChart from "@/components/AttentionChart";
 import StatTable from "@/components/StatTable";
 import MediaCoverage from "@/components/MediaCoverage";
+import BioSection from "@/components/BioSection";
 import { computeControversyIndex, roundedScore } from "@/lib/controversy-index";
 import { useCelebrity } from "@/lib/use-celebrity";
 import type { RealProfile } from "@/lib/api";
@@ -147,18 +148,13 @@ function ProfileView({ profile }: { profile: RealProfile }) {
         </div>
       </div>
 
-      {profile.summary && (
+      {(profile.summary || profile.notableWorks.length > 0) && (
         <div className="min-section" style={{ paddingTop: 8 }}>
-          <p style={{ color: "var(--text-soft)", maxWidth: "68ch" }}>
-            {profile.summary}
-          </p>
-          <p className="form-note" style={{ marginTop: 16 }}>
-            Compiled {fetched.toLocaleDateString()} from public coverage.{" "}
-            <Link href={`/report-correction?slug=${profile.slug}`}>
-              Report a correction
-            </Link>
-            .
-          </p>
+          <BioSection
+            profile={profile}
+            fetchedLabel={fetched.toLocaleDateString()}
+            correctionHref={`/report-correction?slug=${profile.slug}`}
+          />
         </div>
       )}
 
