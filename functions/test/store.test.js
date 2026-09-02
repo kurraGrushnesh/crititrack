@@ -3,7 +3,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const {todaySnapshot} = require("../lib/store");
+const {todaySnapshot, isCacheFresh} = require("../lib/store");
 
 const measured = {
   overallScore: 63.4,
@@ -85,4 +85,21 @@ test("survives an empty sentiment object", () => {
   assert.equal(s.score, 50);
   assert.equal(s.totalMentions, 0);
   assert.equal(s.measured, true);
+});
+
+test("isCacheFresh: within the window is fresh, past it is not", () => {
+  const now = Date.parse("2026-09-03T12:00:00Z");
+  const max = 6 * 60 * 60 * 1000;
+  assert.equal(isCacheFresh("2026-09-03T09:00:00Z", max, now), true);
+  assert.equal(isCacheFresh("2026-09-03T05:59:00Z", max, now), false);
+  assert.equal(isCacheFresh("2026-09-03T12:00:00Z", max, now), true);
+});
+
+test("isCacheFresh: a future stamp or an unparseable one is not fresh", () => {
+  const now = Date.parse("2026-09-03T12:00:00Z");
+  const max = 6 * 60 * 60 * 1000;
+  assert.equal(isCacheFresh("2026-09-03T13:00:00Z", max, now), false);
+  assert.equal(isCacheFresh("not a date", max, now), false);
+  assert.equal(isCacheFresh("", max, now), false);
+  assert.equal(isCacheFresh(undefined, max, now), false);
 });

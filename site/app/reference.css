@@ -633,6 +633,34 @@ textarea {
   border-color: var(--brand);
 }
 
+.watch-card {
+  position: relative;
+  display: grid;
+}
+
+.watch-remove {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    border-color 150ms ease;
+}
+
+.watch-remove:hover {
+  color: var(--bad);
+  border-color: var(--bad);
+}
+
 /* -- Detail rows --------------------------------------------------- */
 
 .detail-rows {

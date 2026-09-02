@@ -1,55 +1,51 @@
 "use client";
 
 import Link from "next/link";
-import { DEMO_PROFILES } from "@/lib/demo-data";
-import {
-  computeControversyIndex,
-  roundedScore,
-} from "@/lib/controversy-index";
-import { corroborated } from "@/lib/controversy";
-import { useWatchlist } from "./watchlist-store";
+import { demoProfileBySlug } from "@/lib/demo-data";
+import { useWatchlist, toggleWatch } from "./watchlist-store";
 
 /**
- * The device-local watchlist. Reads slugs from the external store and
- * shows the matching demo profiles with their current index and
- * sentiment. Nothing here touches the network.
+ * The device-local watchlist. Reads `{ slug, name }` entries from the
+ * external store. A real figure links to its live profile; one of the
+ * three illustrative composites links to its static page. Nothing here
+ * touches the network.
  */
 export default function WatchlistView() {
-  const slugs = useWatchlist();
-  const profiles = DEMO_PROFILES.filter((p) => slugs.includes(p.slug));
+  const entries = useWatchlist();
 
-  if (profiles.length === 0) {
+  if (entries.length === 0) {
     return (
       <p className="no-records">
-        Your watchlist is empty. Open a profile from{" "}
-        <Link href="/explore">Explore</Link> and choose &ldquo;Watch&rdquo;.
+        Your watchlist is empty. Open a profile and choose
+        &ldquo;Watch&rdquo; — it is stored only in this browser.
       </p>
     );
   }
 
   return (
-    <div className="profile-grid">
-      {profiles.map((p) => {
-        const index = computeControversyIndex(corroborated(p.controversies));
+    <div className="person-grid">
+      {entries.map((e) => {
+        const demo = demoProfileBySlug(e.slug);
+        const href = demo
+          ? `/profile/${e.slug}`
+          : `/figure/?q=${encodeURIComponent(e.name)}`;
         return (
-          <Link
-            key={p.slug}
-            href={`/profile/${p.slug}`}
-            className="profile-card"
-          >
-            <span className="pc-role">{p.profession}</span>
-            <span className="pc-name">{p.name}</span>
-            <div className="pc-metrics">
-              <span className="metric">
-                <span className="m-value">{roundedScore(index)}</span>
-                <span className="m-label">Index</span>
+          <div key={e.slug} className="watch-card">
+            <Link href={href} className="person-card">
+              <span className="pc-name">{e.name}</span>
+              <span className="pc-desc">
+                {demo ? `${demo.profession} · illustrative` : "Live profile"}
               </span>
-              <span className="metric">
-                <span className="m-value">{p.sentimentScore}</span>
-                <span className="m-label">Sentiment</span>
-              </span>
-            </div>
-          </Link>
+            </Link>
+            <button
+              type="button"
+              className="watch-remove"
+              onClick={() => toggleWatch(e.slug, e.name)}
+              aria-label={`Remove ${e.name} from watchlist`}
+            >
+              Remove
+            </button>
+          </div>
         );
       })}
     </div>
