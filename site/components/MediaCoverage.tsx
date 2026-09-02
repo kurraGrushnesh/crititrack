@@ -232,7 +232,7 @@ function VideoCard({ m }: { m: MediaLink }) {
           <ExtGlyph />
         </a>
         <div className="media-meta">
-          <span className="media-source">YouTube</span>
+          <span className="media-source">{m.channel ?? "YouTube"}</span>
           {when && <span className="media-when">· {when}</span>}
           <ScorePill m={m} />
         </div>

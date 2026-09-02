@@ -36,6 +36,8 @@ export interface MediaLink {
   url: string;
   source: string;
   type: string;
+  /** Channel name for a video; absent for articles. */
+  channel?: string;
   publishedAt?: string;
   description?: string;
   thumbnailUrl?: string;
@@ -235,6 +237,7 @@ function mapProfile(j: Json): RealProfile {
         url: str(m.url),
         source: str(m.source),
         type: str(m.type, "news"),
+        channel: str(m.channel) || undefined,
         publishedAt: str(m.publishedAt) || undefined,
         description: str(m.description) || undefined,
         thumbnailUrl: str(m.thumbnailUrl) || undefined,
