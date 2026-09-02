@@ -1,9 +1,14 @@
 # CritiTrack site
 
-The marketing and reference site. Next.js 16, statically exported
-(`output: "export"`), no server. Hosted at the root of the Firebase
-Hosting site; the Flutter web app is mounted under `/app/` by
-`tool/assemble_hosting.js`.
+The product. Next.js 16, statically exported (`output: "export"`), no
+server. It is the whole Firebase Hosting deploy.
+
+Most routes are static reference pages. `/figure/?q=<name>` is the live
+one: it initialises Firebase in the browser (anonymous auth + App Check
+via reCAPTCHA Enterprise, lazy-loaded) and calls the real `getCelebrity`
+backend, then renders the sourced profile — bio, Controversy Index,
+sentiment breakdown, evidence, coverage. The Flutter web build is no
+longer published; `/app/**` redirects here.
 
 ## Commands
 
@@ -26,8 +31,9 @@ files are cached under `.next/`. A build that fails only on
 ```
 app/
   page.tsx                    landing page (hero + globe)
+  figure/                     LIVE profile — ?q=<name>, calls the backend
   explore/                    grid of illustrative profiles
-  profile/[slug]/             one profile: index gauge, trend, records
+  profile/[slug]/             illustrative composite: index gauge, trend, records
   profile/[slug]/evidence/    the fragments and sources behind the numbers
   compare/                    two profiles, same scales
   methodology/                resolve / gather / score / gate / record
@@ -63,19 +69,15 @@ says so.
 
 | Variable | Used by | Effect |
 |---|---|---|
-| `NEXT_PUBLIC_API_BASE` | the correction form | When set, `POST {base}/report-correction` is called on submit. When unset (the static demo), the form validates the input and then says plainly that nothing was submitted. |
+| `NEXT_PUBLIC_API_BASE` | `lib/api.ts`, correction form | Backend origin. Defaults to `https://crititrack-api.onrender.com`. |
+| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` | `lib/firebase.ts` | App Check reCAPTCHA Enterprise site key. Has a baked-in default (it ships in every client anyway). |
 
 ## Deploy
 
 See the "Web hosting" section of `docs/RELEASE.md`. In short:
 
 ```bash
-flutter build web --release --base-href /app/ \
-  --dart-define=DEMO_MODE=true --no-web-resources-cdn
 (cd site && npm run build)
-node tool/assemble_hosting.js          # -> dist/
+node tool/assemble_hosting.js          # site/out -> dist/
 npx firebase deploy --only hosting
 ```
-
-`--no-web-resources-cdn` keeps CanvasKit local so the `Content-Security-
-Policy` in `firebase.json` does not block it. See `docs/RELEASE.md`.

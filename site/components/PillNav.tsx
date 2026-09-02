@@ -3,12 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 
-const APP = "/app/";
+const FIGURE = "/figure/";
 
 /**
  * The floating pill navigation. The search lives here — type a name and
- * it hands off to the real app — so the home page below can lead with the
- * headline and the categories instead of a search box.
+ * it opens that figure's live profile — so the home page below can lead
+ * with the headline and the categories instead of a search box.
  */
 export default function PillNav() {
   const [q, setQ] = useState("");
@@ -16,7 +16,9 @@ export default function PillNav() {
   function submit(e: React.FormEvent) {
     e.preventDefault();
     const term = q.trim();
-    window.location.href = term ? `${APP}?q=${encodeURIComponent(term)}` : APP;
+    window.location.href = term
+      ? `${FIGURE}?q=${encodeURIComponent(term)}`
+      : FIGURE;
   }
 
   return (
@@ -53,13 +55,14 @@ export default function PillNav() {
 
         <div className="pillnav-links">
           <Link href="/category/actors">Categories</Link>
+          <Link href="/compare">Compare</Link>
           <Link href="/methodology">Method</Link>
           <Link href="/about">About</Link>
         </div>
 
-        <a href={APP} className="pillnav-cta">
-          Open app
-        </a>
+        <Link href={FIGURE} className="pillnav-cta">
+          Search
+        </Link>
       </nav>
     </div>
   );
