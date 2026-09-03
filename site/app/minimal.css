@@ -211,6 +211,20 @@ h3 {
   display: block;
 }
 
+/* Static fill for phones and reduced-motion — same cream -> warm-orange
+   composition as the canvas (warmth pooled top-right), minus the WebGL
+   cost. The scrim below still fades it into the page background. */
+.hero-gradient[data-static="true"] {
+  background:
+    radial-gradient(
+      135% 110% at 82% 12%,
+      color-mix(in srgb, #d97757 62%, transparent) 0%,
+      color-mix(in srgb, #f0dac8 45%, transparent) 40%,
+      transparent 74%
+    ),
+    #faf7f2;
+}
+
 .hero-gradient-scrim {
   position: absolute;
   inset: 0;

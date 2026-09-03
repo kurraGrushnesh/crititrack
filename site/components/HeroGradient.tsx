@@ -27,22 +27,32 @@ const ShaderGradient = dynamic(
   { ssr: false, loading: () => null },
 );
 
-function usePrefersReducedMotion(): boolean {
-  const subscribe = useCallback((onChange: () => void) => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
+function useMediaQuery(query: string, serverValue: boolean): boolean {
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      const mq = window.matchMedia(query);
+      mq.addEventListener("change", onChange);
+      return () => mq.removeEventListener("change", onChange);
+    },
+    [query],
+  );
   return useSyncExternalStore(
     subscribe,
-    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    () => false,
+    () => window.matchMedia(query).matches,
+    () => serverValue,
   );
 }
 
 export default function HeroGradient({ speed = 0.35 }: { speed?: number }) {
   const [ready, setReady] = useState(false);
-  const reduced = usePrefersReducedMotion();
+  const reduced = useMediaQuery("(prefers-reduced-motion: reduce)", false);
+  // The WebGL canvas (three.js + r3f) is the most expensive thing on the
+  // page. On a phone it is not worth the frame budget — a static CSS
+  // wash carries the same cream -> orange look. `serverValue: false`
+  // matches what a fresh mobile visitor gets before hydration, so the
+  // static fill shows first and the canvas never mounts there.
+  const wide = useMediaQuery("(min-width: 768px)", false);
+  const showCanvas = wide && !reduced;
 
   useEffect(() => {
     // Wait until the browser is idle so the hero text and fonts land
@@ -69,8 +79,8 @@ export default function HeroGradient({ speed = 0.35 }: { speed?: number }) {
   }, []);
 
   return (
-    <div className="hero-gradient" aria-hidden="true">
-      {ready && (
+    <div className="hero-gradient" aria-hidden="true" data-static={!showCanvas}>
+      {ready && showCanvas && (
         <ShaderGradientCanvas
           style={{ position: "absolute", inset: 0 }}
           pixelDensity={1}
@@ -87,8 +97,8 @@ export default function HeroGradient({ speed = 0.35 }: { speed?: number }) {
             color1="#FAF7F2"
             color2="#F0DAC8"
             color3="#D97757"
-            animate={reduced ? "off" : "on"}
-            uSpeed={reduced ? 0 : speed}
+            animate="on"
+            uSpeed={speed}
             uStrength={1}
             uDensity={1}
             uFrequency={2}
