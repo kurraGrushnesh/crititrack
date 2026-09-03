@@ -220,6 +220,34 @@ h3 {
   );
 }
 
+/* Cursor-follow glow — one pointer-reactive flourish, behind the
+   headline. Layer only: no reflow, no click interception. */
+.cursor-glow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.cursor-glow-dot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 460px;
+  height: 460px;
+  margin: -230px 0 0 -230px;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 420ms ease;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--brand) 30%, transparent) 0%,
+    transparent 68%
+  );
+  filter: blur(28px);
+}
+
 /* No motion: the canvas is frozen by the component; the scrim can also
    stand alone as a soft static wash. */
 @media (prefers-reduced-motion: reduce) {

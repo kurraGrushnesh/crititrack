@@ -82,24 +82,25 @@ Done so far:
 | 3.5 | **Dark theme + Light/Dark/System toggle**. | Done — `lib/theme.ts`, `ThemeToggle`. |
 | 3.6 | **Sentiment section, carded + tabbed** — stat cards, source-breakdown cards, Split / Trend / Daily-mentions tabs, collapsible evidence, generated-analysis callout. | Done — `SentimentPanel`. |
 
-Queued (one per day, theme-aware):
+| 3.7 | **Media as cards** — news + YouTube as 16:9 thumbnail-led cards, per-item sentiment score, All / News / Videos tabs. | Done — `MediaCoverage` / `MediaCard`. |
+| 3.8 | **Bio inline** — summary + background paragraphs + notable-work tags, no "Read more". | Done — `BioSection`. |
+| 3.9 | **Stat tile** — one `Stat` / `StatRow` for every KPI number. | Done — `Stat`. |
+| 3.10 | **Loading / not-found / error** — shape-matched skeleton, designed empty/error states, image fallbacks. | Done — `FigureStates`, `Skeleton`. |
+| 3.11 | **Button primitive + severity tokens** — one `Button`, `.tag-sev-*` off raw hex. | Done — `Button`. |
 
-| # | Feature | Done when |
-|---|---|---|
-| 3.7 | **Media as horizontal cards** — news + YouTube as medium cards with thumbnail, source, time, per-item sentiment badge; All / News / Videos tabs. | Coverage reads like the reference; adapts at 375px. |
-| 3.8 | **Bio sections** — expandable background / recent works from `biography` (Groq-written, not Wikidata). | Bio is browsable without a wall of text. |
-| 3.9 | **Stats / info sections** unified — index gauge, score breakdown, confidence meter, one system. | Consistent everywhere a score appears. |
-| 3.10 | **Loading / skeleton, empty, error** states for every async surface. | No blank flashes, no raw spinners. |
-| 3.11 | **Badges / inputs / buttons** — last primitives into the token system. | Component library complete. |
+Also shipped from feedback: watchlist keeps real figures; a 6h backend
+payload cache (`~20s → ~2s` on a repeat); a confidence explainer line.
 
 ---
 
-## Phase 4 — Motion (2 days)
+## Phase 4 — Motion
 
-| Day | Feature | Done when |
+| Day | Feature | Status |
 |---|---|---|
-| 4.1 | **Cursor-tracking object** around the "add person" / search area: lerped, `transform: translate3d`, driven by `requestAnimationFrame`, no reflow, pauses when the tab is hidden and under `prefers-reduced-motion`. Subtle. | It follows the cursor smoothly at 60fps and adds nothing to layout cost. |
-| 4.2 | **Hero background** — pick one of the four in `feature/hero-variants` (`?hero=a/b/c/d`), or none. Whatever's chosen must not drop frames on a mid phone. | One hero treatment, measured, with a static fallback. |
+| 4.0 | Hero load-in entrance (anime.js, staggered, reduced-motion safe). | Done — `HeroReveal`. |
+| 4.0 | Section reveals on `/figure` (IntersectionObserver, `translate3d`, one-shot). | Done — `Reveal`. |
+| 4.1 | **Cursor-follow glow** in the hero: lerped toward the pointer, `translate3d` on a `pointer-events: none` layer, rAF loop that self-terminates, pauses on tab-hidden, skipped under `prefers-reduced-motion` and on coarse pointers. | Done — `CursorGlow`. |
+| 4.2 | **Hero background** — keep the ShaderGradient or pick one of the four in `feature/hero-variants`. Must not drop frames on a mid phone. | Open. |
 
 ---
 

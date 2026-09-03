@@ -7,6 +7,7 @@ import PersonCard from "@/components/PersonCard";
 import Reveal from "@/components/Reveal";
 import HeroGradient from "@/components/HeroGradient";
 import HeroReveal from "@/components/HeroReveal";
+import CursorGlow from "@/components/CursorGlow";
 import { CATEGORIES, topTen } from "@/lib/catalog";
 import { DEMO_PROFILES } from "@/lib/demo-data";
 import { corroborated } from "@/lib/controversy";
@@ -35,6 +36,7 @@ export default function Home() {
       <main id="main">
         <div className="display-hero-band">
           <HeroGradient speed={0.35} />
+          <CursorGlow />
           <header className="display-hero">
             <HeroReveal>
               <p className="eyebrow">
