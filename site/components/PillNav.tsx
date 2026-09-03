@@ -56,6 +56,7 @@ export default function PillNav() {
 
         <div className="pillnav-links">
           <Link href="/category/actors">Categories</Link>
+          <Link href="/shelf">Shelf</Link>
           <Link href="/compare">Compare</Link>
           <Link href="/methodology">Method</Link>
           <Link href="/about">About</Link>
