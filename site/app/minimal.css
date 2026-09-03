@@ -1306,21 +1306,67 @@ h3 {
 .shelf-head {
   max-width: var(--wrap);
   margin: 0 auto;
-  padding: 56px 24px 28px;
+  padding: 56px 24px 30px;
+}
+
+.shelf-head-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.shelf-head-title {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.shelf-head-meta {
+  margin: 0;
+  display: flex;
+  gap: 16px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.shelf-head-meta span {
+  color: var(--brand-ink);
 }
 
 .shelf-head h1 {
-  font-size: clamp(2rem, 1.2rem + 3vw, 3.4rem);
+  font-size: clamp(2.2rem, 1.2rem + 3.4vw, 3.8rem);
   font-weight: 800;
-  margin: 0 0 14px;
-  max-width: 20ch;
+  line-height: 1.02;
+  margin: 26px 0 16px;
+  max-width: 18ch;
   overflow-wrap: break-word;
 }
 
-.shelf-head p {
+.shelf-head-lede {
   margin: 0;
   color: var(--text-soft);
-  max-width: 60ch;
+  max-width: 62ch;
+  font-size: 1.02rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 560px) {
+  .shelf-head-top {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .shelf-head-meta {
+    flex-wrap: wrap;
+    gap: 8px 14px;
+  }
 }
 
 .shelf-stage {
