@@ -100,7 +100,7 @@ payload cache (`~20s → ~2s` on a repeat); a confidence explainer line.
 | 4.0 | Hero load-in entrance (anime.js, staggered, reduced-motion safe). | Done — `HeroReveal`. |
 | 4.0 | Section reveals on `/figure` (IntersectionObserver, `translate3d`, one-shot). | Done — `Reveal`. |
 | 4.1 | **Cursor-follow glow** in the hero: lerped toward the pointer, `translate3d` on a `pointer-events: none` layer, rAF loop that self-terminates, pauses on tab-hidden, skipped under `prefers-reduced-motion` and on coarse pointers. | Done — `CursorGlow`. |
-| 4.2 | **Hero background** — keep the ShaderGradient or pick one of the four in `feature/hero-variants`. Must not drop frames on a mid phone. | Open. |
+| 4.2 | **Hero background** — kept the ShaderGradient, gated it to `min-width: 768px` and not reduced-motion. Phones and reduced-motion get a static CSS wash in the same cream → orange composition; the WebGL canvas never mounts there. | Done — `HeroGradient`. |
 
 ---
 
