@@ -184,6 +184,18 @@
   box-sizing: border-box;
 }
 
+/* Nothing on any page should be able to push a horizontal scrollbar. */
+html,
+body {
+  overflow-x: clip;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
+}
+
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;

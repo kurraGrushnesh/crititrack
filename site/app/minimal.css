@@ -173,7 +173,10 @@ h3 {
     display: none;
   }
   .theme-toggle {
-    padding: 8px;
+    padding: 10px;
+    min-height: 40px;
+    min-width: 40px;
+    justify-content: center;
   }
 }
 
@@ -275,6 +278,7 @@ h3 {
   line-height: 0.98;
   margin: 0 0 20px;
   max-width: 14ch;
+  overflow-wrap: break-word;
 }
 
 .display-hero .sub {
@@ -306,10 +310,12 @@ h3 {
 }
 
 .profile-head h1 {
-  font-size: clamp(2.6rem, 1rem + 7vw, 6.5rem);
+  font-size: clamp(2.4rem, 1rem + 6vw, 6.5rem);
   font-weight: 800;
   line-height: 0.92;
   margin: 0;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .profile-head .subtitle {
@@ -387,6 +393,21 @@ h3 {
   }
   .portrait-frame {
     max-width: 360px;
+  }
+}
+
+/* The four-cell ledger (demo profile pages) folds to 2x2 on a phone —
+   "Very low" in an 80px cell was clipping. */
+@media (max-width: 560px) {
+  .stat-table-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .stat-table-row .stat-cell:nth-child(3) {
+    border-left: 0;
+  }
+  .stat-table-row .stat-cell:nth-child(3),
+  .stat-table-row .stat-cell:nth-child(4) {
+    border-top: 1px solid var(--border-strong);
   }
 }
 
@@ -894,7 +915,8 @@ h3 {
 
 .senti-tabs {
   display: flex;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 2px 4px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -906,7 +928,8 @@ h3 {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-muted);
-  padding: 10px 14px;
+  padding: 12px 14px;
+  min-height: 44px;
   cursor: pointer;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
@@ -1009,10 +1032,12 @@ h3 {
   gap: 10px;
   height: 160px;
   padding-top: 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
 }
 
 .mention-bar {
-  flex: 1 1 0;
+  flex: 1 0 40px;
   max-width: 64px;
   height: 100%;
   display: flex;
@@ -1070,7 +1095,8 @@ h3 {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-soft);
-  padding: 6px 12px;
+  padding: 8px 14px;
+  min-height: 40px;
   border-radius: 999px;
   cursor: pointer;
   transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease;
