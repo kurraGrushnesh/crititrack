@@ -67,6 +67,12 @@ export const metadata: Metadata = {
   // Relative, so each page resolves its own canonical against
   // metadataBase and its path rather than all pointing at the root.
   alternates: { canonical: "./" },
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "CritiTrack",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {
