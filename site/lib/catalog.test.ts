@@ -4,6 +4,7 @@ import {
   CATEGORY_SLUGS,
   ROSTER,
   categoryBySlug,
+  catalogueProfession,
   decadeOf,
   figureByName,
   figureSlug,
@@ -61,6 +62,19 @@ describe("roster", () => {
       expect(rosterFor(s).length).toBeGreaterThanOrEqual(10);
       expect(topTen(s)).toHaveLength(10);
     }
+  });
+});
+
+describe("catalogueProfession", () => {
+  it("resolves every roster entry onto the global taxonomy", () => {
+    const unresolved = ROSTER.filter((r) => catalogueProfession(r) === null);
+    expect(unresolved.map((r) => `${r.name} — ${r.descriptor}`)).toEqual([]);
+  });
+
+  it("returns a sector + industry + canonical label", () => {
+    const p = catalogueProfession(ROSTER.find((r) => r.name === "Virat Kohli")!);
+    expect(p?.label).toBe("Cricketer");
+    expect(p?.sector).toBe("Sports & Athletics");
   });
 });
 

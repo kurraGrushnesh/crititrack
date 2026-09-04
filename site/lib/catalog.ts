@@ -16,6 +16,8 @@
  * controversy — every surface that shows it says so.
  */
 
+import { resolveCatalogueOccupation } from "./professional-identity";
+
 export interface Category {
   slug: string;
   label: string;
@@ -346,6 +348,45 @@ export const ROSTER: RosterEntry[] = [
 
 export function categoryBySlug(slug: string): Category | undefined {
   return CATEGORIES.find((c) => c.slug === slug);
+}
+
+/**
+ * Resolves a roster entry onto the global taxonomy from its neutral
+ * `descriptor` (a verified fact this file already carries — e.g. "Indian
+ * javelin thrower"). Returns null rather than guessing when the
+ * descriptor does not map. The six legacy `category` slugs are used only
+ * as a last-resort hint.
+ */
+export function catalogueProfession(entry: RosterEntry): {
+  label: string;
+  sector: string;
+  industry: string;
+} | null {
+  const direct = resolveCatalogueOccupation(entry.descriptor);
+  if (direct) {
+    return {
+      label: direct.label,
+      sector: direct.path.sector,
+      industry: direct.path.industry,
+    };
+  }
+  const CATEGORY_HINT: Record<string, string> = {
+    actors: "actor",
+    politicians: "politician",
+    athletes: "athlete",
+    musicians: "musician",
+    business: "entrepreneur",
+    creators: "content creator",
+  };
+  const hint = CATEGORY_HINT[entry.category];
+  const viaHint = hint ? resolveCatalogueOccupation(hint) : null;
+  return viaHint
+    ? {
+        label: viaHint.label,
+        sector: viaHint.path.sector,
+        industry: viaHint.path.industry,
+      }
+    : null;
 }
 
 export function rosterFor(slug: string): RosterEntry[] {

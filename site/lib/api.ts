@@ -18,6 +18,10 @@ import {
   type Controversy,
 } from "./controversy";
 import { buildTimeline, type TimelineEvent } from "./timeline";
+import {
+  buildProfessionalIdentity,
+  type ProfessionalIdentity,
+} from "./professional-identity";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE ?? "https://crititrack-api.onrender.com";
@@ -188,6 +192,7 @@ export interface RealProfile {
   attention: Attention | null;
   timeline: TimelineEvent[];
   accounts: ProfileAccount[];
+  professional: ProfessionalIdentity;
   candidates: { name: string; description?: string; qid?: string }[];
 }
 
@@ -337,6 +342,10 @@ function mapProfile(j: Json): RealProfile {
     attention: mapAttention(j.attention),
     timeline: buildTimeline(j.timeline, trend),
     accounts: mapAccounts(obj(entity.facts).links),
+    professional: buildProfessionalIdentity({
+      occupations: strs(obj(entity.facts).occupations),
+      professionText: str(bio.profession),
+    }),
     candidates: list(entity.candidates).map((c) => ({
       name: str(c.name) || str(c.label),
       description: str(c.description) || undefined,

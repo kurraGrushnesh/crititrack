@@ -352,6 +352,71 @@
   margin-bottom: 20px;
 }
 
+/* ── Professional Identity ─────────────────────────────────────── */
+
+.prof-identity {
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding: 20px 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.prof-heading {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 0 0 2px;
+}
+.prof-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+.prof-row-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  padding-top: 4px;
+}
+.prof-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.prof-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.prof-chip.is-primary {
+  background: var(--brand-strong);
+  border-color: var(--brand-strong);
+  color: #fff;
+}
+.prof-chip.is-role {
+  border-style: dashed;
+  font-weight: 500;
+}
+.prof-chip.is-muted {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+@media (max-width: 560px) {
+  .prof-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
 /* ── Profile account links ─────────────────────────────────────── */
 
 /* A slim full-width strip between the profile header and the bio, so it

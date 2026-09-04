@@ -15,6 +15,7 @@ import SentimentPanel from "@/components/SentimentPanel";
 import AttentionChart from "@/components/AttentionChart";
 import FigureTimeline from "@/components/FigureTimeline";
 import ProfileLinks from "@/components/ProfileLinks";
+import ProfessionalIdentity from "@/components/ProfessionalIdentity";
 import { Stat, StatRow } from "@/components/Stat";
 import MediaCoverage from "@/components/MediaCoverage";
 import BioSection from "@/components/BioSection";
@@ -168,6 +169,8 @@ function ProfileView({
           <ProfileLinks accounts={profile.accounts} />
         </div>
       )}
+
+      <ProfessionalIdentity identity={profile.professional} />
 
       {(profile.summary || profile.notableWorks.length > 0) && (
         <div className="min-section" id="summary" style={{ paddingTop: 8 }}>
