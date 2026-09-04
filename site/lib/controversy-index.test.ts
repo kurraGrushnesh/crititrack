@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { computeControversyIndex } from "./controversy-index";
+import {
+  computeControversyIndex,
+  explainControversyIndex,
+} from "./controversy-index";
 import type { Controversy } from "./controversy";
 import { parseControversy } from "./controversy";
 
@@ -154,6 +157,38 @@ describe("parity fixture (must match the Dart suite's expectations)", () => {
     expect(r.ongoingCount).toBe(1);
     expect(r.total).toBe(3);
     expect(r.label).toBe("Highly controversial");
+  });
+});
+
+describe("explainControversyIndex", () => {
+  it("row points sum to the score and rows are ordered by contribution", () => {
+    const items = [
+      c({ title: "Big", severity: 5, year: 2025, status: "ongoing" }),
+      c({ title: "Small", severity: 2, year: 2010, status: "historical" }),
+    ];
+    const ex = explainControversyIndex(items, 2026);
+    const sum = ex.rows.reduce((t, r) => t + r.points, 0);
+    expect(sum).toBeCloseTo(ex.score, 6);
+    expect(ex.rows[0].title).toBe("Big");
+    expect(ex.rows[0].ongoingFactor).toBe(1.25);
+  });
+
+  it("breaks an episode into severity, recency and ongoing factors", () => {
+    const [row] = explainControversyIndex(
+      [c({ severity: 3, year: 2018, status: "historical" })],
+      2026,
+    ).rows;
+    expect(row.severityBase).toBeCloseTo(0.6, 6);
+    // age 8 -> 1 - (8-2)*0.06 = 0.64
+    expect(row.recencyFactor).toBeCloseTo(0.64, 6);
+    expect(row.ongoingFactor).toBe(1);
+    expect(row.weight).toBeCloseTo(0.6 * 0.64, 6);
+  });
+
+  it("is empty and zero for no controversies", () => {
+    const ex = explainControversyIndex([], 2026);
+    expect(ex.score).toBe(0);
+    expect(ex.rows).toEqual([]);
   });
 });
 

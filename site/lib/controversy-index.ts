@@ -62,23 +62,7 @@ export function computeControversyIndex(
 
   let weighted = 0;
   for (const c of items) {
-    // Severity 1..5 -> 0.2..1.0
-    let w = c.severity / 5;
-
-    // Recency: <=2y old keeps full weight, then decays to a 0.4 floor.
-    if (c.year != null) {
-      const age = clamp(year - c.year, 0, 40);
-      if (age > 2) {
-        w *= clamp(1 - (age - 2) * 0.06, 0.4, 1);
-      }
-    } else {
-      w *= 0.7; // unknown date -> mild discount
-    }
-
-    // Unresolved episodes carry more weight.
-    if (isOngoing(c)) w *= 1.25;
-
-    weighted += w;
+    weighted += episodeContribution(c, year).weight;
   }
 
   // Diminishing-returns curve: one severe recent episode ~= 50, several
@@ -94,6 +78,114 @@ export function computeControversyIndex(
     ongoingCount: ongoing,
     peakSeverity: peak,
     total: items.length,
+  };
+}
+
+/**
+ * How one episode contributes to the pre-curve weighted sum, broken into
+ * its factors. This is the single source of truth for the per-item
+ * weight — {@link computeControversyIndex} sums `weight` and
+ * {@link explainControversyIndex} shows the parts.
+ */
+export interface EpisodeContribution {
+  /** 0.2..1.0 — severity / 5. */
+  severityBase: number;
+  /** 0.4..1.0 for a dated episode; 0.7 for an undated one. */
+  recencyFactor: number;
+  /** 1.25 when unresolved, else 1.0. */
+  ongoingFactor: number;
+  /** severityBase * recencyFactor * ongoingFactor. */
+  weight: number;
+}
+
+export function episodeContribution(
+  c: Controversy,
+  year: number,
+): EpisodeContribution {
+  const severityBase = c.severity / 5;
+
+  let recencyFactor = 1;
+  if (c.year != null) {
+    const age = clamp(year - c.year, 0, 40);
+    if (age > 2) recencyFactor = clamp(1 - (age - 2) * 0.06, 0.4, 1);
+  } else {
+    recencyFactor = 0.7;
+  }
+
+  const ongoingFactor = isOngoing(c) ? 1.25 : 1;
+
+  return {
+    severityBase,
+    recencyFactor,
+    ongoingFactor,
+    weight: severityBase * recencyFactor * ongoingFactor,
+  };
+}
+
+export interface IndexExplanationRow extends EpisodeContribution {
+  title: string;
+  year: number | null;
+  severity: number;
+  ongoing: boolean;
+  /** This episode's share of the final score, in points. */
+  points: number;
+}
+
+export interface IndexExplanation {
+  score: number;
+  label: string;
+  /** Sum of every episode's pre-curve weight. */
+  totalWeight: number;
+  /** Plain-language description of the compression curve. */
+  curve: string;
+  rows: IndexExplanationRow[];
+}
+
+/**
+ * The same computation as {@link computeControversyIndex}, but returning
+ * the per-episode arithmetic behind the number so a UI can show "why".
+ *
+ * `points` attributes the final (post-curve) score across episodes in
+ * proportion to their pre-curve weight, so the rows sum to the score and
+ * a reader can see which episode drove it.
+ */
+export function explainControversyIndex(
+  items: Controversy[],
+  currentYear?: number,
+): IndexExplanation {
+  const index = computeControversyIndex(items, currentYear);
+  const year = currentYear ?? new Date().getFullYear();
+
+  const contributions = items.map((c) => ({
+    c,
+    contribution: episodeContribution(c, year),
+  }));
+  const totalWeight = contributions.reduce(
+    (t, x) => t + x.contribution.weight,
+    0,
+  );
+
+  const rows: IndexExplanationRow[] = contributions.map(({ c, contribution }) => ({
+    ...contribution,
+    title: c.title,
+    year: c.year ?? null,
+    severity: c.severity,
+    ongoing: isOngoing(c),
+    points:
+      totalWeight > 0 ? (contribution.weight / totalWeight) * index.score : 0,
+  }));
+
+  rows.sort((a, b) => b.points - a.points);
+
+  return {
+    score: index.score,
+    label: index.label,
+    totalWeight,
+    curve:
+      "Weights are summed, then compressed by 100 · (1 − 1 / (1 + sum)): " +
+      "one severe recent episode lands near 50, and more episodes push " +
+      "toward but never reach 100.",
+    rows,
   };
 }
 
