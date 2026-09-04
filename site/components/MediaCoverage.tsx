@@ -1,7 +1,13 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
-import type { MediaLink } from "@/lib/api";
+import {
+  filterMediaByTopic,
+  topicsPresent,
+  type MediaLink,
+  type MediaTopic,
+} from "@/lib/api";
+import { searchCoverage } from "@/lib/coverage-search";
 import { relativeTime, latestOf } from "@/lib/time";
 import { parseSafeUrl, displayHost } from "@/lib/safe-url";
 import { sentimentColorVar } from "@/lib/sentiment";
@@ -54,13 +60,16 @@ function VideoGlyph() {
 
 export default function MediaCoverage({ items }: { items: MediaLink[] }) {
   const [filter, setFilter] = useState<Filter>("all");
+  const [topic, setTopic] = useState<MediaTopic | "all">("all");
+  const [query, setQuery] = useState("");
 
-  const { news, videos, latest } = useMemo(() => {
+  const { news, videos, latest, topics } = useMemo(() => {
     const v = items.filter(isVideo);
     return {
       news: items.filter((m) => !isVideo(m)),
       videos: v,
       latest: latestOf(items.map((m) => m.publishedAt)),
+      topics: topicsPresent(items),
     };
   }, [items]);
 
@@ -74,8 +83,9 @@ export default function MediaCoverage({ items }: { items: MediaLink[] }) {
     ] satisfies { key: Filter; label: string; n: number }[]
   ).filter((t) => t.n > 0);
 
-  const shown =
+  const byType =
     filter === "news" ? news : filter === "video" ? videos : items;
+  const shown = searchCoverage(filterMediaByTopic(byType, topic), query);
 
   const summary = [
     news.length > 0 && plural(news.length, "article"),
@@ -106,11 +116,67 @@ export default function MediaCoverage({ items }: { items: MediaLink[] }) {
         </div>
       )}
 
-      <ul className="media-list">
-        {shown.map((m) => (
-          <MediaCard key={m.id} m={m} />
-        ))}
-      </ul>
+      <div className="media-controls">
+        <label className="media-search">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle
+              cx="11"
+              cy="11"
+              r="7"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+            <path
+              d="m20 20-3.5-3.5"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search this coverage…"
+            aria-label="Search this figure's coverage"
+          />
+        </label>
+
+        {topics.length > 1 && (
+          <div className="topic-filter" role="group" aria-label="Filter by topic">
+            <button
+              type="button"
+              className={`topic-chip${topic === "all" ? " is-active" : ""}`}
+              onClick={() => setTopic("all")}
+            >
+              all topics
+            </button>
+            {topics.map((t) => (
+              <button
+                key={t}
+                type="button"
+                className={`topic-chip${topic === t ? " is-active" : ""}`}
+                onClick={() => setTopic(t)}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {shown.length === 0 ? (
+        <p className="media-empty">
+          No coverage matches{query ? ` “${query}”` : ""}
+          {topic !== "all" ? ` in ${topic}` : ""}.
+        </p>
+      ) : (
+        <ul className="media-list">
+          {shown.map((m) => (
+            <MediaCard key={m.id} m={m} />
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -229,6 +295,17 @@ function MediaCard({ m }: { m: MediaLink }) {
           <span className="media-source">{source}</span>
           {when && <span className="media-when">· {when}</span>}
           <ScorePill m={m} />
+          {m.archiveUrl && (
+            <a
+              className="media-archive"
+              href={m.archiveUrl}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              title="Open an archived snapshot (Wayback Machine), in case the original is gone"
+            >
+              · archived
+            </a>
+          )}
         </div>
       </div>
     </li>

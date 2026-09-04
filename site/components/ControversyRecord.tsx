@@ -1,4 +1,5 @@
 import type { Controversy } from "@/lib/controversy";
+import { controversyAnchor } from "@/lib/deep-link";
 import SourceLink from "./SourceLink";
 
 const STATUS_LABEL: Record<Controversy["status"], string> = {
@@ -15,7 +16,7 @@ const STATUS_LABEL: Record<Controversy["status"], string> = {
  */
 export default function ControversyRecord({ item }: { item: Controversy }) {
   return (
-    <article className="record">
+    <article className="record" id={controversyAnchor(item.title)}>
       <div className="record-top">
         <h3>{item.title}</h3>
         <span className={`tag tag-sev tag-sev-${item.severity}`}>

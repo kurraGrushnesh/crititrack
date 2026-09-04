@@ -1,16 +1,19 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import PillNav from "@/components/PillNav";
 import SiteFooter from "@/components/SiteFooter";
 import ControversyIndexGauge from "@/components/ControversyIndexGauge";
+import IndexExplanation from "@/components/IndexExplanation";
 import ControversyRecord from "@/components/ControversyRecord";
 import WatchButton from "@/components/WatchButton";
 import { confidenceLabel } from "@/components/ConfidenceMeter";
+import ConfidenceBadge from "@/components/ConfidenceBadge";
 import SentimentPanel from "@/components/SentimentPanel";
 import AttentionChart from "@/components/AttentionChart";
+import FigureTimeline from "@/components/FigureTimeline";
 import { Stat, StatRow } from "@/components/Stat";
 import MediaCoverage from "@/components/MediaCoverage";
 import BioSection from "@/components/BioSection";
@@ -22,6 +25,9 @@ import {
 import Button from "@/components/Button";
 import Reveal from "@/components/Reveal";
 import { computeControversyIndex, roundedScore } from "@/lib/controversy-index";
+import { sentimentConfidence } from "@/lib/confidence";
+import { parseProfileHash } from "@/lib/deep-link";
+import { relativeTime } from "@/lib/time";
 import { useCelebrity } from "@/lib/use-celebrity";
 import type { RealProfile } from "@/lib/api";
 
@@ -54,11 +60,32 @@ function SearchPrompt() {
 }
 
 
-function ProfileView({ profile }: { profile: RealProfile }) {
+function ProfileView({
+  profile,
+  cachedAt,
+}: {
+  profile: RealProfile;
+  cachedAt?: number;
+}) {
   const index = useMemo(
     () => computeControversyIndex(profile.controversies),
     [profile.controversies],
   );
+
+  // Deep links: after the profile renders, jump to the section,
+  // controversy anchor or timeline day named in the URL fragment.
+  useEffect(() => {
+    const parsed = parseProfileHash(window.location.hash);
+    const id =
+      parsed.section ??
+      parsed.controversyAnchor ??
+      (parsed.eventDate ? `event-${parsed.eventDate}` : null);
+    if (!id) return;
+    const t = window.setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    }, 120);
+    return () => window.clearTimeout(t);
+  }, [profile.slug]);
   const kept = profile.controversies;
   const fetched = new Date(profile.fetchedAt);
   const sentimentCounts = useMemo(() => {
@@ -73,8 +100,20 @@ function ProfileView({ profile }: { profile: RealProfile }) {
     };
   }, [profile]);
 
+  const sentimentBadge = sentimentConfidence(profile.confidence ?? NaN);
+
   return (
     <main id="main" className="page-fade figure-main">
+      {cachedAt != null && (
+        <div className="cached-notice" role="status">
+          <span aria-hidden="true">⚑</span>
+          <span>
+            Showing a copy saved {relativeTime(new Date(cachedAt).toISOString())}
+            . The backend could not be reached, so this is not live — reload
+            when you are back online.
+          </span>
+        </div>
+      )}
       <div className="profile-head">
         <div>
           <div className="breadcrumb">
@@ -124,7 +163,7 @@ function ProfileView({ profile }: { profile: RealProfile }) {
       </div>
 
       {(profile.summary || profile.notableWorks.length > 0) && (
-        <div className="min-section" style={{ paddingTop: 8 }}>
+        <div className="min-section" id="summary" style={{ paddingTop: 8 }}>
           <BioSection
             profile={profile}
             fetchedLabel={fetched.toLocaleDateString()}
@@ -141,23 +180,44 @@ function ProfileView({ profile }: { profile: RealProfile }) {
             <Link href="/controversy-index">How it is calculated</Link>
           </div>
           <ControversyIndexGauge index={index} />
+          <IndexExplanation controversies={profile.controversies} />
         </section>
       </Reveal>
 
       <Reveal>
         <hr className="divider-rule" />
-        <section className="min-section">
+        <section className="min-section" id="sentiment">
           <div className="head">
             <h2>Sentiment analysis</h2>
+            {profile.confidence != null && (
+              <ConfidenceBadge badge={sentimentBadge} />
+            )}
           </div>
           <SentimentPanel profile={profile} counts={sentimentCounts} />
         </section>
       </Reveal>
 
+      {profile.timeline.length > 0 && (
+        <Reveal>
+          <hr className="divider-rule" />
+          <section className="min-section" id="timeline">
+            <div className="head">
+              <h2>Timeline</h2>
+            </div>
+            <p className="sub" style={{ marginBottom: 24 }}>
+              Controversies, attention spikes and sharp sentiment moves on
+              one axis. An attention spike is unsigned — people looked, with
+              no direction implied.
+            </p>
+            <FigureTimeline events={profile.timeline} />
+          </section>
+        </Reveal>
+      )}
+
       {profile.attention && profile.attention.series.length > 1 && (
         <Reveal>
           <hr className="divider-rule" />
-          <section className="min-section">
+          <section className="min-section" id="attention">
             <div className="head">
               <h2>Public attention</h2>
             </div>
@@ -168,7 +228,7 @@ function ProfileView({ profile }: { profile: RealProfile }) {
 
       <Reveal>
         <hr className="divider-rule" />
-        <section className="min-section">
+        <section className="min-section" id="controversies">
           <div className="head">
             <h2>Documented controversies</h2>
           </div>
@@ -198,7 +258,7 @@ function ProfileView({ profile }: { profile: RealProfile }) {
       {profile.media.length > 0 && (
         <Reveal>
           <hr className="divider-rule" />
-          <section className="min-section">
+          <section className="min-section" id="coverage">
             <div className="head">
               <h2>Media coverage</h2>
             </div>
@@ -232,7 +292,9 @@ function FigureInner() {
 
       {state.status === "loading" && <FigureSkeleton name={q} />}
 
-      {state.status === "ready" && <ProfileView profile={state.profile} />}
+      {state.status === "ready" && (
+        <ProfileView profile={state.profile} cachedAt={state.cachedAt} />
+      )}
 
       {state.status === "not-found" && (
         <FigureNotFound

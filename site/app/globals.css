@@ -12,6 +12,7 @@
 @import "./reference.css";
 @import "./app.css";
 @import "./minimal.css";
+@import "./features.css";
 
 :root {
   color-scheme: light;
