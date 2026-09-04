@@ -23,6 +23,7 @@ const {
   readCelebrityCache,
   markRequested,
   listTracked,
+  listTrending,
   readSnapshotHistory,
   readLastAlertedAt,
   markAlerted,
@@ -235,6 +236,34 @@ async function handleReportCorrection(req, res) {
   }
 }
 
+// ── GET /trending ────────────────────────────────────────────────────
+
+/**
+ * Serves the most-looked-up figures on this deployment.
+ *
+ * Not behind App Check or a Firebase token: it is a single bounded
+ * Firestore query returning only public fields (name, portrait, current
+ * score), the same data any profile page already shows. A short shared
+ * cache absorbs repeated hits. An empty result is returned as an empty
+ * list — the caller renders nothing rather than a hard-coded stand-in.
+ *
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ */
+async function handleTrending(req, res) {
+  const raw = Number(req.query.limit);
+  const limit = Number.isFinite(raw) ? Math.min(24, Math.max(1, raw)) : 12;
+
+  try {
+    const figures = await listTrending({limit});
+    res.set("Cache-Control", "public, max-age=300");
+    res.status(200).json({figures});
+  } catch (e) {
+    logger.error("trending failed", {message: e && e.message});
+    res.status(500).json({error: "internal", message: "Could not load trending."});
+  }
+}
+
 // ── Scheduled refresh ────────────────────────────────────────────────
 
 /**
@@ -410,5 +439,6 @@ async function deliverPush({slug, message, spike, score}) {
 module.exports = {
   handleGetCelebrity,
   handleReportCorrection,
+  handleTrending,
   runScheduledRefresh,
 };

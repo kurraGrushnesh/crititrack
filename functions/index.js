@@ -22,6 +22,7 @@ const {initializeApp} = require("firebase-admin/app");
 const {
   handleGetCelebrity,
   handleReportCorrection,
+  handleTrending,
   runScheduledRefresh,
 } = require("./lib/handlers");
 
@@ -60,6 +61,11 @@ exports.getCelebrity = onRequest(
 exports.reportCorrection = onRequest(
     {timeoutSeconds: 30, cors: ALLOWED_ORIGINS},
     (req, res) => handleReportCorrection(req, res),
+);
+
+exports.trending = onRequest(
+    {timeoutSeconds: 15, cors: ALLOWED_ORIGINS},
+    (req, res) => handleTrending(req, res),
 );
 
 exports.refreshTrackedCelebrities = onSchedule(

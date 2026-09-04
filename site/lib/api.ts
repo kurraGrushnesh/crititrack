@@ -294,6 +294,28 @@ export async function fetchProfile(
   return mapProfile(obj(await res.json()));
 }
 
+/**
+ * Fetches the trending rail. Public endpoint — no Firebase token, no App
+ * Check — so it can be called before the anonymous session is ready and
+ * fails soft: a slow or sleeping backend yields an empty list, and the
+ * caller simply renders no rail.
+ */
+export async function fetchTrending(
+  opts: { limit?: number; signal?: AbortSignal } = {},
+): Promise<import("./trending").TrendingFigure[]> {
+  const url = new URL(`${API_BASE}/trending`);
+  if (opts.limit) url.searchParams.set("limit", String(opts.limit));
+  try {
+    const res = await fetch(url, { signal: opts.signal });
+    if (!res.ok) return [];
+    const { parseTrending } = await import("./trending");
+    return parseTrending(await res.json(), opts.limit ?? 12);
+  } catch (e) {
+    if ((e as Error).name === "AbortError") throw e;
+    return [];
+  }
+}
+
 export function figureSlug(name: string): string {
   return name
     .normalize("NFD")

@@ -33,6 +33,7 @@ const logger = require("./lib/logger");
 const {
   handleGetCelebrity,
   handleReportCorrection,
+  handleTrending,
   runScheduledRefresh,
 } = require("./lib/handlers");
 
@@ -270,6 +271,15 @@ app.get("/getCelebrity", (req, res) => {
 app.post("/report-correction", express.json({limit: "16kb"}), (req, res) => {
   handleReportCorrection(req, res).catch((e) => {
     logger.error("unhandled in /report-correction", {message: e && e.message});
+    if (!res.headersSent) {
+      res.status(500).json({error: "internal", message: "Unexpected error"});
+    }
+  });
+});
+
+app.get("/trending", (req, res) => {
+  handleTrending(req, res).catch((e) => {
+    logger.error("unhandled in /trending", {message: e && e.message});
     if (!res.headersSent) {
       res.status(500).json({error: "internal", message: "Unexpected error"});
     }
