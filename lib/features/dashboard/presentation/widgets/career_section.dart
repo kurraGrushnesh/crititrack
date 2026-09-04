@@ -323,6 +323,10 @@ class _TimelineTile extends StatelessWidget {
     final palette = context.palette;
     final e = entry;
     final dotColor = e.isCurrent ? AppTheme.accent : palette.border;
+    // A Wikidata "employer" row has an organisation but no title; lead
+    // with the organisation rather than an empty "Role".
+    final headline = e.role ?? e.organization ?? 'Role';
+    final subline = e.role != null ? e.organization : null;
 
     return IntrinsicHeight(
       child: Row(
@@ -361,8 +365,8 @@ class _TimelineTile extends StatelessWidget {
               child: Semantics(
                 button: true,
                 label:
-                    '${e.role ?? 'Role'}'
-                    '${e.organization != null ? ', ${e.organization}' : ''}, '
+                    '$headline'
+                    '${subline != null ? ', $subline' : ''}, '
                     '${e.span}. Opens career detail.',
                 child: Material(
                   color: palette.elevated,
@@ -389,14 +393,14 @@ class _TimelineTile extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    e.role ?? 'Role',
+                                    headline,
                                     style: theme.textTheme.bodyMedium?.copyWith(
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                  if (e.organization != null)
+                                  if (subline != null)
                                     Text(
-                                      e.organization!,
+                                      subline,
                                       style: theme.textTheme.bodySmall
                                           ?.copyWith(
                                             color: palette.textSecondary,

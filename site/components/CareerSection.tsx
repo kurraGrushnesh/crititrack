@@ -8,12 +8,14 @@ import type { CareerIntelligence, CareerEntry } from "@/lib/career";
  * transitions, leadership, founder history).
  *
  * Every row links back to its Wikidata source. When there are no sourced
- * career rows the section says "Career information unavailable" rather
- * than filling in a plausible history.
+ * career rows the section says "Career information isn't available yet."
+ * rather than filling in a plausible history.
  */
 
 function span(e: CareerEntry): string {
-  if (e.start && e.end) return `${e.start} – ${e.end}`;
+  if (e.start && e.end) {
+    return e.start === e.end ? `${e.start}` : `${e.start} – ${e.end}`;
+  }
   if (e.start) return e.current ? `${e.start} – present` : `${e.start}`;
   if (e.end) return `until ${e.end}`;
   return "date unknown";
@@ -21,15 +23,17 @@ function span(e: CareerEntry): string {
 
 function CareerRow({ e }: { e: CareerEntry }) {
   const meta = [e.industry, e.location].filter(Boolean).join(" · ");
+  // A Wikidata "employer" row carries an organisation but no title; show
+  // the organisation as the headline rather than an empty "Role".
+  const head = e.role ?? e.organization ?? "Role";
+  const sub = e.role ? e.organization : null;
   return (
     <li className={`career-row${e.current ? " is-current" : ""}`}>
       <span className="career-when">{span(e)}</span>
       <details className="career-entry">
         <summary>
-          <span className="career-role">{e.role ?? "Role"}</span>
-          {e.organization && (
-            <span className="career-org">{e.organization}</span>
-          )}
+          <span className="career-role">{head}</span>
+          {sub && <span className="career-org">{sub}</span>}
         </summary>
         <div className="career-detail">
           {meta && <p className="career-meta">{meta}</p>}

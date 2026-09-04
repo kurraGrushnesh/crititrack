@@ -178,8 +178,11 @@ class CareerEntry extends Equatable {
   bool get isCurrent => end == null;
 
   /// "2014 – 2019", "2021 – present", "until 2019", "date unknown".
+  /// A one-year span collapses to the single year.
   String get span {
-    if (start != null && end != null) return '$start – $end';
+    if (start != null && end != null) {
+      return start == end ? '$start' : '$start – $end';
+    }
     if (start != null) return isCurrent ? '$start – present' : '$start';
     if (end != null) return 'until $end';
     return 'date unknown';
