@@ -45,6 +45,7 @@ const {linkEvidence} = require("./evidence");
 const {fetchWikiSummary} = require("./wiki");
 const {fetchPageviews, summarise} = require("./pageviews");
 const {buildTimeline} = require("./timeline");
+const {annotateArchiveLinks} = require("./archive");
 
 /**
  * @param {{groq: string, news: string, youtube: string}} keys
@@ -80,6 +81,10 @@ async function assembleCelebrity(keys, name, slug) {
   // A coarse topical tag per item, so the feed can be filtered to "legal"
   // or "financial" coverage. Describes the headline, not the figure.
   for (const item of media) item.topic = classifyTopic(item);
+
+  // A one-click path to a Wayback snapshot of each source, so a cited
+  // article stays reachable after it rots. No outbound request here.
+  annotateArchiveLinks(media);
 
   if (!bioResult.ok && media.length === 0) {
     const e = bioResult.error;

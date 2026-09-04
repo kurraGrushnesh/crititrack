@@ -46,6 +46,8 @@ export interface MediaLink {
   sentimentTag?: string;
   /** Coarse topic of the headline: legal, financial, political, ... */
   topic?: MediaTopic;
+  /** Wayback "latest capture" link, so the source survives link rot. */
+  archiveUrl?: string;
 }
 
 export type MediaTopic =
@@ -288,6 +290,7 @@ function mapProfile(j: Json): RealProfile {
         sentimentScore: num(m.sentimentScore),
         sentimentTag: str(m.sentimentTag) || undefined,
         topic: topic(m.topic),
+        archiveUrl: str(m.archiveUrl) || undefined,
       }))
       .filter((m) => m.title && m.url),
     attention: mapAttention(j.attention),
