@@ -117,6 +117,46 @@ test("dedupe tolerates items with no url or title", () => {
   assert.equal(out.length, 3, "nothing to compare means nothing to drop");
 });
 
+test("a lone source is 1 duplicate from 1 independent publisher, not omitted", () => {
+  const out = dedupe([{url: "https://a.com/1", title: "Story", source: "AP"}]);
+  assert.deepEqual(
+      {duplicateCount: out[0].duplicateCount, independentSourceCount: out[0].independentSourceCount},
+      {duplicateCount: 1, independentSourceCount: 1},
+  );
+});
+
+test("counts distinct publishers, not raw article count — syndication is not independent confirmation", () => {
+  // Three articles under the same headline, but only two different
+  // publishers behind them (the AP wire copy ran under two different
+  // URLs, both still labelled "AP").
+  const out = dedupe([
+    {url: "https://a.com/1", title: "Star wins award", source: "AP"},
+    {url: "https://b.com/2", title: "Star wins award", source: "AP"},
+    {url: "https://c.com/3", title: "Star wins award", source: "Local Paper"},
+  ]);
+  assert.equal(out.length, 1);
+  assert.equal(out[0].duplicateCount, 3);
+  assert.equal(out[0].independentSourceCount, 2);
+});
+
+test("falls back to the URL host as the publisher when no source label is given", () => {
+  const out = dedupe([
+    {url: "https://reuters.com/1", title: "Same headline exactly"},
+    {url: "https://apnews.com/2", title: "Same headline exactly"},
+  ]);
+  assert.equal(out[0].independentSourceCount, 2);
+});
+
+test("the surviving item's own fields are unchanged — only the two new counts are added", () => {
+  const out = dedupe([
+    {url: "https://gdelt.example/1", title: "Same story", source: "gdelt"},
+    {url: "https://newsapi.example/2", title: "Same story", source: "newsapi"},
+  ]);
+  assert.equal(out[0].source, "gdelt");
+  assert.equal(out[0].url, "https://gdelt.example/1");
+  assert.equal(out[0].duplicateCount, 2);
+});
+
 // ── Reddit ─────────────────────────────────────────────────────────
 
 test("maps a Reddit thread onto the shared media shape", () => {

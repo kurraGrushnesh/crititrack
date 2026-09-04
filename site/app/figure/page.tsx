@@ -21,6 +21,7 @@ import ProfessionalIdentity from "@/components/ProfessionalIdentity";
 import CareerSection from "@/components/CareerSection";
 import { Stat, StatRow } from "@/components/Stat";
 import MediaCoverage from "@/components/MediaCoverage";
+import EvidenceExplorer from "@/components/EvidenceExplorer";
 import BioSection from "@/components/BioSection";
 import {
   FigureSkeleton,
@@ -294,6 +295,27 @@ function ProfileView({
           </section>
         </Reveal>
       )}
+
+      <Reveal>
+        <hr className="divider-rule" />
+        <section className="min-section" id="evidence-explorer">
+          <div className="head">
+            <h2>Evidence &amp; sources</h2>
+          </div>
+          <p className="sub" style={{ marginBottom: 24 }}>
+            Every source this profile is actually built from — what
+            supports it, how independently, and where coverage disagrees.
+            This is not a verdict on any claim, and it is not the same as
+            sentiment or how much attention a story got.
+          </p>
+          <EvidenceExplorer
+            media={profile.media}
+            controversies={profile.controversies}
+            career={profile.career.timeline}
+            sentimentEvidence={profile.evidence}
+          />
+        </section>
+      </Reveal>
     </main>
   );
 }

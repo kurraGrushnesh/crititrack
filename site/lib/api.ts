@@ -33,6 +33,11 @@ const API_BASE =
 export interface EvidenceFragment {
   fragment: string;
   source: string;
+  /** The `media[]` item this fragment was matched to, when the match
+   * was unambiguous — null when no single retrieved article was
+   * clearly the source. Computed server-side (`lib/evidence.js`); never
+   * invented client-side. */
+  mediaId?: string;
 }
 export interface TrendPoint {
   date: string;
@@ -56,6 +61,13 @@ export interface MediaLink {
   topic?: MediaTopic;
   /** Wayback "latest capture" link, so the source survives link rot. */
   archiveUrl?: string;
+  /** How many retrieved items collapsed into this one before dedup —
+   * 1 (or absent, treated the same) when nothing else covered the same
+   * story. */
+  duplicateCount?: number;
+  /** Distinct publishers among those, from `source` or the URL host —
+   * "10 articles from 4 independent publishers", never "10 confirmations". */
+  independentSourceCount?: number;
 }
 
 export type MediaTopic =
@@ -323,6 +335,8 @@ function mapProfile(j: Json): RealProfile {
       sentimentTag: str(m.sentimentTag) || undefined,
       topic: topic(m.topic),
       archiveUrl: str(m.archiveUrl) || undefined,
+      duplicateCount: num(m.duplicateCount) ?? 1,
+      independentSourceCount: num(m.independentSourceCount) ?? 1,
     }))
     .filter((m) => m.title && m.url);
 
@@ -371,6 +385,7 @@ function mapProfile(j: Json): RealProfile {
       .map((e) => ({
         fragment: str(e.fragment),
         source: str(e.source, "news"),
+        mediaId: str(e.mediaId) || undefined,
       }))
       .filter((e) => e.fragment),
 

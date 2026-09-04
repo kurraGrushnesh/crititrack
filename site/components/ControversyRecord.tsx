@@ -42,6 +42,9 @@ export default function ControversyRecord({ item }: { item: Controversy }) {
           ))
         )}
       </div>
+      <p className="record-evidence-link">
+        <a href="#evidence-explorer">View evidence →</a>
+      </p>
     </article>
   );
 }

@@ -296,19 +296,49 @@ function classifyTopic(item) {
 }
 
 /**
- * Removes items that point at the same story.
+ * The publication behind an item, for counting *independent* coverage
+ * rather than raw article count. Prefers the source label the fetcher
+ * already set (an outlet name); falls back to the URL's host when that
+ * is missing, so two items from the same domain still count as one
+ * publisher even without a label.
+ *
+ * @param {object} item
+ * @return {string} lowercase publisher key, "" when neither is present
+ */
+function publisherOf(item) {
+  const src = String((item && item.source) || "").trim();
+  if (src) return src.toLowerCase();
+  try {
+    return new URL(item.url).hostname.replace(/^www\./, "").toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Removes items that point at the same story, and records how many
+ * publishers actually reported it independently.
  *
  * Sources overlap heavily — an article syndicated to three outlets is one
  * story, and counting it three times would skew both the feed and the
  * sentiment aggregate toward whatever happened to be widely syndicated.
+ * The surviving item (first one seen, unchanged) picks up two extra,
+ * honest fields: `duplicateCount` (how many raw items collapsed into it)
+ * and `independentSourceCount` (how many distinct publishers among
+ * them) — "10 articles from 4 independent publishers", never "10
+ * independent confirmations". A story nothing else corroborated keeps
+ * `duplicateCount: 1, independentSourceCount: 1` rather than omitting
+ * the fields, so a caller never has to guess whether they are absent
+ * because of a bug or because there was truly only one source.
  *
  * @param {object[]} items
  * @return {object[]}
  */
 function dedupe(items) {
-  const seenUrl = new Set();
-  const seenTitle = new Set();
-  const out = [];
+  const seenUrl = new Map();
+  const seenTitle = new Map();
+  /** @type {{survivor: object, members: object[]}[]} */
+  const groups = [];
 
   for (const item of items) {
     const url = (item.url || "").toLowerCase().replace(/[?#].*$/, "");
@@ -319,15 +349,30 @@ function dedupe(items) {
         .replace(/\s+/g, " ")
         .trim();
 
-    if (url && seenUrl.has(url)) continue;
-    if (title && seenTitle.has(title)) continue;
+    let existing = null;
+    if (url && seenUrl.has(url)) existing = seenUrl.get(url);
+    else if (title && seenTitle.has(title)) existing = seenTitle.get(title);
 
-    if (url) seenUrl.add(url);
-    if (title) seenTitle.add(title);
-    out.push(item);
+    if (existing != null) {
+      groups[existing].members.push(item);
+      // Record this occurrence's url/title too, so a later item can
+      // match this group through whichever one it shares.
+      if (url && !seenUrl.has(url)) seenUrl.set(url, existing);
+      if (title && !seenTitle.has(title)) seenTitle.set(title, existing);
+    } else {
+      const index = groups.length;
+      groups.push({survivor: item, members: [item]});
+      if (url) seenUrl.set(url, index);
+      if (title) seenTitle.set(title, index);
+    }
   }
 
-  return out;
+  return groups.map(({survivor, members}) => ({
+    ...survivor,
+    duplicateCount: members.length,
+    independentSourceCount: new Set(members.map(publisherOf).filter(Boolean)).size ||
+      1,
+  }));
 }
 
 module.exports = {

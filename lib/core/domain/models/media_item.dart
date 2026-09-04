@@ -27,6 +27,8 @@ class MediaItem extends Equatable {
     this.channelTitle,
     this.mediaUrl,
     this.permalink,
+    this.duplicateCount,
+    this.independentSourceCount,
   });
 
   /// Unique identifier (article URL hash, videoId, or Instagram post id).
@@ -76,6 +78,16 @@ class MediaItem extends Equatable {
   /// Instagram permalink.
   final String? permalink;
 
+  /// How many retrieved items collapsed into this one before dedup — 1
+  /// (or null, treated the same) when nothing else covered the same
+  /// story.
+  final int? duplicateCount;
+
+  /// Distinct publishers among those, from `source` or the URL host —
+  /// "10 articles from 4 independent publishers", never "10
+  /// confirmations".
+  final int? independentSourceCount;
+
   @override
   List<Object?> get props => [id, type, url];
 
@@ -94,6 +106,8 @@ class MediaItem extends Equatable {
     'channelTitle': channelTitle,
     'mediaUrl': mediaUrl,
     'permalink': permalink,
+    'duplicateCount': duplicateCount,
+    'independentSourceCount': independentSourceCount,
   };
 
   factory MediaItem.fromFirestore(String id, Map<String, dynamic> data) {
@@ -118,6 +132,8 @@ class MediaItem extends Equatable {
       channelTitle: data['channelTitle'] as String?,
       mediaUrl: data['mediaUrl'] as String?,
       permalink: data['permalink'] as String?,
+      duplicateCount: (data['duplicateCount'] as num?)?.toInt(),
+      independentSourceCount: (data['independentSourceCount'] as num?)?.toInt(),
     );
   }
 }

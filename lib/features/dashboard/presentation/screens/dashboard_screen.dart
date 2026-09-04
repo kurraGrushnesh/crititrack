@@ -29,6 +29,7 @@ import 'package:crititrack/features/controversy/presentation/widgets/controversy
 import 'package:crititrack/features/dashboard/presentation/widgets/biography_card.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/career_section.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/disambiguation_bar.dart';
+import 'package:crititrack/features/dashboard/presentation/widgets/evidence_section.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/figure_timeline_section.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/editorial_header.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/media_feed_section.dart';
@@ -273,6 +274,17 @@ class _DashboardContent extends ConsumerWidget {
               mediaItems: celebrity.mediaItems,
               career: celebrity.facts.career,
               trend: celebrity.sentimentData.trendData,
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: EvidenceSection(
+              media: celebrity.mediaItems,
+              controversies: celebrity.biography.controversies,
+              career: celebrity.facts.career,
+              sentimentEvidence: celebrity.sentimentData.evidence,
             ),
           ),
         ),

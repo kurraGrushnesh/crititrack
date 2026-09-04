@@ -210,6 +210,9 @@ export default function SentimentPanel({
               </li>
             ))}
           </ul>
+          <a href="#evidence-explorer" className="senti-evidence-link">
+            View coverage in the Evidence Explorer →
+          </a>
         </details>
       )}
 
