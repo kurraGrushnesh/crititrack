@@ -524,6 +524,7 @@ async function writeCorrection(clean, meta) {
   const ref = await db.collection(CORRECTIONS).add({
     slug: clean.slug,
     field: clean.field,
+    kind: clean.kind || "correction",
     claim: clean.claim,
     correction: clean.correction,
     evidenceUrl: orNull(clean.evidenceUrl),

@@ -52,6 +52,7 @@ export default function CorrectionForm({
     const input = {
       slug: String(form.get("slug") ?? ""),
       field: String(form.get("field") ?? ""),
+      kind: String(form.get("kind") ?? "correction"),
       claim: String(form.get("claim") ?? ""),
       correction: String(form.get("correction") ?? ""),
       evidenceUrl: String(form.get("evidenceUrl") ?? ""),
@@ -159,6 +160,22 @@ export default function CorrectionForm({
         </select>
         {errors.slug && <span className="err">{errors.slug}</span>}
       </div>
+
+      <fieldset
+        className={`field${errors.kind ? " field-invalid" : ""}`}
+        style={{ border: 0, padding: 0, margin: 0 }}
+      >
+        <legend style={{ padding: 0 }}>Who are you?</legend>
+        <label style={{ display: "block", fontWeight: "normal" }}>
+          <input type="radio" name="kind" value="correction" defaultChecked />{" "}
+          Reporting something that looks wrong
+        </label>
+        <label style={{ display: "block", fontWeight: "normal" }}>
+          <input type="radio" name="kind" value="response" /> The subject of
+          this profile (or their representative), responding to a claim
+        </label>
+        {errors.kind && <span className="err">{errors.kind}</span>}
+      </fieldset>
 
       <div className={`field${errors.field ? " field-invalid" : ""}`}>
         <label htmlFor="cf-field">

@@ -27,8 +27,20 @@ describe("validateCorrection accepts", () => {
     const clean = validateCorrection(ok());
     expect(clean.slug).toBe("marisol-quivera");
     expect(clean.field).toBe("controversy");
+    expect(clean.kind).toBe("correction");
     expect(clean.evidenceUrl).toBeNull();
     expect(clean.email).toBeNull();
+  });
+
+  it("a subject 'response' kind, defaulting to 'correction' when absent", () => {
+    expect(validateCorrection(ok({ kind: "response" })).kind).toBe("response");
+    expect(validateCorrection(ok({ kind: "" })).kind).toBe("correction");
+  });
+
+  it("rejects an unknown kind", () => {
+    expect(() => validateCorrection(ok({ kind: "rebuttal" }))).toThrow(
+      CorrectionError,
+    );
   });
 
   it("an optional https evidence link and email", () => {

@@ -28,6 +28,15 @@ export const CORRECTION_FIELDS = [
 
 export type CorrectionField = (typeof CORRECTION_FIELDS)[number];
 
+/**
+ * What the submission is: a third-party "correction" (the default), or a
+ * "response" from the profile's subject giving their side of a rendered
+ * claim. Both are stored the same way; a moderator may attach a response
+ * so it shows inline on the profile.
+ */
+export const CORRECTION_KINDS = ["correction", "response"] as const;
+export type CorrectionKind = (typeof CORRECTION_KINDS)[number];
+
 export const SLUG_MAX_LENGTH = 90;
 export const CLAIM_MIN_LENGTH = 10;
 export const CLAIM_MAX_LENGTH = 600;
@@ -59,6 +68,7 @@ const INJECTION_MARKERS = [
 export interface CorrectionInput {
   slug?: unknown;
   field?: unknown;
+  kind?: unknown;
   claim?: unknown;
   correction?: unknown;
   evidenceUrl?: unknown;
@@ -68,6 +78,7 @@ export interface CorrectionInput {
 export interface CleanCorrection {
   slug: string;
   field: CorrectionField;
+  kind: CorrectionKind;
   claim: string;
   correction: string;
   evidenceUrl: string | null;
@@ -130,6 +141,12 @@ export function validateCorrection(input: CorrectionInput): CleanCorrection {
   }
   const field = fieldValue as CorrectionField;
 
+  const kindValue = asString(input.kind).trim().toLowerCase() || "correction";
+  if (!CORRECTION_KINDS.includes(kindValue as CorrectionKind)) {
+    throw new CorrectionError("kind", "invalid", "Unknown submission type.");
+  }
+  const kind = kindValue as CorrectionKind;
+
   const claim = collapseWhitespace(asString(input.claim));
   if (claim.length < CLAIM_MIN_LENGTH) {
     throw new CorrectionError(
@@ -187,5 +204,5 @@ export function validateCorrection(input: CorrectionInput): CleanCorrection {
     email = rawEmail;
   }
 
-  return { slug, field, claim, correction, evidenceUrl, email };
+  return { slug, field, kind, claim, correction, evidenceUrl, email };
 }

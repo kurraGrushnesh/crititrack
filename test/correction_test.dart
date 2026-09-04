@@ -8,6 +8,7 @@ import 'package:crititrack/core/security/correction.dart';
 CleanCorrection valid({
   String? slug,
   String? field,
+  String? kind,
   String? claim,
   String? correction,
   String? evidenceUrl,
@@ -16,6 +17,7 @@ CleanCorrection valid({
   return validateCorrection(
     slug: slug ?? 'marisol-quivera',
     field: field ?? 'controversy',
+    kind: kind,
     claim: claim ??
         'The profile says the arena dates were cancelled with no refunds.',
     correction: correction ??
@@ -53,6 +55,12 @@ void main() {
     test('the n-<hex> slug fallback for non-Latin names', () {
       expect(valid(slug: 'n-1a2b3c4d').slug, 'n-1a2b3c4d');
     });
+
+    test('a subject response kind, defaulting to correction when absent', () {
+      expect(valid().kind, CorrectionKind.correction);
+      expect(valid(kind: 'response').kind, CorrectionKind.response);
+      expect(valid(kind: 'response').toJson()['kind'], 'response');
+    });
   });
 
   group('validateCorrection rejects', () {
@@ -63,6 +71,7 @@ void main() {
         field: 'slug',
       ),
       'an unknown field': (input: {'field': 'hairstyle'}, field: 'field'),
+      'an unknown kind': (input: {'kind': 'rebuttal'}, field: 'kind'),
       'a claim that is too short': (input: {'claim': 'wrong'}, field: 'claim'),
       'a claim that is too long': (
         input: {'claim': 'x' * (CorrectionLimits.claimMaxLength + 1)},
@@ -95,6 +104,7 @@ void main() {
           () => valid(
             slug: spec.input['slug'],
             field: spec.input['field'],
+            kind: spec.input['kind'],
             claim: spec.input['claim'],
             correction: spec.input['correction'],
             evidenceUrl: spec.input['evidenceUrl'],

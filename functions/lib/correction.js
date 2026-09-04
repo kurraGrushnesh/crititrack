@@ -24,6 +24,20 @@ const CORRECTION_FIELDS = [
   "other",
 ];
 
+/**
+ * What the submission is.
+ *
+ *   "correction" — anyone reporting that something on the profile is
+ *                  wrong. The default, and the historic behaviour.
+ *   "response"   — the subject of the profile (or their representative)
+ *                  giving their side of a claim that is rendered. Stored
+ *                  the same way; a moderator may then attach it to the
+ *                  profile so it shows inline beside the claim, which is
+ *                  the point of the editorial position: a named living
+ *                  person gets to be heard on their own page.
+ */
+const CORRECTION_KINDS = ["correction", "response"];
+
 const SLUG_MAX_LENGTH = 90;
 const CLAIM_MIN_LENGTH = 10;
 const CLAIM_MAX_LENGTH = 600;
@@ -109,6 +123,14 @@ function validateCorrection(input) {
     );
   }
 
+  // Optional; absent means a third-party correction, the original
+  // behaviour.
+  const kindRaw = asString(raw.kind).trim().toLowerCase();
+  const kind = kindRaw === "" ? "correction" : kindRaw;
+  if (!CORRECTION_KINDS.includes(kind)) {
+    throw new CorrectionError("kind", "invalid", "Unknown submission type.");
+  }
+
   const claim = collapseWhitespace(asString(raw.claim));
   if (claim.length < CLAIM_MIN_LENGTH) {
     throw new CorrectionError(
@@ -164,13 +186,14 @@ function validateCorrection(input) {
     email = rawEmail;
   }
 
-  return {slug, field, claim, correction, evidenceUrl, email};
+  return {slug, field, kind, claim, correction, evidenceUrl, email};
 }
 
 module.exports = {
   validateCorrection,
   CorrectionError,
   CORRECTION_FIELDS,
+  CORRECTION_KINDS,
   SLUG_MAX_LENGTH,
   CLAIM_MIN_LENGTH,
   CLAIM_MAX_LENGTH,
