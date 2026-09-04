@@ -63,7 +63,25 @@ const PROPS = {
   // is a real basis for a profile's "expertise" line rather than a
   // model's guess. Comes in the same wbgetentities call, no extra fetch.
   fieldOfWork: "P101",
+  // Career spine. "position held" (P39) names a titled role; "employer"
+  // (P108) names an organisation. Both carry P580/P582 start/end
+  // qualifiers, and a P39 claim names its organisation with a P642 "of"
+  // or P108 "employer" qualifier. Every entry is Wikidata-sourced and
+  // dated — the basis for a real career timeline rather than a guess.
+  positionHeld: "P39",
+  employer: "P108",
 };
+
+/** Qualifier: start date of a dated claim. */
+const START_TIME = "P580";
+/** Qualifier: end date of a dated claim. */
+const END_TIME = "P582";
+/** Qualifier: "of" — links a position to its organisation. */
+const OF = "P642";
+/** Qualifier: "object has role" / "as" — a role within an employment. */
+const AS_ROLE = "P794";
+/** Qualifier: "location" — where a post was held, when recorded. */
+const LOCATION = "P276";
 
 /**
  * Point-in-time qualifier, used to date an award.
@@ -99,6 +117,8 @@ const MAX_OCCUPATIONS = 4;
 const MAX_AWARDS = 12;
 const MAX_WORKS = 8;
 const MAX_EDUCATION = 3;
+/** How many career rows to keep. Enough for a full arc, not a résumé. */
+const MAX_CAREER = 14;
 
 /** How many search hits to inspect. The person is rarely the top hit —
  * a search for "Zendaya" returns the given name first, then the album,
@@ -343,7 +363,7 @@ async function toPerson(hit, entity, fallbackLabel) {
     label: labelOf(entity) || hit.label || fallbackLabel,
     description: descriptionOf(entity) || hit.description || "",
     aliases: aliasesOf(entity),
-    facts: await resolveFactLabels(extractFacts(entity)),
+    facts: await resolveFactLabels(extractFacts(entity), hit.id),
   };
 }
 
@@ -430,6 +450,8 @@ module.exports = {
   resolutionConfidence,
   sitelinkCount,
   extractFacts,
+  careerEntries,
+  buildCareer,
   isHuman,
   HUMAN,
   INSTANCE_OF,
@@ -467,8 +489,85 @@ function extractFacts(entity) {
     educationIds: idClaims(entity, PROPS.education).slice(0, MAX_EDUCATION),
     birthPlaceId: idClaims(entity, PROPS.birthPlace)[0] || null,
     fieldOfWorkIds: idClaims(entity, PROPS.fieldOfWork).slice(0, 6),
+    career: careerEntries(entity),
     links: externalLinks(entity),
   };
+}
+
+/** First entity-id value of a claim qualifier, or null. */
+function qualifierId(claim, prop) {
+  const quals = (claim && claim.qualifiers && claim.qualifiers[prop]) || [];
+  for (const q of quals) {
+    const id = q && q.datavalue && q.datavalue.value && q.datavalue.value.id;
+    if (typeof id === "string" && /^Q\d+$/.test(id)) return id;
+  }
+  return null;
+}
+
+/** The id a claim's main snak points at, when it is an item id. */
+function mainId(claim) {
+  const id = claim && claim.mainsnak && claim.mainsnak.datavalue &&
+    claim.mainsnak.datavalue.value && claim.mainsnak.datavalue.value.id;
+  return typeof id === "string" && /^Q\d+$/.test(id) ? id : null;
+}
+
+/**
+ * Career rows from P39 "position held" and P108 "employer".
+ *
+ * Pure and label-free — it returns qids and years; resolveFactLabels
+ * turns them into words. A P108 employment that duplicates a P39 post
+ * over the same organisation and start year is dropped, so "CEO of X"
+ * and "employed by X" do not both appear for one period.
+ *
+ * @param {object} entity
+ * @return {Array<{roleId: string|null, orgId: string|null,
+ *   start: number|null, end: number|null}>}
+ */
+function careerEntries(entity) {
+  const claims = (entity && entity.claims) || {};
+  const rows = [];
+
+  for (const c of claims[PROPS.positionHeld] || []) {
+    if (isDeprecated(c)) continue;
+    const roleId = mainId(c);
+    if (!roleId) continue;
+    rows.push({
+      roleId,
+      orgId: qualifierId(c, PROPS.employer) || qualifierId(c, OF),
+      locationId: qualifierId(c, LOCATION),
+      start: qualifierYear(c, START_TIME),
+      end: qualifierYear(c, END_TIME),
+      _src: "position",
+    });
+  }
+
+  for (const c of claims[PROPS.employer] || []) {
+    if (isDeprecated(c)) continue;
+    const orgId = mainId(c);
+    if (!orgId) continue;
+    const start = qualifierYear(c, START_TIME);
+    const covered = rows.some(
+        (r) => r.orgId === orgId && r.start === start && r._src === "position",
+    );
+    if (covered) continue;
+    rows.push({
+      roleId: qualifierId(c, AS_ROLE),
+      orgId,
+      locationId: null,
+      start,
+      end: qualifierYear(c, END_TIME),
+      _src: "employer",
+    });
+  }
+
+  // A row needs a date or a role to earn a place on the timeline; a bare
+  // undated employer with no title is not something to show.
+  return rows
+      .filter((r) => r.start != null || r.end != null || r.roleId)
+      .map(({roleId, orgId, locationId, start, end}) => ({
+        roleId, orgId, locationId, start, end,
+      }))
+      .slice(0, MAX_CAREER * 2);
 }
 
 /**
@@ -598,7 +697,10 @@ function externalLinks(entity) {
  * @param {object} facts from extractFacts
  * @return {Promise<object>}
  */
-async function resolveFactLabels(facts) {
+async function resolveFactLabels(facts, qid) {
+  const careerIds = (facts.career || []).flatMap(
+      (e) => [e.roleId, e.orgId, e.locationId].filter(Boolean),
+  );
   const ids = [
     ...facts.citizenshipIds,
     ...facts.occupationIds,
@@ -607,6 +709,7 @@ async function resolveFactLabels(facts) {
     ...facts.educationIds,
     ...(facts.birthPlaceId ? [facts.birthPlaceId] : []),
     ...(facts.fieldOfWorkIds || []),
+    ...careerIds,
   ];
 
   let labels = {};
@@ -642,8 +745,73 @@ async function resolveFactLabels(facts) {
     fieldsOfWork: (facts.fieldOfWorkIds || [])
         .map((id) => labels[id])
         .filter(Boolean),
+    career: buildCareer(facts.career || [], labels, qid),
+    organizations: majorOrganizations(facts.career || [], labels),
     links: facts.links,
   };
+}
+
+/**
+ * Resolves career rows to labels, drops the un-nameable, dedupes, and
+ * orders them oldest-first so they read as a progression. Every row keeps
+ * a Wikidata source link because that is where the fact came from.
+ *
+ * @param {Array<object>} rows from careerEntries
+ * @param {Record<string, string>} labels
+ * @param {string} qid the person's Wikidata id, for provenance
+ * @return {Array<object>}
+ */
+function buildCareer(rows, labels, qid) {
+  const source = /^Q\d+$/.test(String(qid || "")) ?
+    {name: "Wikidata", url: `https://www.wikidata.org/wiki/${qid}`} :
+    {name: "Wikidata", url: null};
+
+  const seen = new Set();
+  return rows
+      .map((r) => ({
+        role: (r.roleId && labels[r.roleId]) || null,
+        organization: (r.orgId && labels[r.orgId]) || null,
+        location: (r.locationId && labels[r.locationId]) || null,
+        start: r.start,
+        end: r.end,
+      }))
+      .filter((r) => r.role || r.organization)
+      .filter((r) => {
+        const k = `${r.role}|${r.organization}|${r.start}|${r.end}`;
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      })
+      .sort((a, b) => {
+        // Oldest first; an undated row sorts after every dated one.
+        const sa = a.start ?? a.end ?? Infinity;
+        const sb = b.start ?? b.end ?? Infinity;
+        return sa - sb;
+      })
+      .slice(0, MAX_CAREER)
+      .map((r) => ({...r, source}));
+}
+
+/**
+ * The organisations a career touched, most-recent first, de-duplicated.
+ * Used for the "major organisations" chips in the professional summary.
+ *
+ * @param {Array<object>} rows from careerEntries
+ * @param {Record<string, string>} labels
+ * @return {string[]}
+ */
+function majorOrganizations(rows, labels) {
+  const byOrg = new Map();
+  for (const r of rows) {
+    const name = r.orgId && labels[r.orgId];
+    if (!name) continue;
+    const when = r.end ?? r.start ?? 0;
+    if (!byOrg.has(name) || when > byOrg.get(name)) byOrg.set(name, when);
+  }
+  return [...byOrg.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([name]) => name)
+      .slice(0, 6);
 }
 
 /**

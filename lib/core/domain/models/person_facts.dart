@@ -24,6 +24,8 @@ class PersonFacts extends Equatable {
     this.awards = const [],
     this.education = const [],
     this.notableWorks = const [],
+    this.career = const [],
+    this.organizations = const [],
     this.links = const {},
   });
 
@@ -49,6 +51,13 @@ class PersonFacts extends Equatable {
   /// the screen says which it is showing.
   final List<String> notableWorks;
 
+  /// Dated career steps from Wikidata "position held" / "employer",
+  /// oldest first. Sourced and dated — never generated.
+  final List<CareerEntry> career;
+
+  /// The organisations a career touched, most-recent first.
+  final List<String> organizations;
+
   /// Primary sources: the subject's own site and accounts, plus IMDb.
   /// Keys are `imdb`, `x`, `instagram`, `website`.
   final Map<String, String> links;
@@ -64,7 +73,15 @@ class PersonFacts extends Equatable {
       awards.isEmpty &&
       education.isEmpty &&
       notableWorks.isEmpty &&
+      career.isEmpty &&
+      organizations.isEmpty &&
       links.isEmpty;
+
+  /// True when there is a sourced career timeline to show.
+  bool get hasCareer => career.isNotEmpty;
+
+  /// Career insight lines, derived strictly from [career] — no invention.
+  CareerInsights get careerInsights => CareerInsights._from(career);
 
   bool get isNotEmpty => !isEmpty;
 
@@ -114,6 +131,8 @@ class PersonFacts extends Equatable {
       awards: Award.listFrom(map['awards']),
       education: _asStrings(map['education']),
       notableWorks: _asStrings(map['notableWorks']),
+      career: CareerEntry.listFrom(map['career']),
+      organizations: _asStrings(map['organizations']),
       links: _asLinks(map['links']),
     );
   }
@@ -128,9 +147,184 @@ class PersonFacts extends Equatable {
     awards,
     education.join(','),
     notableWorks.join(','),
+    career,
+    organizations.join(','),
     links.toString(),
   ];
 }
+
+/// One dated step in a career, from Wikidata "position held" (P39) or
+/// "employer" (P108). Every entry keeps a source link.
+class CareerEntry extends Equatable {
+  const CareerEntry({
+    this.role,
+    this.organization,
+    this.location,
+    this.start,
+    this.end,
+    this.sourceName = 'Wikidata',
+    this.sourceUrl,
+  });
+
+  final String? role;
+  final String? organization;
+  final String? location;
+  final int? start;
+  final int? end;
+  final String sourceName;
+  final String? sourceUrl;
+
+  /// Open-ended — no recorded end date.
+  bool get isCurrent => end == null;
+
+  /// "2014 – 2019", "2021 – present", "until 2019", "date unknown".
+  String get span {
+    if (start != null && end != null) return '$start – $end';
+    if (start != null) return isCurrent ? '$start – present' : '$start';
+    if (end != null) return 'until $end';
+    return 'date unknown';
+  }
+
+  /// "Engineer, Company Y" — whatever is known, never blank.
+  String get label {
+    final parts = [role, organization].whereType<String>().toList();
+    return parts.isEmpty ? 'Role' : parts.join(', ');
+  }
+
+  static List<CareerEntry> listFrom(Object? raw) {
+    if (raw is! List) return const [];
+
+    final out = <CareerEntry>[];
+    for (final entry in raw) {
+      if (entry is! Map) continue;
+      final role = _trimOrNull(entry['role']);
+      final org = _trimOrNull(entry['organization']);
+      if (role == null && org == null) continue;
+      final source = entry['source'];
+      out.add(
+        CareerEntry(
+          role: role,
+          organization: org,
+          location: _trimOrNull(entry['location']),
+          start: _asYear(entry['start']),
+          end: _asYear(entry['end']),
+          sourceName:
+              source is Map
+                  ? _trimOrNull(source['name']) ?? 'Wikidata'
+                  : 'Wikidata',
+          sourceUrl: source is Map ? _httpOrNull(source['url']) : null,
+        ),
+      );
+    }
+    out.sort((a, b) {
+      final sa = a.start ?? a.end ?? 1 << 30;
+      final sb = b.start ?? b.end ?? 1 << 30;
+      return sa.compareTo(sb);
+    });
+    return out;
+  }
+
+  @override
+  List<Object?> get props => [role, organization, location, start, end];
+}
+
+/// Career facts distilled to a few lines. Built from [CareerEntry] rows
+/// only — if the rows do not support a line, it is null/empty.
+class CareerInsights extends Equatable {
+  const CareerInsights({
+    this.start,
+    this.current,
+    this.transitions = const [],
+    this.leadershipRoles = const [],
+    this.founder = false,
+  });
+
+  final String? start;
+  final String? current;
+  final List<String> transitions;
+  final List<String> leadershipRoles;
+  final bool founder;
+
+  bool get isEmpty =>
+      start == null &&
+      current == null &&
+      transitions.isEmpty &&
+      leadershipRoles.isEmpty &&
+      !founder;
+
+  static final RegExp _leadership = RegExp(
+    r'\b(chief|ceo|cfo|coo|cto|chair(person|man|woman)?|president|'
+    r'managing director|director|head of|founder|owner|partner|principal|'
+    r'editor-in-chief|secretary-general|prime minister)\b',
+    caseSensitive: false,
+  );
+  static final RegExp _founder = RegExp(
+    r'\b(co[-\s]?)?founder\b|\bfounded\b',
+    caseSensitive: false,
+  );
+
+  factory CareerInsights._from(List<CareerEntry> rows) {
+    if (rows.isEmpty) return const CareerInsights();
+
+    final dated = rows.where((r) => r.start != null).toList();
+    CareerEntry? current;
+    for (final r in dated.where((r) => r.isCurrent)) {
+      if (current == null || (r.start ?? 0) > (current.start ?? 0)) current = r;
+    }
+
+    final transitions = <String>[];
+    for (var i = 1; i < rows.length; i++) {
+      final prev = rows[i - 1];
+      final next = rows[i];
+      if (prev.organization != null &&
+          next.organization != null &&
+          prev.organization != next.organization &&
+          next.start != null) {
+        transitions.add(
+          '${next.start} · ${prev.organization} → ${next.organization}',
+        );
+      }
+    }
+
+    final leadership =
+        <String>{
+          for (final r in rows)
+            if (r.role != null && _leadership.hasMatch(r.role!)) r.role!,
+        }.toList();
+
+    return CareerInsights(
+      start:
+          dated.isEmpty ? null : '${dated.first.start} · ${dated.first.label}',
+      current:
+          current == null ? null : '${current.label} · since ${current.start}',
+      transitions: transitions.take(6).toList(),
+      leadershipRoles: leadership,
+      founder: rows.any((r) => r.role != null && _founder.hasMatch(r.role!)),
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    start,
+    current,
+    transitions,
+    leadershipRoles,
+    founder,
+  ];
+}
+
+String? _trimOrNull(Object? v) =>
+    v is String && v.trim().isNotEmpty ? v.trim() : null;
+
+int? _asYear(Object? v) {
+  final n = v is int ? v : (v is num ? v.toInt() : int.tryParse('$v'));
+  return n != null && n > 1000 && n < 3000 ? n : null;
+}
+
+String? _httpOrNull(Object? v) =>
+    v is String && RegExp(r'^https?://', caseSensitive: false).hasMatch(v)
+        ? v
+        : null;
 
 /// A dated award, as recorded on Wikidata.
 class Award extends Equatable {

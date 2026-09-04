@@ -226,6 +226,102 @@ void main() {
       expect(facts.links.containsKey('wrong'), isFalse);
     });
 
+    test('career rows parse, sort oldest-first, and keep a source', () {
+      final f = PersonFacts.fromMap({
+        'career': [
+          {
+            'role': 'CEO',
+            'organization': 'Firm C',
+            'start': 2021,
+            'end': null,
+            'source': {
+              'name': 'Wikidata',
+              'url': 'https://www.wikidata.org/wiki/Q42',
+            },
+          },
+          {
+            'role': 'Engineer',
+            'organization': 'Firm A',
+            'start': 2014,
+            'end': 2018,
+            'source': {'name': 'Wikidata', 'url': null},
+          },
+        ],
+      });
+
+      expect(f.hasCareer, isTrue);
+      expect(f.career.map((c) => c.start), [2014, 2021]);
+      expect(f.career.first.span, '2014 – 2018');
+      expect(f.career.last.span, '2021 – present');
+      expect(f.career.last.isCurrent, isTrue);
+      expect(f.career.first.sourceUrl, isNull);
+      expect(f.career.last.sourceUrl, 'https://www.wikidata.org/wiki/Q42');
+    });
+
+    test('a career row with neither role nor organisation is dropped', () {
+      final f = PersonFacts.fromMap({
+        'career': [
+          {'role': '', 'organization': '', 'start': 2000},
+          {'role': 'Reporter', 'start': 1999},
+          'junk',
+          42,
+        ],
+      });
+      expect(f.career, hasLength(1));
+      expect(f.career.single.role, 'Reporter');
+    });
+
+    test('career insights are derived from the rows only', () {
+      final f = PersonFacts.fromMap({
+        'career': [
+          {
+            'role': 'Engineer',
+            'organization': 'Firm A',
+            'start': 2014,
+            'end': 2018,
+          },
+          {
+            'role': 'Chief Executive Officer',
+            'organization': 'Firm B',
+            'start': 2018,
+          },
+        ],
+      });
+      final insights = f.careerInsights;
+      expect(insights.start, '2014 · Engineer, Firm A');
+      expect(insights.current, 'Chief Executive Officer, Firm B · since 2018');
+      expect(insights.transitions, ['2018 · Firm A → Firm B']);
+      expect(insights.leadershipRoles, ['Chief Executive Officer']);
+    });
+
+    test('a founder role is recognised', () {
+      final f = PersonFacts.fromMap({
+        'career': [
+          {'role': 'Co-founder', 'organization': 'Startup X', 'start': 2010},
+        ],
+      });
+      expect(f.careerInsights.founder, isTrue);
+    });
+
+    test('organizations are read as a plain string list', () {
+      final f = PersonFacts.fromMap({
+        'organizations': ['Firm B', 'Firm A', 7, null],
+      });
+      expect(f.organizations, ['Firm B', 'Firm A']);
+      expect(f.isEmpty, isFalse);
+    });
+
+    test('a malformed career payload does not throw', () {
+      expect(PersonFacts.fromMap({'career': 'nope'}).career, isEmpty);
+      expect(
+        PersonFacts.fromMap({
+          'career': [1, 2],
+        }).career,
+        isEmpty,
+      );
+      expect(PersonFacts.fromMap({}).hasCareer, isFalse);
+    });
+
     test('a record with only expanded fields is not reported as empty', () {
       expect(PersonFacts.fromMap({'birthPlace': 'Oakland'}).isEmpty, isFalse);
       expect(

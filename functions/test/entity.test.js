@@ -8,6 +8,8 @@ const {
   isHuman,
   resolutionConfidence,
   sitelinkCount,
+  careerEntries,
+  buildCareer,
   PROPS,
   HUMAN,
   INSTANCE_OF,
@@ -378,6 +380,83 @@ test("a thinly-documented top match is low confidence", () => {
       resolutionConfidence("Jane Q Public", obscure, [obscure]),
       "low",
   );
+});
+
+// ── career timeline ────────────────────────────────────────────────────
+
+/** A P39 / P108 claim with start/end and org qualifiers. */
+function post(roleId, { org, of, start, end } = {}) {
+  const q = {};
+  if (org) q[PROPS.employer] = [{ datavalue: { value: { id: org } } }];
+  if (of) q.P642 = [{ datavalue: { value: { id: of } } }];
+  if (start) q.P580 = [{ datavalue: { value: { time: `+${start}-00-00T00:00:00Z` } } }];
+  if (end) q.P582 = [{ datavalue: { value: { time: `+${end}-00-00T00:00:00Z` } } }];
+  return { mainsnak: { datavalue: { value: { id: roleId } } }, qualifiers: q };
+}
+function job(orgId, { start, end } = {}) {
+  const q = {};
+  if (start) q.P580 = [{ datavalue: { value: { time: `+${start}-00-00T00:00:00Z` } } }];
+  if (end) q.P582 = [{ datavalue: { value: { time: `+${end}-00-00T00:00:00Z` } } }];
+  return { mainsnak: { datavalue: { value: { id: orgId } } }, qualifiers: q };
+}
+
+test("careerEntries reads dated positions and employments", () => {
+  const e = {
+    claims: {
+      P39: [post("Q1", { of: "Q10", start: 2015, end: 2019 })],
+      P108: [job("Q20", { start: 2019 })],
+    },
+  };
+  const rows = careerEntries(e);
+  assert.deepEqual(rows, [
+    { roleId: "Q1", orgId: "Q10", locationId: null, start: 2015, end: 2019 },
+    { roleId: null, orgId: "Q20", locationId: null, start: 2019, end: null },
+  ]);
+});
+
+test("careerEntries drops an undated employer with no role", () => {
+  const e = { claims: { P108: [job("Q20")] } };
+  assert.deepEqual(careerEntries(e), []);
+});
+
+test("careerEntries does not double-count an employer already held as a post", () => {
+  const e = {
+    claims: {
+      P39: [post("Q1", { of: "Q10", start: 2015 })],
+      P108: [job("Q10", { start: 2015 })],
+    },
+  };
+  assert.equal(careerEntries(e).length, 1);
+});
+
+test("buildCareer resolves labels, orders oldest-first, tags a source", () => {
+  const rows = [
+    { roleId: "Q1", orgId: "Q10", start: 2021, end: null },
+    { roleId: "Q2", orgId: "Q11", start: 2016, end: 2021 },
+  ];
+  const labels = { Q1: "Chief Executive Officer", Q2: "Engineer", Q10: "Company Z", Q11: "Company Y" };
+  const career = buildCareer(rows, labels, "Q42");
+  assert.deepEqual(career.map((c) => c.start), [2016, 2021]);
+  assert.equal(career[0].role, "Engineer");
+  assert.equal(career[0].organization, "Company Y");
+  assert.equal(career[0].location, null);
+  assert.deepEqual(career[0].source, {
+    name: "Wikidata",
+    url: "https://www.wikidata.org/wiki/Q42",
+  });
+});
+
+test("buildCareer drops a row whose role and organisation both fail to resolve", () => {
+  const career = buildCareer(
+      [{ roleId: "Q99", orgId: "Q98", start: 2000, end: null }],
+      {},
+      "Q42",
+  );
+  assert.deepEqual(career, []);
+});
+
+test("extractFacts exposes an empty career array on a bare entity", () => {
+  assert.deepEqual(extractFacts({}).career, []);
 });
 
 test("similar names alone never trigger ambiguity", () => {

@@ -27,6 +27,7 @@ import 'package:crititrack/core/utils/helpers.dart';
 import 'package:crititrack/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:crititrack/features/controversy/presentation/widgets/controversy_section.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/biography_card.dart';
+import 'package:crititrack/features/dashboard/presentation/widgets/career_section.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/disambiguation_bar.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/editorial_header.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/media_feed_section.dart';
@@ -186,6 +187,8 @@ class _DashboardContent extends ConsumerWidget {
                           verified: celebrity.verified,
                         ),
                         const SizedBox(height: 16),
+                        CareerSection(facts: celebrity.facts),
+                        const SizedBox(height: 16),
                         MediaFeedSection(
                           mediaItems: celebrity.mediaItems,
                           slug: celebrity.slug,
@@ -225,6 +228,12 @@ class _DashboardContent extends ConsumerWidget {
                 facts: celebrity.facts,
                 verified: celebrity.verified,
               ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+              child: CareerSection(facts: celebrity.facts),
             ),
           ),
           SliverToBoxAdapter(

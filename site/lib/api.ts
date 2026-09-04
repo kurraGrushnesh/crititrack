@@ -22,6 +22,10 @@ import {
   buildProfessionalIdentity,
   type ProfessionalIdentity,
 } from "./professional-identity";
+import {
+  buildCareerIntelligence,
+  type CareerIntelligence,
+} from "./career";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE ?? "https://crititrack-api.onrender.com";
@@ -193,6 +197,7 @@ export interface RealProfile {
   timeline: TimelineEvent[];
   accounts: ProfileAccount[];
   professional: ProfessionalIdentity;
+  career: CareerIntelligence;
 
   /**
    * How sure the backend is that this is the person the searcher meant.
@@ -370,6 +375,10 @@ function mapProfile(j: Json): RealProfile {
       professionText: str(bio.profession),
       fieldsOfWork: strs(obj(entity.facts).fieldsOfWork),
       deceased: Boolean(str(obj(entity.facts).deathDate)),
+    }),
+    career: buildCareerIntelligence({
+      career: obj(entity.facts).career,
+      organizations: obj(entity.facts).organizations,
     }),
     resolution: resolutionBand(str(entity.confidence)),
     candidates: list(entity.candidates)

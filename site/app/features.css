@@ -828,3 +828,135 @@
   color: var(--text-soft);
   font-size: 0.9rem;
 }
+
+/* ── Career & Professional Intelligence ─────────────────────────────── */
+.career-section {
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding: 18px 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.career-empty {
+  color: var(--text-soft);
+  margin: 0;
+  font-size: 0.95rem;
+}
+.career-orgs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.career-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  background: var(--surface);
+}
+.career-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.career-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 14px;
+  padding: 10px 0;
+  border-left: 2px solid var(--border);
+  padding-left: 16px;
+  margin-left: 4px;
+  position: relative;
+}
+.career-row::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: 16px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+}
+.career-row.is-current::before {
+  background: var(--brand-strong, var(--text));
+}
+.career-when {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  padding-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.career-entry {
+  min-width: 0;
+}
+.career-entry > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.career-entry > summary::-webkit-details-marker {
+  display: none;
+}
+.career-role {
+  font-weight: 600;
+}
+.career-org {
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+.career-detail {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.88rem;
+}
+.career-meta {
+  margin: 0;
+  color: var(--text-muted);
+}
+.career-insights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+.career-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--surface);
+}
+.career-card-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.career-card-value {
+  font-size: 0.92rem;
+}
+.career-card-list {
+  margin: 0;
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+@media (max-width: 640px) {
+  .career-row {
+    grid-template-columns: 84px 1fr;
+    gap: 10px;
+  }
+}

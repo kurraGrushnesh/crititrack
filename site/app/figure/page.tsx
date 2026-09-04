@@ -17,6 +17,7 @@ import FigureTimeline from "@/components/FigureTimeline";
 import ProfileLinks from "@/components/ProfileLinks";
 import DisambiguationChooser from "@/components/DisambiguationChooser";
 import ProfessionalIdentity from "@/components/ProfessionalIdentity";
+import CareerSection from "@/components/CareerSection";
 import { Stat, StatRow } from "@/components/Stat";
 import MediaCoverage from "@/components/MediaCoverage";
 import BioSection from "@/components/BioSection";
@@ -183,6 +184,8 @@ function ProfileView({
       )}
 
       <ProfessionalIdentity identity={profile.professional} />
+
+      <CareerSection career={profile.career} />
 
       {(profile.summary || profile.notableWorks.length > 0) && (
         <div className="min-section" id="summary" style={{ paddingTop: 8 }}>
