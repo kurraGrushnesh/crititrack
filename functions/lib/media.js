@@ -265,6 +265,37 @@ function parseGdeltDate(raw) {
 }
 
 /**
+ * A coarse topical tag for a media item, from keywords in its title and
+ * description. This drives an optional filter on the feed ("show only
+ * legal coverage") — it is not a claim about the figure, only about what
+ * a given headline is about, and it degrades to "other" rather than
+ * guessing.
+ *
+ * Order matters: a headline about a "financial fraud lawsuit" is legal
+ * first. The lists are deliberately short and high-precision; a missed
+ * classification just means "other", which is honest.
+ */
+const TOPIC_PATTERNS = [
+  ["legal", /\b(lawsuit|sued?|court|trial|charged|indict|arrest|verdict|guilty|plea|settlement|subpoena|testif|allegation|prosecut|convict|acquit|defamation|litigation)\b/i],
+  ["financial", /\b(bankruptcy|tax|fraud|SEC |insider trading|earnings|revenue|stake|shares|net worth|investment|fund|salary|payout|fined?|debt|audit)\b/i],
+  ["political", /\b(election|campaign|senate|congress|parliament|vote|policy|legislation|minister|governor|president|candidate|endorse|lobby|sanction)\b/i],
+  ["personal", /\b(divorce|marriage|married|dating|relationship|engaged|split|affair|custody|feud|apolog|rehab|health|hospital|diagnos)\b/i],
+  ["professional", /\b(album|film|movie|series|tour|concert|award|nominat|premiere|contract|signed|debut|release|championship|match|transfer|retire)\b/i],
+];
+
+/**
+ * @param {{title?: string, description?: string}} item
+ * @return {"legal"|"financial"|"political"|"personal"|"professional"|"other"}
+ */
+function classifyTopic(item) {
+  const text = `${(item && item.title) || ""} ${(item && item.description) || ""}`;
+  for (const [topic, pattern] of TOPIC_PATTERNS) {
+    if (pattern.test(text)) return topic;
+  }
+  return "other";
+}
+
+/**
  * Removes items that point at the same story.
  *
  * Sources overlap heavily — an article syndicated to three outlets is one
@@ -307,5 +338,6 @@ module.exports = {
   parseGdelt,
   parseGdeltDate,
   parseReddit,
+  classifyTopic,
   dedupe,
 };

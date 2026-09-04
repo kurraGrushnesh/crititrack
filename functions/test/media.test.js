@@ -7,6 +7,7 @@ const {
   parseGdelt,
   parseGdeltDate,
   parseReddit,
+  classifyTopic,
   dedupe,
 } = require("../lib/media");
 
@@ -164,4 +165,26 @@ test("parseReddit returns [] for a malformed listing", () => {
   for (const v of [null, {}, {data: {}}, {data: {children: "nope"}}]) {
     assert.deepEqual(parseReddit(v), []);
   }
+});
+
+// ── topic classification ───────────────────────────────────────────
+
+test("classifyTopic picks the topic from title/description keywords", () => {
+  assert.equal(classifyTopic({title: "Star sued for defamation over remarks"}), "legal");
+  assert.equal(classifyTopic({title: "Company earnings miss; shares fall"}), "financial");
+  assert.equal(classifyTopic({title: "Senator endorses the candidate"}), "political");
+  assert.equal(classifyTopic({title: "Couple confirm divorce after ten years"}), "personal");
+  assert.equal(classifyTopic({title: "New album announced, world tour to follow"}), "professional");
+});
+
+test("classifyTopic resolves legal before financial for a mixed headline", () => {
+  assert.equal(
+      classifyTopic({title: "Executive charged in tax fraud lawsuit"}),
+      "legal",
+  );
+});
+
+test("classifyTopic falls back to 'other' rather than guessing", () => {
+  assert.equal(classifyTopic({title: "A quiet week for the star"}), "other");
+  assert.equal(classifyTopic({}), "other");
 });

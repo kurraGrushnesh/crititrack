@@ -38,6 +38,7 @@ const {
   fetchVideos,
   fetchGdelt,
   fetchReddit,
+  classifyTopic,
   dedupe,
 } = require("./media");
 const {linkEvidence} = require("./evidence");
@@ -75,6 +76,10 @@ async function assembleCelebrity(keys, name, slug) {
   // overlap the deduper keeps its copy and NewsAPI's quota goes further.
   const articles = dedupe([...gdelt, ...news]);
   const media = dedupe([...articles, ...videos, ...reddit]);
+
+  // A coarse topical tag per item, so the feed can be filtered to "legal"
+  // or "financial" coverage. Describes the headline, not the figure.
+  for (const item of media) item.topic = classifyTopic(item);
 
   if (!bioResult.ok && media.length === 0) {
     const e = bioResult.error;

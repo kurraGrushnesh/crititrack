@@ -44,6 +44,46 @@ export interface MediaLink {
   thumbnailUrl?: string;
   sentimentScore: number | null;
   sentimentTag?: string;
+  /** Coarse topic of the headline: legal, financial, political, ... */
+  topic?: MediaTopic;
+}
+
+export type MediaTopic =
+  | "legal"
+  | "financial"
+  | "political"
+  | "personal"
+  | "professional"
+  | "other";
+
+const MEDIA_TOPICS: readonly MediaTopic[] = [
+  "legal",
+  "financial",
+  "political",
+  "personal",
+  "professional",
+  "other",
+];
+
+function topic(v: unknown): MediaTopic | undefined {
+  return typeof v === "string" && (MEDIA_TOPICS as readonly string[]).includes(v)
+    ? (v as MediaTopic)
+    : undefined;
+}
+
+/** Filters a media list to one topic; `"all"` passes everything through. */
+export function filterMediaByTopic(
+  media: MediaLink[],
+  selected: MediaTopic | "all",
+): MediaLink[] {
+  if (selected === "all") return media;
+  return media.filter((m) => (m.topic ?? "other") === selected);
+}
+
+/** The topics actually present in a media list, in canonical order. */
+export function topicsPresent(media: MediaLink[]): MediaTopic[] {
+  const seen = new Set(media.map((m) => m.topic ?? "other"));
+  return MEDIA_TOPICS.filter((t) => seen.has(t));
 }
 
 export interface AttentionPoint {
@@ -247,6 +287,7 @@ function mapProfile(j: Json): RealProfile {
         thumbnailUrl: str(m.thumbnailUrl) || undefined,
         sentimentScore: num(m.sentimentScore),
         sentimentTag: str(m.sentimentTag) || undefined,
+        topic: topic(m.topic),
       }))
       .filter((m) => m.title && m.url),
     attention: mapAttention(j.attention),

@@ -174,6 +174,7 @@ async function writeCelebrity(payload, meta = {trigger: "request"}) {
       description: orNull(item.description),
       sentimentTag: orNull(item.sentimentTag),
       sentimentScore: orNull(item.sentimentScore),
+      topic: orNull(item.topic),
       videoId: item.type === "youtube" ? String(item.id) : null,
       channelTitle: orNull(item.channel || item.channelTitle),
       mediaUrl: orNull(item.mediaUrl),
