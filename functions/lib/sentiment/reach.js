@@ -55,9 +55,23 @@ const OUTLET_ALIASES = new Map([
   ["hindustan times", "hindustantimes.com"],
 ]);
 
+/**
+ * Outlets that reach a wide audience but whose reporting is routinely
+ * unreliable on exactly the kind of claim this app records — celebrity
+ * conduct, legal trouble, relationships. They are not excluded, because
+ * they are part of the coverage a reader sees, but a headline from here
+ * should not move the aggregate as far as one from a wire service.
+ */
+const LOW_RELIABILITY_OUTLETS = new Set([
+  "dailymail.co.uk", "thesun.co.uk", "mirror.co.uk", "nypost.com",
+  "tmz.com", "radaronline.com", "the-sun.com", "express.co.uk",
+  "dailystar.co.uk", "metro.co.uk", "okmagazine.com", "hollywoodlife.com",
+]);
+
 const MAJOR_WEIGHT = 2.5;
 const KNOWN_WEIGHT = 1.5;
 const DEFAULT_WEIGHT = 1.0;
+const LOW_RELIABILITY_WEIGHT = 0.6;
 
 /** Ceiling on any single item, so one viral post cannot swamp the rest. */
 const MAX_WEIGHT = 3.0;
@@ -76,9 +90,26 @@ function weightFor(item) {
       return viewWeight(item.viewCount);
     case "instagram":
       return viewWeight(item.likeCount);
+    case "reddit":
+      return redditWeight(item);
     default:
       return DEFAULT_WEIGHT;
   }
+}
+
+/**
+ * A Reddit thread starts well below a news item — it is forum chatter,
+ * not reporting — and earns a little back from engagement, capped at the
+ * default news weight so discussion can never outweigh journalism.
+ *
+ * @param {object} item
+ * @return {number}
+ */
+function redditWeight(item) {
+  const engagement = Number(item && item.commentCount) ||
+    Number(item && item.score) || 0;
+  if (!Number.isFinite(engagement) || engagement <= 0) return 0.5;
+  return clamp(0.4 + Math.log10(engagement + 1) / 4, 0.4, DEFAULT_WEIGHT);
 }
 
 /**
@@ -89,6 +120,7 @@ function weightFor(item) {
 function outletWeight(source, url) {
   const host = hostOf(source) || hostOf(url);
   if (!host) return DEFAULT_WEIGHT;
+  if (LOW_RELIABILITY_OUTLETS.has(host)) return LOW_RELIABILITY_WEIGHT;
   if (MAJOR_OUTLETS.has(host)) return MAJOR_WEIGHT;
   // A recognisable domain still beats an unattributed aggregator.
   return host.includes(".") ? KNOWN_WEIGHT : DEFAULT_WEIGHT;
@@ -143,8 +175,10 @@ module.exports = {
   weightFor,
   outletWeight,
   viewWeight,
+  redditWeight,
   hostOf,
   MAJOR_OUTLETS,
+  LOW_RELIABILITY_OUTLETS,
   OUTLET_ALIASES,
   MAX_WEIGHT,
 };

@@ -3,7 +3,12 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const {parseGdelt, parseGdeltDate, dedupe} = require("../lib/media");
+const {
+  parseGdelt,
+  parseGdeltDate,
+  parseReddit,
+  dedupe,
+} = require("../lib/media");
 
 test("expands GDELT's compact timestamp to ISO 8601", () => {
   // Date.parse does not understand "20260828T164028Z".
@@ -109,4 +114,54 @@ test("dedupe preserves order, so the first source listed wins", () => {
 test("dedupe tolerates items with no url or title", () => {
   const out = dedupe([{}, {url: ""}, {title: ""}]);
   assert.equal(out.length, 3, "nothing to compare means nothing to drop");
+});
+
+// ── Reddit ─────────────────────────────────────────────────────────
+
+test("maps a Reddit thread onto the shared media shape", () => {
+  const [item] = parseReddit({
+    data: {
+      children: [
+        {
+          data: {
+            title: "  Thoughts on the new interview?  ",
+            permalink: "/r/movies/comments/abc/thoughts/",
+            subreddit_name_prefixed: "r/movies",
+            subreddit: "movies",
+            created_utc: 1_700_000_000,
+            score: 240,
+            num_comments: 88,
+            thumbnail: "https://b.thumbs.redditmedia.com/x.jpg",
+            over_18: false,
+          },
+        },
+      ],
+    },
+  });
+
+  assert.equal(item.type, "reddit");
+  assert.equal(item.title, "Thoughts on the new interview?");
+  assert.equal(item.url, "https://www.reddit.com/r/movies/comments/abc/thoughts/");
+  assert.equal(item.source, "r/movies");
+  assert.equal(item.publishedAt, "2023-11-14T22:13:20.000Z");
+  assert.equal(item.commentCount, 88);
+});
+
+test("drops NSFW threads and rows missing a title or permalink", () => {
+  const out = parseReddit({
+    data: {
+      children: [
+        {data: {title: "ok", permalink: "/r/x/1/", over_18: true}},
+        {data: {title: "no link"}},
+        {data: {permalink: "/r/x/2/"}},
+      ],
+    },
+  });
+  assert.equal(out.length, 0);
+});
+
+test("parseReddit returns [] for a malformed listing", () => {
+  for (const v of [null, {}, {data: {}}, {data: {children: "nope"}}]) {
+    assert.deepEqual(parseReddit(v), []);
+  }
 });

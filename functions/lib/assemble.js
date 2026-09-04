@@ -33,7 +33,13 @@ const {
 } = require("./sentiment/ensemble");
 const {weightFor} = require("./sentiment/reach");
 const {corroborate} = require("./corroborate");
-const {fetchNews, fetchVideos, fetchGdelt, dedupe} = require("./media");
+const {
+  fetchNews,
+  fetchVideos,
+  fetchGdelt,
+  fetchReddit,
+  dedupe,
+} = require("./media");
 const {linkEvidence} = require("./evidence");
 const {fetchWikiSummary} = require("./wiki");
 const {fetchPageviews, summarise} = require("./pageviews");
@@ -46,25 +52,28 @@ const {fetchPageviews, summarise} = require("./pageviews");
  */
 async function assembleCelebrity(keys, name, slug) {
   // ── Parallel: biography + media + portrait + attention ──────────
-  const [bioResult, news, gdelt, videos, wiki, pageviews] = await Promise.all([
-    fetchBiography(keys.groq, name).then(
-        (v) => ({ok: true, value: v}),
-        (e) => ({ok: false, error: e}),
-    ),
-    fetchNews(keys.news, name),
-    fetchGdelt(name),
-    fetchVideos(keys.youtube, name),
-    fetchWikiSummary(name),
-    // Free and keyless, so it costs nothing to ask on every assembly.
-    // Returns [] for anyone without an English article rather than
-    // throwing, which is the common case for a minor figure.
-    fetchPageviews(name),
-  ]);
+  const [bioResult, news, gdelt, videos, reddit, wiki, pageviews] =
+    await Promise.all([
+      fetchBiography(keys.groq, name).then(
+          (v) => ({ok: true, value: v}),
+          (e) => ({ok: false, error: e}),
+      ),
+      fetchNews(keys.news, name),
+      fetchGdelt(name),
+      fetchVideos(keys.youtube, name),
+      // Keyless and unmetered; forum discussion, weighted well below news.
+      fetchReddit(name),
+      fetchWikiSummary(name),
+      // Free and keyless, so it costs nothing to ask on every assembly.
+      // Returns [] for anyone without an English article rather than
+      // throwing, which is the common case for a minor figure.
+      fetchPageviews(name),
+    ]);
 
   // GDELT first: it is the broader, unmetered source, so when the two
   // overlap the deduper keeps its copy and NewsAPI's quota goes further.
   const articles = dedupe([...gdelt, ...news]);
-  const media = dedupe([...articles, ...videos]);
+  const media = dedupe([...articles, ...videos, ...reddit]);
 
   if (!bioResult.ok && media.length === 0) {
     const e = bioResult.error;
