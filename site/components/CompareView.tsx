@@ -21,9 +21,11 @@ function CompareInner() {
   const params = useSearchParams();
   const router = useRouter();
 
+  // No default pair — the reader chooses both. Only a shared
+  // `?figures=a,b` link pre-fills the selects.
   const picked = parseComparisonQuery(params.get("figures"));
-  const left = picked[0] ?? DEMO_PROFILES[0]?.slug ?? "";
-  const right = picked[1] ?? DEMO_PROFILES[1]?.slug ?? "";
+  const left = picked[0] ?? "";
+  const right = picked[1] ?? "";
 
   function setPair(nextLeft: string, nextRight: string) {
     const q = [nextLeft, nextRight].filter(Boolean).join(",");
@@ -40,6 +42,7 @@ function CompareInner() {
         <label className="field">
           <span>Left</span>
           <select value={left} onChange={(e) => setPair(e.target.value, right)}>
+            <option value="">Select a profile</option>
             {DEMO_PROFILES.map((p) => (
               <option key={p.slug} value={p.slug}>
                 {p.name}
@@ -50,6 +53,7 @@ function CompareInner() {
         <label className="field">
           <span>Right</span>
           <select value={right} onChange={(e) => setPair(left, e.target.value)}>
+            <option value="">Select a profile</option>
             {DEMO_PROFILES.map((p) => (
               <option key={p.slug} value={p.slug}>
                 {p.name}
