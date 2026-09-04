@@ -68,6 +68,7 @@ jobs:
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
+          echo "credential length: ${#FIREBASE_SERVICE_ACCOUNT}"
           if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
             echo "FIREBASE_SERVICE_ACCOUNT is not set; built and staged but not deploying."
             exit 0
