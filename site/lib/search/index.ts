@@ -34,7 +34,11 @@ import {
   type Industry,
   type Sector,
 } from "../taxonomy";
-import { countryForDemonym, countryFromDescriptor } from "./demonyms";
+import {
+  countryForDemonym,
+  countryForName,
+  countryFromDescriptor,
+} from "./demonyms";
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -240,12 +244,31 @@ export interface ParsedQuery {
   tokens: string[];
   contentTokens: string[];
   country: string | null;
+  /** Decade of birth, e.g. 1990, from "1990s" / "born in the 90s". */
+  bornDecade: number | null;
   occupations: Occupation[];
   industries: Industry[];
   sectors: Sector[];
   legacyCategory: string | null;
   /** Recognised but unsupported dimensions, for an honest note. */
   ignored: string[];
+}
+
+/** "1990s", "90s", "1980" → 1990 / 1990 / 1980, else null. */
+function parseDecade(tokens: string[]): number | null {
+  for (const t of tokens) {
+    let m = t.match(/^(\d{4})s?$/);
+    if (m) {
+      const y = Number(m[1]);
+      if (y >= 1900 && y <= 2020) return Math.floor(y / 10) * 10;
+    }
+    m = t.match(/^(\d{2})s$/);
+    if (m) {
+      const n = Number(m[1]);
+      return n >= 30 ? 1900 + n : 2000 + n;
+    }
+  }
+  return null;
 }
 
 function matchSector(text: string): Sector | null {
@@ -290,7 +313,7 @@ export function parseQuery(raw: string): ParsedQuery {
     windows.push(`${contentTokens[i]} ${contentTokens[i + 1]}`);
   }
   for (const w of windows) {
-    if (!country) country = countryForDemonym(w);
+    if (!country) country = countryForDemonym(w) ?? countryForName(w);
     const o = resolveOccupation(w);
     if (o) occupations.set(o.occupation.id, o.occupation);
     const ind = resolveIndustry(w);
@@ -298,6 +321,10 @@ export function parseQuery(raw: string): ParsedQuery {
     const sec = matchSector(w);
     if (sec) sectors.set(sec.id, sec);
   }
+  // Written-out country names, incl. multi-word ("united states").
+  if (!country) country = countryForName(norm) ?? countryForName(phrase);
+
+  const bornDecade = parseDecade(tokens);
 
   // Legacy 6-category names ("actors", "musicians"…).
   let legacyCategory: string | null = null;
@@ -313,6 +340,7 @@ export function parseQuery(raw: string): ParsedQuery {
     tokens,
     contentTokens,
     country,
+    bornDecade,
     occupations: [...occupations.values()],
     industries: [...industries.values()],
     sectors: [...sectors.values()],
@@ -376,7 +404,7 @@ export function search(raw: string, explicit: SearchFilters = {}): SearchResult 
     industryId: explicit.industryId ?? parsed.industries[0]?.id,
     sectorId: explicit.sectorId ?? parsed.sectors[0]?.id,
     category: explicit.category ?? parsed.legacyCategory ?? undefined,
-    bornDecade: explicit.bornDecade,
+    bornDecade: explicit.bornDecade ?? parsed.bornDecade ?? undefined,
   };
 
   const nameQuery = parsed.norm;
@@ -422,13 +450,14 @@ export function search(raw: string, explicit: SearchFilters = {}): SearchResult 
       }
 
       const tiers = [nt, profTier].filter((x) => x > 0);
-      // A pure country/decade browse with no other intent lists everyone
-      // who passed the hard filters, at the lowest tier.
+      // A pure country/decade browse ("japan", "1990s") — with no
+      // profession intent — lists everyone who passed the hard filters,
+      // at the lowest tier. Non-matching people were already excluded by
+      // the hard filters above.
       const browseOnly =
         tiers.length === 0 &&
         !hasTaxonomyIntent &&
-        !nameQuery &&
-        (filters.country || filters.bornDecade != null);
+        (filters.country != null || filters.bornDecade != null);
       if (tiers.length === 0 && !browseOnly) return null;
 
       // A taxonomy intent that this person does not match is dropped,
@@ -472,38 +501,37 @@ export function search(raw: string, explicit: SearchFilters = {}): SearchResult 
     .slice(0, PEOPLE_LIMIT);
 
   // Professions (occupations + specialisations) matching the query text.
-  const professions = rankTaxonomy(
-    [
-      ...parsed.occupations.map((o) => ({
-        kind: "occupation" as const,
-        id: o.id,
-        label: o.label,
-        path: pathLabel(o.id),
-        count: occCount.get(o.id) ?? 0,
-        score: 900,
-      })),
-      ...occupationTextMatches(parsed),
-      ...specializationTextMatches(parsed),
-    ],
-  );
+  const professions = rankTaxonomy([
+    ...parsed.occupations.map((o, i) => ({
+      kind: "occupation" as const,
+      id: o.id,
+      label: o.label,
+      path: pathLabel(o.id),
+      count: occCount.get(o.id) ?? 0,
+      // The whole-phrase resolution (index 0) beats a single-token one.
+      score: i === 0 ? 920 : 860,
+    })),
+    ...occupationTextMatches(parsed),
+    ...specializationTextMatches(parsed),
+  ]);
 
   // Categories = industries + sectors + legacy categories.
   const categories = rankTaxonomy([
-    ...parsed.industries.map((i) => ({
+    ...parsed.industries.map((i, idx) => ({
       kind: "industry" as const,
       id: i.id,
       label: i.label,
       path: SECTORS.find((s) => s.id === i.sectorId)?.label ?? null,
       count: industryCount.get(i.id) ?? 0,
-      score: 800,
+      score: idx === 0 ? 900 : 820,
     })),
-    ...parsed.sectors.map((s) => ({
+    ...parsed.sectors.map((s, idx) => ({
       kind: "sector" as const,
       id: s.id,
       label: s.label,
       path: null,
       count: sectorCount.get(s.id) ?? 0,
-      score: 780,
+      score: idx === 0 ? 880 : 800,
     })),
     ...industryTextMatches(parsed),
     ...(parsed.legacyCategory

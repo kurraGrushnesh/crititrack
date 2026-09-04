@@ -55,6 +55,19 @@ describe("parseQuery — natural language", () => {
   it("'actors' → legacy category", () => {
     expect(parseQuery("actors").legacyCategory).toBe("actors");
   });
+
+  it("parses a decade from '1990s' / 'born in the 90s'", () => {
+    expect(parseQuery("1990s musicians").bornDecade).toBe(1990);
+    expect(parseQuery("actors born in the 90s").bornDecade).toBe(1990);
+    expect(parseQuery("1985").bornDecade).toBe(1980);
+    expect(parseQuery("footballers").bornDecade).toBeNull();
+  });
+
+  it("parses a written-out country name", () => {
+    expect(parseQuery("japan").country).toBe("Japan");
+    expect(parseQuery("United States").country).toBe("United States");
+    expect(parseQuery("uk").country).toBe("United Kingdom");
+  });
 });
 
 describe("search — people", () => {
@@ -116,6 +129,21 @@ describe("search — ranking (relevance beats popularity)", () => {
     // scores strictly non-increasing (the sort key)
     const scores = r.people.map((p) => p.score);
     expect([...scores].sort((a, b) => b - a)).toEqual(scores);
+  });
+
+  it("a bare country name browses that country's people", () => {
+    const r = search("japan");
+    expect(r.filters.country).toBe("Japan");
+    expect(r.people.length).toBeGreaterThan(0);
+    expect(r.people.every((p) => p.country === "Japan")).toBe(true);
+  });
+
+  it("a decade in the query filters people by birth decade", () => {
+    const r = search("1990s musicians");
+    expect(r.filters.bornDecade).toBe(1990);
+    expect(
+      r.people.every((p) => Math.floor(p.born / 10) * 10 === 1990),
+    ).toBe(true);
   });
 
   it("every hit carries a tier and a plain-language matchedOn", () => {

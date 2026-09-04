@@ -110,9 +110,24 @@ export function countryForDemonym(token: string): string | null {
   return DEMONYM_TO_COUNTRY[token.trim().toLowerCase()] ?? null;
 }
 
-const COUNTRY_NAMES = new Set(
-  Object.values(DEMONYM_TO_COUNTRY).map((c) => c.toLowerCase()),
+const COUNTRY_BY_LOWER = new Map(
+  Object.values(DEMONYM_TO_COUNTRY).map((c) => [c.toLowerCase(), c]),
 );
+const COUNTRY_NAMES = new Set(COUNTRY_BY_LOWER.keys());
+
+/**
+ * A country name written out ("japan", "united states", "uk"), for a
+ * bare-country search. Returns the canonical spelling or null.
+ */
+export function countryForName(text: string): string | null {
+  const t = text.trim().toLowerCase();
+  if (t === "uk" || t === "u.k." || t === "britain") return "United Kingdom";
+  if (t === "usa" || t === "u.s.a." || t === "us" || t === "america") {
+    return "United States";
+  }
+  if (t === "uae") return "United Arab Emirates";
+  return COUNTRY_BY_LOWER.get(t) ?? null;
+}
 
 /**
  * Reads a country off a roster descriptor:
