@@ -55,7 +55,9 @@ export interface CareerIntelligence {
 
 type RawCareer = Record<string, unknown>;
 
-const LEADERSHIP =
+/** Exported for the timeline builder, which uses the same test to rate a
+ * career event's importance. */
+export const LEADERSHIP =
   /\b(chief|ceo|cfo|coo|cto|chair(person|man|woman)?|president|managing director|director|head of|founder|owner|partner|principal|editor-in-chief|secretary-general|prime minister)\b/i;
 const FOUNDER = /\b(co[-\s]?)?founder\b|\bfounded\b/i;
 

@@ -76,10 +76,23 @@
 .timeline-item.k-sentiment-shift::before {
   border-color: var(--mid);
 }
+.timeline-item.k-news::before {
+  border-color: var(--brand);
+}
+.timeline-item.k-career::before,
+.timeline-item.k-organization::before {
+  border-color: var(--good);
+}
 .timeline-date {
   font-size: 0.78rem;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+}
+.timeline-kind {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  font-size: 0.7rem;
 }
 .timeline-title {
   font-weight: 700;
@@ -95,6 +108,99 @@
   margin-left: 6px;
   font-size: 0.72rem;
   color: var(--text-muted);
+}
+
+/* ── Timeline: controls, expandable detail ──────────────────────── */
+
+.tl-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.tl-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tl-expand {
+  margin-top: 8px;
+}
+.tl-expand summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tl-expand summary::-webkit-details-marker {
+  display: none;
+}
+.tl-expand-label {
+  font-size: 0.78rem;
+  color: var(--brand-strong);
+  font-weight: 600;
+}
+.tl-importance {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.tl-importance.is-high {
+  color: var(--bad);
+  background: color-mix(in srgb, var(--bad) 14%, transparent);
+}
+.tl-importance.is-medium {
+  color: var(--mid);
+  background: color-mix(in srgb, var(--mid) 16%, transparent);
+}
+.tl-importance.is-low {
+  color: var(--text-muted);
+  background: var(--surface);
+}
+.tl-expand-body {
+  margin-top: 8px;
+  padding-left: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tl-reason {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.tl-sources {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tl-sources a,
+.tl-sources span {
+  font-size: 0.8rem;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-soft);
+  text-decoration: none;
+}
+.tl-sources a:hover {
+  color: var(--text);
+  border-color: var(--gold);
+}
+.tl-related {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 /* ── Controversy Index explanation ──────────────────────────────── */

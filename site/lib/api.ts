@@ -308,6 +308,31 @@ function mapProfile(j: Json): RealProfile {
     }))
     .filter((d) => d.date);
 
+  const media: MediaLink[] = list(j.media)
+    .map((m, i) => ({
+      id: str(m.id, String(i)),
+      title: str(m.title),
+      url: str(m.url),
+      source: str(m.source),
+      type: str(m.type, "news"),
+      channel: str(m.channel) || undefined,
+      publishedAt: str(m.publishedAt) || undefined,
+      description: str(m.description) || undefined,
+      thumbnailUrl: str(m.thumbnailUrl) || undefined,
+      sentimentScore: num(m.sentimentScore),
+      sentimentTag: str(m.sentimentTag) || undefined,
+      topic: topic(m.topic),
+      archiveUrl: str(m.archiveUrl) || undefined,
+    }))
+    .filter((m) => m.title && m.url);
+
+  const attention = mapAttention(j.attention);
+
+  const career = buildCareerIntelligence({
+    career: obj(entity.facts).career,
+    organizations: obj(entity.facts).organizations,
+  });
+
   return {
     slug: str(j.slug),
     name: str(j.name) || str(j.query),
@@ -350,25 +375,15 @@ function mapProfile(j: Json): RealProfile {
       .filter((e) => e.fragment),
 
     controversies,
-    media: list(j.media)
-      .map((m, i) => ({
-        id: str(m.id, String(i)),
-        title: str(m.title),
-        url: str(m.url),
-        source: str(m.source),
-        type: str(m.type, "news"),
-        channel: str(m.channel) || undefined,
-        publishedAt: str(m.publishedAt) || undefined,
-        description: str(m.description) || undefined,
-        thumbnailUrl: str(m.thumbnailUrl) || undefined,
-        sentimentScore: num(m.sentimentScore),
-        sentimentTag: str(m.sentimentTag) || undefined,
-        topic: topic(m.topic),
-        archiveUrl: str(m.archiveUrl) || undefined,
-      }))
-      .filter((m) => m.title && m.url),
-    attention: mapAttention(j.attention),
-    timeline: buildTimeline(j.timeline, trend),
+    media,
+    attention,
+    timeline: buildTimeline({
+      controversies,
+      media,
+      career: career.timeline,
+      attentionSeries: attention?.series ?? [],
+      trend,
+    }),
     accounts: mapAccounts(obj(entity.facts).links),
     professional: buildProfessionalIdentity({
       occupations: strs(obj(entity.facts).occupations),
@@ -376,10 +391,7 @@ function mapProfile(j: Json): RealProfile {
       fieldsOfWork: strs(obj(entity.facts).fieldsOfWork),
       deceased: Boolean(str(obj(entity.facts).deathDate)),
     }),
-    career: buildCareerIntelligence({
-      career: obj(entity.facts).career,
-      organizations: obj(entity.facts).organizations,
-    }),
+    career,
     resolution: resolutionBand(str(entity.confidence)),
     candidates: list(entity.candidates)
       .map((c) => ({

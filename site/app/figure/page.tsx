@@ -232,9 +232,10 @@ function ProfileView({
               <h2>Timeline</h2>
             </div>
             <p className="sub" style={{ marginBottom: 24 }}>
-              Controversies, attention spikes and sharp sentiment moves on
-              one axis. An attention spike is unsigned — people looked, with
-              no direction implied.
+              Controversies, career and organisation changes, clustered news
+              coverage, attention spikes and sharp sentiment moves, on one
+              axis. An attention spike is unsigned — people looked, with no
+              direction implied.
             </p>
             <FigureTimeline events={profile.timeline} />
           </section>
