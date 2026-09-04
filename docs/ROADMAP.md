@@ -184,6 +184,69 @@ visible surface got.
 
 ---
 
+## Phase 10 — Catalogue Category Expansion + Smart Sorting (STEP 9)
+
+Grow the 6-category catalogue into a 35-category global discovery
+system, then layer sorting, filters and a time range on top. **No new
+API** — everything is built from the existing roster, the profession
+taxonomy, and the one real per-figure signal the backend already tracks
+(`GET /trending`'s `requestCount`, sourced from Firestore `usage`).
+
+**The hard constraint that shapes every later day:** the roster is a
+static, editorial list — it carries no per-person score, sentiment or
+mention count, because computing one means calling the paid per-figure
+pipeline (Groq + News + YouTube) for all ~250 people, which nothing in
+this app does today. So:
+- **Trending / Rising / Most Discussed / Recently Updated** can only be
+  computed for the (small, changing) set of figures someone has actually
+  looked up — exactly what `/trending` already measures. A catalogue
+  sorted this way is mostly "not enough data yet" until usage accumulates.
+- **Highest CritiScore / Most Positive / Most Negative** need a live
+  profile per person; sorting the *whole* catalogue by them without a new
+  bulk endpoint would mean fetching ~250 profiles client-side (slow,
+  costly, and out of scope for "use existing APIs only").
+- **A–Z, Most Popular (prominence), and category/country/decade filters**
+  need nothing new — they work today.
+
+Given "never fabricate metrics" and "show a clear limited-data state
+instead of inventing trends," the plan below ships the honest version:
+sorts that need live data operate over whatever subset already has it
+(cached Firestore profiles) and say so, rather than silently only
+"working" for a lucky few or being faked for the rest. A bulk ranking
+endpoint is a possible future phase, not assumed here.
+
+### Data layer
+
+| Day | Feature | Done when |
+|---|---|---|
+| 10.1 ✓ | **35-category taxonomy layer** (`site/lib/categories.ts`). Categories are matched from the existing roster descriptor via `resolveCatalogueOccupation`, layered occupation → industry → sector; a person can land in several categories, never duplicated (one `RosterEntry`, many tags). The 6 legacy slugs alias onto their replacements so existing `/category/*` links keep resolving. Nothing invented: a profession absent from today's roster is an honest zero-count category. | 14 new tests; every roster entry classified into ≥1 category; `tsc`/`build` clean; **not yet wired into any page**. |
+| 10.2 | **Roster expansion.** Add real people (verifiable public figures, neutral descriptors, no scores) for the categories 10.1 left at zero — AI/ML, healthcare, academia, law, journalism, finance, engineering, etc. — so the new categories are not empty shelves. | Every category has ≥5 people; `catalogue.test.ts` extended. |
+| 10.3 | **Category counts + metadata surface.** Export `categoryCounts` results and blurbs in the shape the Explore UI and Flutter both consume. | One typed module both platforms read; no duplication of the count logic. |
+
+### Web — discovery UI
+
+| Day | Feature | Done when |
+|---|---|---|
+| 10.4 | **Explore Categories page.** Replaces `/explore`'s current alias-to-home. Featured category cards, full grid, category search (client-side over the 35 labels/blurbs), people-count per card, responsive. Editorial-minimal, matches existing card/chip styling. | `/explore` is a real page; old `/category/:slug` links still work via the alias map. |
+| 10.5 | **Rich category-page cards.** Portrait, name, primary profession, country, and — only when a cached Firestore profile exists for that person — CritiScore/sentiment/trend chip; otherwise the card says "Open profile for live analysis" instead of a blank or fake number. | No card ever shows an invented score. |
+| 10.6 | **Smart sorting.** Trending / Most Popular / Most Discussed / Rising / Highest CritiScore / Most Positive / Most Negative / Recently Updated / A–Z, default Trending. Sorts backed by real data operate over the subset that has it and label the rest "not ranked — no data yet"; A–Z and prominence work over the full list. | Switching sort never triggers a new profile fetch; empty/limited states designed. |
+| 10.7 | **Filters + time range.** Country, profession, sector, industry, specialization, entity type, sentiment, career status (from `professional-identity.ts`), time period — combinable, e.g. Technology → India → Entrepreneurs → Trending → 30 Days. 24h/7d/30d/90d/All time only affects the data-backed sorts; filters otherwise apply instantly. | Filter combination reflected in the URL; back/forward preserves it. |
+
+### Flutter — native discovery
+
+| Day | Feature | Done when |
+|---|---|---|
+| 10.8 | **Category browsing.** Horizontal category chips, responsive grid/list, category search, touch-friendly cards; no horizontal overflow at 320–430 dp. | Parity with 10.4/10.5; `flutter analyze` clean. |
+| 10.9 | **Sorting + filter bottom sheets + time-range selector.** Native bottom sheets (not new pages) for sort and filters; time-range chips; pull-to-refresh; selected filters and scroll position preserved on navigation back. | Parity with 10.6/10.7; back navigation and scroll restore verified. |
+
+### Cross-cutting
+
+| Day | Feature | Done when |
+|---|---|---|
+| 10.10 | **Consistency + guardrails.** Web and Flutter share the same 35 categories, the same classification, and the same sort/filter *logic* (UI may differ). Controversy Index is never read by the ranking code — verified by a test that asserts the sorter module has no import from `controversy-index.ts`. | Shared category/sort logic covered by one shared spec (ported to Dart tests); no controversy coupling. |
+
+---
+
 ## Pre-ship checklist (run before calling any phase done)
 
 - [ ] Breakpoints 375 / 768 / 1024 / 1440 tested

@@ -276,13 +276,19 @@ const ROLE_PREFIXES: [RegExp, string][] = [
   [/^chief (medical|sustainability) officer\b/i, "public-health-official"],
 ];
 
-/** Convenience for the catalogue: resolve one descriptor to a path. */
+/**
+ * Convenience for the catalogue: resolve one descriptor to a taxonomy
+ * path. `occupationId` is included so callers that classify by exact
+ * occupation (rather than by industry or sector) — the category matcher
+ * in `lib/categories.ts` — do not have to re-resolve the string.
+ */
 export function resolveCatalogueOccupation(descriptor: string): {
   label: string;
   path: OccupationPath;
+  occupationId: string;
 } | null {
   const r = resolveOccupation(descriptor);
-  if (r) return { label: r.occupation.label, path: r.path };
+  if (r) return { label: r.occupation.label, path: r.path, occupationId: r.occupation.id };
 
   // The descriptor often carries a nationality prefix ("Indian javelin
   // thrower"); retry on the trailing words.
@@ -290,7 +296,9 @@ export function resolveCatalogueOccupation(descriptor: string): {
   for (let start = 1; start < Math.min(words.length, 3); start++) {
     const tail = words.slice(start).join(" ");
     const rt = resolveOccupation(tail);
-    if (rt) return { label: rt.occupation.label, path: rt.path };
+    if (rt) {
+      return { label: rt.occupation.label, path: rt.path, occupationId: rt.occupation.id };
+    }
   }
 
   // Role-phrase prefix ("Co-founder of …", "Prime Minister of …").
@@ -298,7 +306,7 @@ export function resolveCatalogueOccupation(descriptor: string): {
     if (re.test(descriptor.trim())) {
       const occ = getOccupation(occId);
       const path = occ && occupationPath(occ.id);
-      if (occ && path) return { label: occ.label, path };
+      if (occ && path) return { label: occ.label, path, occupationId: occ.id };
     }
   }
 
