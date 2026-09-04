@@ -32,9 +32,13 @@ export default function SearchBox({
   const [debounced, setDebounced] = useState("");
   const listId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const arrowUsed = useRef(false);
 
   useEffect(() => {
-    const t = window.setTimeout(() => setDebounced(q), 110);
+    const t = window.setTimeout(() => {
+      setDebounced(q);
+      setActive(-1);
+    }, 110);
     return () => window.clearTimeout(t);
   }, [q]);
 
@@ -42,8 +46,6 @@ export default function SearchBox({
     () => (debounced.trim().length >= 2 ? suggest(debounced) : []),
     [debounced],
   );
-
-  useEffect(() => setActive(-1), [items]);
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {
@@ -61,7 +63,11 @@ export default function SearchBox({
   function submit() {
     const term = q.trim();
     if (!term) return;
-    if (active >= 0 && items[active]) return go(items[active].href);
+    // Only follow a highlighted item if the user chose it with the
+    // arrow keys — a mouse hover must not hijack Enter.
+    if (arrowUsed.current && active >= 0 && items[active]) {
+      return go(items[active].href);
+    }
     go(`/search/?q=${encodeURIComponent(term)}`);
   }
 
@@ -69,9 +75,11 @@ export default function SearchBox({
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setOpen(true);
+      arrowUsed.current = true;
       setActive((i) => Math.min(items.length - 1, i + 1));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
+      arrowUsed.current = true;
       setActive((i) => Math.max(-1, i - 1));
     } else if (e.key === "Enter") {
       e.preventDefault();
@@ -100,6 +108,7 @@ export default function SearchBox({
         onChange={(e) => {
           setQ(e.target.value);
           setOpen(true);
+          arrowUsed.current = false;
         }}
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}

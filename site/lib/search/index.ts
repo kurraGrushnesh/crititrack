@@ -616,6 +616,23 @@ export function suggest(raw: string, limit = 8): Suggestion[] {
     }));
   out.push(...occHits);
 
+  if (occHits.length < 3) {
+    const specHits = SPECIALIZATIONS.filter(
+      (s) => normalizeLabel(s.label).startsWith(q) || normalizeLabel(s.label).includes(q),
+    )
+      .slice(0, 3 - occHits.length)
+      .map((s): Suggestion => {
+        const occ = getOccupation(s.occupationId);
+        return {
+          kind: "occupation",
+          label: s.label,
+          sublabel: occ ? `Specialisation · ${occ.label}` : "Specialisation",
+          href: occ ? `/search/?occupation=${occ.id}` : `/search/?q=${encodeURIComponent(s.label)}`,
+        };
+      });
+    out.push(...specHits);
+  }
+
   const catHits = [
     ...INDUSTRIES.filter((i) => normalizeLabel(i.label).startsWith(q)).map(
       (i): Suggestion => ({
