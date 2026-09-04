@@ -162,6 +162,27 @@ test("missing or nonsense reach data falls back to a neutral weight", () => {
   assert.equal(weightFor({type: "unknown"}), 1.0);
 });
 
+test("a routinely-unreliable tabloid is weighted below an unknown blog", () => {
+  assert.ok(
+      weightFor({type: "news", source: "dailymail.co.uk"}) <
+      weightFor({type: "news", source: "randomblog.xyz"}),
+  );
+  assert.ok(
+      weightFor({type: "news", source: "tmz.com"}) <
+      weightFor({type: "news", source: "reuters.com"}),
+  );
+});
+
+test("a Reddit thread never outweighs a plain news item", () => {
+  const viral = weightFor({type: "reddit", commentCount: 5000});
+  const quiet = weightFor({type: "reddit", commentCount: 0});
+  assert.ok(viral > quiet, "engagement earns a little weight back");
+  assert.ok(
+      viral <= weightFor({type: "news", source: "randomblog.xyz"}),
+      "discussion must not outweigh reporting",
+  );
+});
+
 test("hostOf normalises URLs and bare domains alike", () => {
   assert.equal(hostOf("https://www.bbc.co.uk/news"), "bbc.co.uk");
   assert.equal(hostOf("WWW.Variety.com"), "variety.com");

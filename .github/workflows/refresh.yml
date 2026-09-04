@@ -1,0 +1,57 @@
+name: refresh
+
+# Records one measured snapshot per tracked figure by calling the
+# backend's POST /refresh route on a schedule. This is what turns the
+# trend line from a single measured day into real accumulating history,
+# and it is what lets server-side spike detection fire an alert.
+#
+# It needs one repository secret, REFRESH_SECRET, whose value must match
+# the REFRESH_SECRET environment variable set on the Render service. If
+# the secret is absent the job is skipped rather than failing, so a fork
+# without the secret still has a green Actions tab.
+#
+# runScheduledRefresh caps itself at REFRESH_LIMIT figures per call
+# (10 today), so the upstream spend per run is bounded no matter how
+# large the tracked collection grows. Twice a day keeps popular figures
+# inside the 6h request-path cache without approaching any free-tier
+# quota.
+#
+# GitHub coalesces and sometimes delays scheduled runs, and disables
+# scheduled workflows after 60 days with no push to the repository.
+# Push anything to re-enable, or trigger a run by hand from the Actions
+# tab with "Run workflow".
+
+on:
+  schedule:
+    - cron: "17 6,18 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Call POST /refresh
+        env:
+          REFRESH_SECRET: ${{ secrets.REFRESH_SECRET }}
+        run: |
+          if [ -z "$REFRESH_SECRET" ]; then
+            echo "REFRESH_SECRET is not configured; skipping."
+            exit 0
+          fi
+          body=$(curl -sS --fail-with-body \
+            --max-time 540 --retry 2 --retry-delay 30 \
+            -X POST \
+            -H "X-Refresh-Secret: $REFRESH_SECRET" \
+            https://crititrack-api.onrender.com/refresh)
+          echo "refresh -> $body"
+          # {"ok":N,"failed":[...],"alerted":N}. A run that refreshed
+          # nothing is still a success: it means nothing was tracked in
+          # the window, not that the call failed.
+          echo "$body" | grep -q '"ok":'

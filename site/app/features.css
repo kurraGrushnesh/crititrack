@@ -1,0 +1,377 @@
+/*
+ * Styles for the roadmap-batch feature components: confidence badges,
+ * the figure timeline, the Controversy Index explanation, the media
+ * topic filter and coverage search, the trending rail, saved
+ * comparisons, watchlist tags, the cached-data notice, and the locale
+ * switcher.
+ *
+ * Same editorial language as the rest of the site — off-white surfaces,
+ * one sage accent, hairline borders, no shadows or gradients. Every
+ * colour is a token from globals.css.
+ */
+
+/* ── Confidence badge ─────────────────────────────────────────────── */
+
+.confbadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  color: var(--text-soft);
+  background: var(--surface);
+  cursor: help;
+}
+.confbadge svg {
+  width: 12px;
+  height: 12px;
+}
+.confbadge.is-high {
+  color: var(--good);
+  border-color: color-mix(in srgb, var(--good) 40%, var(--border));
+}
+.confbadge.is-moderate {
+  color: var(--mid);
+  border-color: color-mix(in srgb, var(--mid) 40%, var(--border));
+}
+.confbadge.is-low {
+  color: var(--text-muted);
+}
+
+/* ── Figure timeline ─────────────────────────────────────────────── */
+
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-left: 2px solid var(--border);
+  margin-left: 6px;
+}
+.timeline-item {
+  position: relative;
+  padding: 0 0 22px 22px;
+}
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--text-muted);
+}
+.timeline-item.k-controversy::before {
+  border-color: var(--bad);
+}
+.timeline-item.k-attention-spike::before {
+  border-color: var(--brand-strong);
+}
+.timeline-item.k-sentiment-shift::before {
+  border-color: var(--mid);
+}
+.timeline-date {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.timeline-title {
+  font-weight: 700;
+  margin: 2px 0 3px;
+}
+.timeline-detail {
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  margin: 0;
+}
+.timeline-sev {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* ── Controversy Index explanation ──────────────────────────────── */
+
+.ix-explain {
+  margin-top: 16px;
+}
+.ix-explain summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--brand-strong);
+  font-size: 0.9rem;
+}
+.ix-explain-body {
+  margin-top: 12px;
+  overflow-x: auto;
+}
+.ix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.ix-table th,
+.ix-table td {
+  text-align: right;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+.ix-table th:first-child,
+.ix-table td:first-child {
+  text-align: left;
+}
+.ix-table thead th {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.ix-table tfoot td {
+  font-weight: 700;
+  border-bottom: none;
+}
+.ix-curve {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ── Media topic filter + coverage search ───────────────────────── */
+
+.media-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.media-search {
+  flex: 1 1 220px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 5px 12px;
+  background: var(--surface);
+}
+.media-search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+}
+.media-search svg {
+  width: 15px;
+  height: 15px;
+  color: var(--text-muted);
+  flex: none;
+}
+.topic-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.topic-chip {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: capitalize;
+}
+.topic-chip.is-active {
+  background: var(--brand-strong);
+  border-color: var(--brand-strong);
+  color: #fff;
+}
+.media-empty {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding: 12px 0;
+}
+.media-archive {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-decoration: none;
+}
+.media-archive:hover {
+  text-decoration: underline;
+  color: var(--text-soft);
+}
+
+/* ── Trending rail ───────────────────────────────────────────────── */
+
+.trending-rail {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.trending-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s var(--ease-out);
+}
+.trending-card:hover {
+  border-color: var(--border-strong);
+}
+.trending-rank {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.trending-name {
+  font-weight: 700;
+}
+.trending-meta {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+}
+.trending-empty {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* ── Saved comparisons ──────────────────────────────────────────── */
+
+.saved-cmp {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 20px 0;
+}
+.saved-cmp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.saved-cmp-label {
+  font-weight: 700;
+}
+.saved-cmp-members {
+  color: var(--text-soft);
+  font-size: 0.85rem;
+}
+.saved-cmp-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+.linkbtn {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--brand-strong);
+  cursor: pointer;
+  text-decoration: underline;
+}
+.linkbtn.is-danger {
+  color: var(--bad);
+}
+
+/* ── Watchlist tags ─────────────────────────────────────────────── */
+
+.tag-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.tag-pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tag-pill.is-active {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+}
+.watch-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.watch-card-tag {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 7px;
+  background: none;
+  cursor: pointer;
+}
+.watch-card-tag:hover {
+  color: var(--bad);
+  border-color: var(--bad);
+}
+
+/* ── Cached-data notice ─────────────────────────────────────────── */
+
+.cached-notice {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 14px;
+  border: 1px solid var(--border-strong);
+  border-left: 3px solid var(--mid);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--mid) 6%, var(--surface));
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+}
+
+/* ── Locale switcher ────────────────────────────────────────────── */
+
+.locale-switch {
+  display: inline-flex;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.locale-switch button {
+  border: none;
+  background: var(--surface);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+.locale-switch button.is-active {
+  background: var(--text);
+  color: var(--bg);
+}

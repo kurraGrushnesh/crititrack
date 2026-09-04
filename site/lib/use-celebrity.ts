@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { fetchProfile, ApiError, type RealProfile } from "./api";
+import { fetchProfile, figureSlug, ApiError, type RealProfile } from "./api";
+import { readCachedProfile, writeCachedProfile } from "./profile-cache";
 
 /**
  * One shared client cache for profiles. The site is static, so this is
@@ -38,6 +39,8 @@ async function load(name: string, signal: AbortSignal): Promise<RealProfile> {
     .then((profile) => {
       cache.set(k, profile);
       stamped.set(k, Date.now());
+      // Persist for offline / next-visit fallback.
+      if (profile.slug) writeCachedProfile(profile);
       return profile;
     })
     .finally(() => {
@@ -50,7 +53,7 @@ async function load(name: string, signal: AbortSignal): Promise<RealProfile> {
 export type CelebrityState =
   | { status: "idle" }
   | { status: "loading" }
-  | { status: "ready"; profile: RealProfile }
+  | { status: "ready"; profile: RealProfile; cachedAt?: number }
   | { status: "not-found"; message: string }
   | { status: "error"; message: string; code: string; canRetry: boolean };
 
@@ -115,13 +118,29 @@ export function useCelebrity(name: string | null): {
           });
           return;
         }
+        const canRetry = err.status === 0 || err.status >= 500 || !err.status;
+
+        // Backend unreachable or erroring: fall back to a stored copy if
+        // we have one, clearly marked as cached rather than live.
+        if (canRetry) {
+          const cached = readCachedProfile(figureSlug(trimmed));
+          if (cached) {
+            settle({
+              status: "ready",
+              profile: cached.profile,
+              cachedAt: cached.storedAt,
+            });
+            return;
+          }
+        }
+
         settle({
           status: "error",
           code: err.code ?? "error",
           message:
             err.message ??
             "Something went wrong reaching the analysis backend.",
-          canRetry: err.status === 0 || err.status >= 500 || !err.status,
+          canRetry,
         });
       });
 

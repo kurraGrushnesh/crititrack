@@ -23,14 +23,18 @@ const {
   readCelebrityCache,
   markRequested,
   listTracked,
+  listTrending,
   readSnapshotHistory,
   readLastAlertedAt,
   markAlerted,
   readDevicesForSlug,
   deleteDevices,
   writeCorrection,
+  listAllDevices,
+  writeDigestRun,
 } = require("./store");
 const {detectSpike, shouldAlert, buildAlertMessage} = require("./alerts");
+const {buildDigest, buildDigestPayload} = require("./digest");
 const {
   selectRecipients,
   buildPushPayload,
@@ -235,6 +239,34 @@ async function handleReportCorrection(req, res) {
   }
 }
 
+// ── GET /trending ────────────────────────────────────────────────────
+
+/**
+ * Serves the most-looked-up figures on this deployment.
+ *
+ * Not behind App Check or a Firebase token: it is a single bounded
+ * Firestore query returning only public fields (name, portrait, current
+ * score), the same data any profile page already shows. A short shared
+ * cache absorbs repeated hits. An empty result is returned as an empty
+ * list — the caller renders nothing rather than a hard-coded stand-in.
+ *
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ */
+async function handleTrending(req, res) {
+  const raw = Number(req.query.limit);
+  const limit = Number.isFinite(raw) ? Math.min(24, Math.max(1, raw)) : 12;
+
+  try {
+    const figures = await listTrending({limit});
+    res.set("Cache-Control", "public, max-age=300");
+    res.status(200).json({figures});
+  } catch (e) {
+    logger.error("trending failed", {message: e && e.message});
+    res.status(500).json({error: "internal", message: "Could not load trending."});
+  }
+}
+
 // ── Scheduled refresh ────────────────────────────────────────────────
 
 /**
@@ -407,8 +439,107 @@ async function deliverPush({slug, message, spike, score}) {
   return accepted;
 }
 
+// ── Weekly digest ────────────────────────────────────────────────────
+
+/**
+ * Sends each device that has registered for alerts a once-a-week summary
+ * of how the figures it follows have moved.
+ *
+ * Distinct from the spike alert: no cooldown, no significance bar per
+ * figure, and it is sent even in a quiet week — a reader who asked for a
+ * weekly note wants "nothing moved" as much as "everything did". A device
+ * whose figures produced no movers at all is skipped, so a genuinely
+ * empty week sends nothing rather than an empty card.
+ *
+ * Reuses the alert delivery plumbing (token batching, dead-token
+ * pruning). Never throws: a delivery failure is logged and the run still
+ * records what it managed.
+ *
+ * @param {object} _keys unused; kept for a uniform scheduler signature
+ * @return {Promise<{devices: number, sent: number, movers: number}>}
+ */
+async function runWeeklyDigest(_keys) {
+  const devices = await listAllDevices();
+  if (devices.length === 0) {
+    logger.info("digest: no devices registered, skipping");
+    await writeDigestRun({devices: 0, sent: 0, movers: 0});
+    return {devices: 0, sent: 0, movers: 0};
+  }
+
+  // One history read per distinct followed slug, shared across devices.
+  const slugs = new Set();
+  for (const d of devices) {
+    for (const s of Array.isArray(d.slugs) ? d.slugs : []) slugs.add(s);
+  }
+  const histories = new Map();
+  for (const slug of slugs) {
+    try {
+      histories.set(slug, await readSnapshotHistory(slug));
+    } catch (e) {
+      logger.warn(`digest: history read failed for ${slug}: ${e.message}`);
+      histories.set(slug, []);
+    }
+  }
+
+  let sent = 0;
+  let moversTotal = 0;
+
+  for (const device of devices) {
+    if (typeof device.token !== "string" || device.token === "") continue;
+    const followed = Array.isArray(device.slugs) ? device.slugs : [];
+    if (followed.length === 0) continue;
+
+    const digest = buildDigest(
+        followed.map((slug) => ({
+          figure: {slug, name: nameForSlug(slug)},
+          history: histories.get(slug) || [],
+        })),
+    );
+    if (!digest.headline) continue;
+    moversTotal += digest.movers.length;
+
+    const payload = buildDigestPayload({
+      headline: digest.headline,
+      moverCount: digest.movers.length,
+      topSlug: digest.movers[0] ? digest.movers[0].slug : "",
+    });
+
+    try {
+      const res = await messaging().sendEachForMulticast({
+        ...payload,
+        tokens: [device.token],
+      });
+      sent += res.successCount;
+      for (const token of deadTokensFrom(res, [device.token])) {
+        if (token) await deleteDevices([device.id]);
+      }
+    } catch (e) {
+      logger.error(`digest: send failed for ${device.id}`, {message: e.message});
+    }
+  }
+
+  const summary = {devices: devices.length, sent, movers: moversTotal};
+  logger.info(
+      `digest complete: ${sent} sent across ${devices.length} device(s)`,
+      summary,
+  );
+  await writeDigestRun(summary);
+  return summary;
+}
+
+/** Best-effort readable name from a slug, for the digest copy. */
+function nameForSlug(slug) {
+  return String(slug)
+      .split("-")
+      .filter(Boolean)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ") || slug;
+}
+
 module.exports = {
   handleGetCelebrity,
   handleReportCorrection,
+  handleTrending,
   runScheduledRefresh,
+  runWeeklyDigest,
 };

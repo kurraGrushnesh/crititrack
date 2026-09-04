@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PillNav from "@/components/PillNav";
 import SiteFooter from "@/components/SiteFooter";
+import { METHODOLOGY_CHANGES } from "@/lib/methodology-version";
 
 export const metadata: Metadata = {
   title: "Method",
@@ -91,6 +92,24 @@ export default function MethodologyPage() {
             something is wrong,{" "}
             <Link href="/report-correction">report a correction</Link>.
           </p>
+
+          <h2>Method changelog</h2>
+          <p>
+            When a formula changes, the number a share card or export shows
+            can change with it. Each version below is what was in force on
+            its date; new share cards carry the current version so an old
+            screenshot stays readable as &ldquo;computed under method
+            v3&rdquo;.
+          </p>
+          <ul>
+            {METHODOLOGY_CHANGES.map((c) => (
+              <li key={c.version}>
+                <strong>v{c.version}</strong> ·{" "}
+                {c.date}
+                {c.approxDate ? " (approx.)" : ""} — {c.summary}
+              </li>
+            ))}
+          </ul>
         </div>
       </main>
       <SiteFooter />

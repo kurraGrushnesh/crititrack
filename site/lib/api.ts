@@ -17,6 +17,7 @@ import {
   corroborated,
   type Controversy,
 } from "./controversy";
+import { buildTimeline, type TimelineEvent } from "./timeline";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE ?? "https://crititrack-api.onrender.com";
@@ -43,6 +44,48 @@ export interface MediaLink {
   thumbnailUrl?: string;
   sentimentScore: number | null;
   sentimentTag?: string;
+  /** Coarse topic of the headline: legal, financial, political, ... */
+  topic?: MediaTopic;
+  /** Wayback "latest capture" link, so the source survives link rot. */
+  archiveUrl?: string;
+}
+
+export type MediaTopic =
+  | "legal"
+  | "financial"
+  | "political"
+  | "personal"
+  | "professional"
+  | "other";
+
+const MEDIA_TOPICS: readonly MediaTopic[] = [
+  "legal",
+  "financial",
+  "political",
+  "personal",
+  "professional",
+  "other",
+];
+
+function topic(v: unknown): MediaTopic | undefined {
+  return typeof v === "string" && (MEDIA_TOPICS as readonly string[]).includes(v)
+    ? (v as MediaTopic)
+    : undefined;
+}
+
+/** Filters a media list to one topic; `"all"` passes everything through. */
+export function filterMediaByTopic(
+  media: MediaLink[],
+  selected: MediaTopic | "all",
+): MediaLink[] {
+  if (selected === "all") return media;
+  return media.filter((m) => (m.topic ?? "other") === selected);
+}
+
+/** The topics actually present in a media list, in canonical order. */
+export function topicsPresent(media: MediaLink[]): MediaTopic[] {
+  const seen = new Set(media.map((m) => m.topic ?? "other"));
+  return MEDIA_TOPICS.filter((t) => seen.has(t));
 }
 
 export interface AttentionPoint {
@@ -103,6 +146,7 @@ export interface RealProfile {
   controversies: Controversy[];
   media: MediaLink[];
   attention: Attention | null;
+  timeline: TimelineEvent[];
   candidates: { name: string; description?: string; qid?: string }[];
 }
 
@@ -178,6 +222,18 @@ function mapProfile(j: Json): RealProfile {
   const trendDirection =
     dir === "up" || dir === "down" || dir === "stable" ? dir : "stable";
 
+  const trend: TrendPoint[] = list(s.trendData)
+    .map((d) => ({
+      date: str(d.date) || str(d.day),
+      score: num(d.score) ?? 50,
+      mentions:
+        num(d.totalMentions) ??
+        (num(d.positiveCount) ?? 0) +
+          (num(d.neutralCount) ?? 0) +
+          (num(d.negativeCount) ?? 0),
+    }))
+    .filter((d) => d.date);
+
   return {
     slug: str(j.slug),
     name: str(j.name) || str(j.query),
@@ -211,17 +267,7 @@ function mapProfile(j: Json): RealProfile {
     scoreNews: num(s.scoreNews),
     scoreYoutube: num(s.scoreYoutube),
     scoreInstagram: num(s.scoreInstagram),
-    trend: list(s.trendData)
-      .map((d) => ({
-        date: str(d.date) || str(d.day),
-        score: num(d.score) ?? 50,
-        mentions:
-          num(d.totalMentions) ??
-          (num(d.positiveCount) ?? 0) +
-            (num(d.neutralCount) ?? 0) +
-            (num(d.negativeCount) ?? 0),
-      }))
-      .filter((d) => d.date),
+    trend,
     evidence: list(s.evidence)
       .map((e) => ({
         fragment: str(e.fragment),
@@ -243,9 +289,12 @@ function mapProfile(j: Json): RealProfile {
         thumbnailUrl: str(m.thumbnailUrl) || undefined,
         sentimentScore: num(m.sentimentScore),
         sentimentTag: str(m.sentimentTag) || undefined,
+        topic: topic(m.topic),
+        archiveUrl: str(m.archiveUrl) || undefined,
       }))
       .filter((m) => m.title && m.url),
     attention: mapAttention(j.attention),
+    timeline: buildTimeline(j.timeline, trend),
     candidates: list(entity.candidates).map((c) => ({
       name: str(c.name) || str(c.label),
       description: str(c.description) || undefined,
@@ -292,6 +341,28 @@ export async function fetchProfile(
   }
 
   return mapProfile(obj(await res.json()));
+}
+
+/**
+ * Fetches the trending rail. Public endpoint — no Firebase token, no App
+ * Check — so it can be called before the anonymous session is ready and
+ * fails soft: a slow or sleeping backend yields an empty list, and the
+ * caller simply renders no rail.
+ */
+export async function fetchTrending(
+  opts: { limit?: number; signal?: AbortSignal } = {},
+): Promise<import("./trending").TrendingFigure[]> {
+  const url = new URL(`${API_BASE}/trending`);
+  if (opts.limit) url.searchParams.set("limit", String(opts.limit));
+  try {
+    const res = await fetch(url, { signal: opts.signal });
+    if (!res.ok) return [];
+    const { parseTrending } = await import("./trending");
+    return parseTrending(await res.json(), opts.limit ?? 12);
+  } catch (e) {
+    if ((e as Error).name === "AbortError") throw e;
+    return [];
+  }
 }
 
 export function figureSlug(name: string): string {

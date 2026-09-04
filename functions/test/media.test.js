@@ -3,7 +3,13 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const {parseGdelt, parseGdeltDate, dedupe} = require("../lib/media");
+const {
+  parseGdelt,
+  parseGdeltDate,
+  parseReddit,
+  classifyTopic,
+  dedupe,
+} = require("../lib/media");
 
 test("expands GDELT's compact timestamp to ISO 8601", () => {
   // Date.parse does not understand "20260828T164028Z".
@@ -109,4 +115,76 @@ test("dedupe preserves order, so the first source listed wins", () => {
 test("dedupe tolerates items with no url or title", () => {
   const out = dedupe([{}, {url: ""}, {title: ""}]);
   assert.equal(out.length, 3, "nothing to compare means nothing to drop");
+});
+
+// ── Reddit ─────────────────────────────────────────────────────────
+
+test("maps a Reddit thread onto the shared media shape", () => {
+  const [item] = parseReddit({
+    data: {
+      children: [
+        {
+          data: {
+            title: "  Thoughts on the new interview?  ",
+            permalink: "/r/movies/comments/abc/thoughts/",
+            subreddit_name_prefixed: "r/movies",
+            subreddit: "movies",
+            created_utc: 1_700_000_000,
+            score: 240,
+            num_comments: 88,
+            thumbnail: "https://b.thumbs.redditmedia.com/x.jpg",
+            over_18: false,
+          },
+        },
+      ],
+    },
+  });
+
+  assert.equal(item.type, "reddit");
+  assert.equal(item.title, "Thoughts on the new interview?");
+  assert.equal(item.url, "https://www.reddit.com/r/movies/comments/abc/thoughts/");
+  assert.equal(item.source, "r/movies");
+  assert.equal(item.publishedAt, "2023-11-14T22:13:20.000Z");
+  assert.equal(item.commentCount, 88);
+});
+
+test("drops NSFW threads and rows missing a title or permalink", () => {
+  const out = parseReddit({
+    data: {
+      children: [
+        {data: {title: "ok", permalink: "/r/x/1/", over_18: true}},
+        {data: {title: "no link"}},
+        {data: {permalink: "/r/x/2/"}},
+      ],
+    },
+  });
+  assert.equal(out.length, 0);
+});
+
+test("parseReddit returns [] for a malformed listing", () => {
+  for (const v of [null, {}, {data: {}}, {data: {children: "nope"}}]) {
+    assert.deepEqual(parseReddit(v), []);
+  }
+});
+
+// ── topic classification ───────────────────────────────────────────
+
+test("classifyTopic picks the topic from title/description keywords", () => {
+  assert.equal(classifyTopic({title: "Star sued for defamation over remarks"}), "legal");
+  assert.equal(classifyTopic({title: "Company earnings miss; shares fall"}), "financial");
+  assert.equal(classifyTopic({title: "Senator endorses the candidate"}), "political");
+  assert.equal(classifyTopic({title: "Couple confirm divorce after ten years"}), "personal");
+  assert.equal(classifyTopic({title: "New album announced, world tour to follow"}), "professional");
+});
+
+test("classifyTopic resolves legal before financial for a mixed headline", () => {
+  assert.equal(
+      classifyTopic({title: "Executive charged in tax fraud lawsuit"}),
+      "legal",
+  );
+});
+
+test("classifyTopic falls back to 'other' rather than guessing", () => {
+  assert.equal(classifyTopic({title: "A quiet week for the star"}), "other");
+  assert.equal(classifyTopic({}), "other");
 });

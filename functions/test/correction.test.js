@@ -30,8 +30,18 @@ test("accepts a well-formed report and normalises it", () => {
   const clean = validateCorrection(ok());
   assert.equal(clean.slug, "marisol-quivera");
   assert.equal(clean.field, "controversy");
+  assert.equal(clean.kind, "correction");
   assert.equal(clean.evidenceUrl, null);
   assert.equal(clean.email, null);
+});
+
+test("accepts a subject 'response' kind and defaults it when absent", () => {
+  assert.equal(validateCorrection(ok({kind: "response"})).kind, "response");
+  assert.equal(validateCorrection(ok({kind: ""})).kind, "correction");
+});
+
+test("rejects an unknown kind", () => {
+  assert.throws(() => validateCorrection(ok({kind: "rebuttal"})), CorrectionError);
 });
 
 test("accepts an optional https evidence link and email", () => {

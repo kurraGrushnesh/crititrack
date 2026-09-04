@@ -33,10 +33,19 @@ const {
 } = require("./sentiment/ensemble");
 const {weightFor} = require("./sentiment/reach");
 const {corroborate} = require("./corroborate");
-const {fetchNews, fetchVideos, fetchGdelt, dedupe} = require("./media");
+const {
+  fetchNews,
+  fetchVideos,
+  fetchGdelt,
+  fetchReddit,
+  classifyTopic,
+  dedupe,
+} = require("./media");
 const {linkEvidence} = require("./evidence");
 const {fetchWikiSummary} = require("./wiki");
 const {fetchPageviews, summarise} = require("./pageviews");
+const {buildTimeline} = require("./timeline");
+const {annotateArchiveLinks} = require("./archive");
 
 /**
  * @param {{groq: string, news: string, youtube: string}} keys
@@ -46,25 +55,36 @@ const {fetchPageviews, summarise} = require("./pageviews");
  */
 async function assembleCelebrity(keys, name, slug) {
   // ── Parallel: biography + media + portrait + attention ──────────
-  const [bioResult, news, gdelt, videos, wiki, pageviews] = await Promise.all([
-    fetchBiography(keys.groq, name).then(
-        (v) => ({ok: true, value: v}),
-        (e) => ({ok: false, error: e}),
-    ),
-    fetchNews(keys.news, name),
-    fetchGdelt(name),
-    fetchVideos(keys.youtube, name),
-    fetchWikiSummary(name),
-    // Free and keyless, so it costs nothing to ask on every assembly.
-    // Returns [] for anyone without an English article rather than
-    // throwing, which is the common case for a minor figure.
-    fetchPageviews(name),
-  ]);
+  const [bioResult, news, gdelt, videos, reddit, wiki, pageviews] =
+    await Promise.all([
+      fetchBiography(keys.groq, name).then(
+          (v) => ({ok: true, value: v}),
+          (e) => ({ok: false, error: e}),
+      ),
+      fetchNews(keys.news, name),
+      fetchGdelt(name),
+      fetchVideos(keys.youtube, name),
+      // Keyless and unmetered; forum discussion, weighted well below news.
+      fetchReddit(name),
+      fetchWikiSummary(name),
+      // Free and keyless, so it costs nothing to ask on every assembly.
+      // Returns [] for anyone without an English article rather than
+      // throwing, which is the common case for a minor figure.
+      fetchPageviews(name),
+    ]);
 
   // GDELT first: it is the broader, unmetered source, so when the two
   // overlap the deduper keeps its copy and NewsAPI's quota goes further.
   const articles = dedupe([...gdelt, ...news]);
-  const media = dedupe([...articles, ...videos]);
+  const media = dedupe([...articles, ...videos, ...reddit]);
+
+  // A coarse topical tag per item, so the feed can be filtered to "legal"
+  // or "financial" coverage. Describes the headline, not the figure.
+  for (const item of media) item.topic = classifyTopic(item);
+
+  // A one-click path to a Wayback snapshot of each source, so a cited
+  // article stays reachable after it rots. No outbound request here.
+  annotateArchiveLinks(media);
 
   if (!bioResult.ok && media.length === 0) {
     const e = bioResult.error;
@@ -233,6 +253,13 @@ async function assembleCelebrity(keys, name, slug) {
       series: pageviews,
       summary: summarise(pageviews),
     },
+    // One dated spine over the sourced record. Sentiment-shift events are
+    // added by the client from the trend series it already receives, so
+    // the server does not need the snapshot history to build this.
+    timeline: buildTimeline({
+      controversies: biography.controversies,
+      attentionSeries: pageviews,
+    }),
     media,
   };
 }

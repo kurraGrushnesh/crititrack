@@ -33,7 +33,9 @@ const logger = require("./lib/logger");
 const {
   handleGetCelebrity,
   handleReportCorrection,
+  handleTrending,
   runScheduledRefresh,
+  runWeeklyDigest,
 } = require("./lib/handlers");
 
 // ── Admin SDK credentials ──────────────────────────────────────────────
@@ -276,6 +278,15 @@ app.post("/report-correction", express.json({limit: "16kb"}), (req, res) => {
   });
 });
 
+app.get("/trending", (req, res) => {
+  handleTrending(req, res).catch((e) => {
+    logger.error("unhandled in /trending", {message: e && e.message});
+    if (!res.headersSent) {
+      res.status(500).json({error: "internal", message: "Unexpected error"});
+    }
+  });
+});
+
 app.post("/refresh", async (req, res) => {
   const expected = process.env.REFRESH_SECRET;
   const given = req.get("X-Refresh-Secret") || req.query.secret;
@@ -295,6 +306,34 @@ app.post("/refresh", async (req, res) => {
     res.json(result);
   } catch (e) {
     logger.error("refresh failed", {message: e && e.message});
+    res.status(500).json({error: "internal", message: e && e.message});
+  }
+});
+
+/**
+ * POST /digest — the weekly summary job, triggered by the same external
+ * cron as /refresh and gated on the same shared secret. It spends nothing
+ * upstream (Firestore reads plus FCM sends), so the secret only needs to
+ * keep idle traffic out.
+ */
+app.post("/digest", async (req, res) => {
+  const expected = process.env.REFRESH_SECRET;
+  const given = req.get("X-Refresh-Secret") || req.query.secret;
+
+  if (!expected) {
+    return res.status(503).json({
+      error: "not-configured",
+      message: "REFRESH_SECRET is not set, so the digest route is disabled.",
+    });
+  }
+  if (given !== expected) {
+    return res.status(403).json({error: "forbidden"});
+  }
+
+  try {
+    res.json(await runWeeklyDigest(readKeys()));
+  } catch (e) {
+    logger.error("digest failed", {message: e && e.message});
     res.status(500).json({error: "internal", message: e && e.message});
   }
 });

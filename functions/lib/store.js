@@ -174,6 +174,8 @@ async function writeCelebrity(payload, meta = {trigger: "request"}) {
       description: orNull(item.description),
       sentimentTag: orNull(item.sentimentTag),
       sentimentScore: orNull(item.sentimentScore),
+      topic: orNull(item.topic),
+      archiveUrl: orNull(item.archiveUrl),
       videoId: item.type === "youtube" ? String(item.id) : null,
       channelTitle: orNull(item.channel || item.channelTitle),
       mediaUrl: orNull(item.mediaUrl),
@@ -290,6 +292,67 @@ async function listTracked(opts) {
 
 
 /**
+ * Maps a `celebrities/{slug}` document onto the compact row the trending
+ * list renders. Pure, so it can be tested without Firestore.
+ *
+ * `requestCount` is clamped at zero: `FieldValue.increment` starts a
+ * missing field at the increment, but a hand-edited or partially written
+ * document could carry anything.
+ *
+ * @param {string} id the slug (document id)
+ * @param {object} data the document data
+ * @return {{slug: string, name: string, requestCount: number,
+ *   sentimentScore: number|null, trendDirection: string,
+ *   imageUrl: string|null}}
+ */
+function toTrendingRow(id, data) {
+  const d = data || {};
+  return {
+    slug: id,
+    name: typeof d.name === "string" && d.name ? d.name : id,
+    requestCount: Math.max(0, Math.round(numOr(d.requestCount, 0))),
+    sentimentScore: typeof d.sentimentScore === "number" &&
+      Number.isFinite(d.sentimentScore) ? d.sentimentScore : null,
+    trendDirection: typeof d.trendDirection === "string" ?
+      d.trendDirection : "stable",
+    imageUrl: typeof d.imageUrl === "string" && d.imageUrl ? d.imageUrl : null,
+  };
+}
+
+/**
+ * The figures users have looked up most in the recent window,
+ * most-requested first.
+ *
+ * This is the honest form of a "trending" row: it ranks what people on
+ * this deployment actually searched for, measured by the same
+ * `requestCount` the scheduler already maintains, rather than a
+ * hard-coded list of famous names that would be a claim about users that
+ * nothing measured. A deployment nobody has used yet returns [], and the
+ * caller shows nothing rather than inventing a list.
+ *
+ * @param {{withinDays?: number, limit?: number}} [opts]
+ * @return {Promise<Array<ReturnType<typeof toTrendingRow>>>}
+ */
+async function listTrending(opts = {}) {
+  const withinDays = opts.withinDays || 30;
+  const limit = Math.min(50, Math.max(1, opts.limit || 12));
+  const cutoff = new Date(Date.now() - withinDays * 24 * 60 * 60 * 1000);
+
+  const snap = await getFirestore()
+      .collection(CELEBRITIES)
+      .where("lastRequestedAt", ">=", cutoff)
+      .orderBy("lastRequestedAt", "desc")
+      .limit(limit * 4)
+      .get();
+
+  return snap.docs
+      .map((d) => toTrendingRow(d.id, d.data()))
+      .filter((r) => r.requestCount > 0)
+      .sort((a, b) => b.requestCount - a.requestCount)
+      .slice(0, limit);
+}
+
+/**
  * The trailing daily scores already stored for a figure, oldest first.
  *
  * Read from the snapshots the scheduler writes, so the alert baseline is
@@ -387,6 +450,35 @@ async function readDevicesForSlug(slug) {
 }
 
 /**
+ * Every registered device, for the weekly digest job. Unlike
+ * `readDevicesForSlug` this is not filtered — the digest visits every
+ * device once and builds its summary from the figures that device
+ * follows.
+ *
+ * @return {Promise<Array<object>>} device rows, each carrying its own id
+ */
+async function listAllDevices() {
+  const snap = await getFirestore().collection(DEVICES).get();
+  return snap.docs.map((d) => ({id: d.id, ...d.data()}));
+}
+
+/**
+ * Records that a digest run happened and what it sent, keyed by date, so
+ * a re-run in the same week overwrites rather than piling up and there is
+ * an audit trail separate from the logs.
+ *
+ * @param {{devices: number, sent: number, movers: number}} summary
+ * @return {Promise<void>}
+ */
+async function writeDigestRun(summary, now = new Date()) {
+  const date = now.toISOString().slice(0, 10);
+  await getFirestore().collection("digests").doc(date).set(
+      {...summary, date, ranAt: FieldValue.serverTimestamp()},
+      {merge: true},
+  );
+}
+
+/**
  * Removes device rows whose tokens FCM has told us are permanently dead.
  *
  * Deleting the whole row rather than blanking the token is deliberate: a
@@ -433,6 +525,7 @@ async function writeCorrection(clean, meta) {
   const ref = await db.collection(CORRECTIONS).add({
     slug: clean.slug,
     field: clean.field,
+    kind: clean.kind || "correction",
     claim: clean.claim,
     correction: clean.correction,
     evidenceUrl: orNull(clean.evidenceUrl),
@@ -453,6 +546,10 @@ module.exports = {
   isCacheFresh,
   markRequested,
   listTracked,
+  listTrending,
+  toTrendingRow,
+  listAllDevices,
+  writeDigestRun,
   todaySnapshot,
   readSnapshotHistory,
   readLastAlertedAt,

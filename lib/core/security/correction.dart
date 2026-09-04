@@ -28,11 +28,29 @@ extension CorrectionFieldWire on CorrectionField {
   };
 }
 
+/// What the submission is: a third-party `correction` (the default) or a
+/// `response` from the profile's subject. Kept in step with the JS and TS
+/// copies.
+enum CorrectionKind {
+  correction,
+  response;
+
+  String get wire => name;
+
+  static CorrectionKind? parse(String value) {
+    for (final k in CorrectionKind.values) {
+      if (k.name == value) return k;
+    }
+    return null;
+  }
+}
+
 /// A validated, normalised correction report, ready to serialise.
 class CleanCorrection {
   const CleanCorrection({
     required this.slug,
     required this.field,
+    required this.kind,
     required this.claim,
     required this.correction,
     this.evidenceUrl,
@@ -41,6 +59,7 @@ class CleanCorrection {
 
   final String slug;
   final CorrectionField field;
+  final CorrectionKind kind;
   final String claim;
   final String correction;
   final String? evidenceUrl;
@@ -49,6 +68,7 @@ class CleanCorrection {
   Map<String, dynamic> toJson() => {
     'slug': slug,
     'field': field.wire,
+    'kind': kind.wire,
     'claim': claim,
     'correction': correction,
     if (evidenceUrl != null) 'evidenceUrl': evidenceUrl,
@@ -119,6 +139,7 @@ CorrectionField? _parseField(String wire) {
 CleanCorrection validateCorrection({
   String? slug,
   String? field,
+  String? kind,
   String? claim,
   String? correction,
   String? evidenceUrl,
@@ -145,6 +166,14 @@ CleanCorrection validateCorrection({
       'invalid',
       'Choose which part of the profile is wrong.',
     );
+  }
+
+  final kindValue = (kind ?? '').trim().toLowerCase();
+  final parsedKind = kindValue.isEmpty
+      ? CorrectionKind.correction
+      : CorrectionKind.parse(kindValue);
+  if (parsedKind == null) {
+    throw const CorrectionError('kind', 'invalid', 'Unknown submission type.');
   }
 
   final cleanClaim = _collapse(claim ?? '');
@@ -214,6 +243,7 @@ CleanCorrection validateCorrection({
   return CleanCorrection(
     slug: cleanSlug,
     field: parsedField,
+    kind: parsedKind,
     claim: cleanClaim,
     correction: cleanCorrection,
     evidenceUrl: cleanUrl,

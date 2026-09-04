@@ -115,3 +115,22 @@ Header: X-Refresh-Secret: <the REFRESH_SECRET you set>
 **cron-job.org** (free) or a GitHub Actions `schedule:` workflow both
 work. The job is bounded to 10 figures per call regardless of how the
 collection grows, so the secret only needs to deter idle traffic.
+
+This repo ships the GitHub Actions form: `.github/workflows/refresh.yml`
+(twice daily) and `.github/workflows/digest.yml` (Monday mornings). Both
+read a repository **secret** named `REFRESH_SECRET` and skip themselves
+if it is absent, so set that secret to the same value as the Render env
+var to turn them on.
+
+## The weekly digest (optional)
+
+`POST /digest` runs `runWeeklyDigest` — one collapsed FCM summary per
+device of how the figures it follows moved over the trailing week. Same
+shared secret as `/refresh`. It spends nothing upstream and skips any
+device whose figures produced no movement, so a quiet week sends nothing.
+
+## The trending rail
+
+`GET /trending` is public (no token, short shared cache) and returns the
+most-looked-up figures on this deployment, ranked by the `requestCount`
+the refresh job already maintains. It is empty until searches accumulate.

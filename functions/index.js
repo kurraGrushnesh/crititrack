@@ -22,7 +22,9 @@ const {initializeApp} = require("firebase-admin/app");
 const {
   handleGetCelebrity,
   handleReportCorrection,
+  handleTrending,
   runScheduledRefresh,
+  runWeeklyDigest,
 } = require("./lib/handlers");
 
 initializeApp();
@@ -62,6 +64,11 @@ exports.reportCorrection = onRequest(
     (req, res) => handleReportCorrection(req, res),
 );
 
+exports.trending = onRequest(
+    {timeoutSeconds: 15, cors: ALLOWED_ORIGINS},
+    (req, res) => handleTrending(req, res),
+);
+
 exports.refreshTrackedCelebrities = onSchedule(
     {
       schedule: "every 30 minutes",
@@ -72,4 +79,16 @@ exports.refreshTrackedCelebrities = onSchedule(
       retryCount: 0,
     },
     () => runScheduledRefresh(readKeys()),
+);
+
+exports.weeklyDigest = onSchedule(
+    {
+      // Monday 08:00 UTC.
+      schedule: "0 8 * * 1",
+      timeZone: "Etc/UTC",
+      timeoutSeconds: 300,
+      memory: "256MiB",
+      retryCount: 0,
+    },
+    () => runWeeklyDigest({}),
 );

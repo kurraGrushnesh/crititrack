@@ -87,6 +87,83 @@ async function fetchVideos(apiKey, name) {
   }
 }
 
+/**
+ * Discussion threads about a name from Reddit's public search JSON.
+ *
+ * Keyless and unmetered, like GDELT and pageviews, so it costs nothing to
+ * ask on every assembly. Reddit rejects requests with no User-Agent, so
+ * one is always sent. Returns [] on any soft failure.
+ *
+ * These are weighted well below news in the ensemble (see
+ * sentiment/reach.js): a forum thread is a signal about sentiment, not a
+ * report, and its headline is a redditor's phrasing rather than an
+ * editor's.
+ *
+ * @param {string} name
+ * @param {number} [limit]
+ * @return {Promise<object[]>}
+ */
+async function fetchReddit(name, limit = 8) {
+  const url = new URL("https://www.reddit.com/search.json");
+  url.searchParams.set("q", `"${name}"`);
+  url.searchParams.set("sort", "comments");
+  url.searchParams.set("t", "month");
+  url.searchParams.set("limit", String(limit));
+  url.searchParams.set("type", "link");
+
+  try {
+    const res = await fetchWithTimeout(
+        url,
+        {headers: {"User-Agent": "CritiTrack/1.0 (https://crititrack.app)"}},
+        10000,
+    );
+    if (!res.ok) {
+      logger.warn(`Reddit HTTP ${res.status}`);
+      return [];
+    }
+    return parseReddit(await res.json());
+  } catch (e) {
+    logger.warn(`Reddit failed: ${e.message}`);
+    return [];
+  }
+}
+
+/**
+ * Maps a Reddit listing onto our media shape. Exported so the mapping is
+ * covered by a fixture test rather than a live call.
+ *
+ * Self-posts (is_self) are kept — the discussion is the point — but their
+ * link is the comments permalink, never the raw `url`, which for a
+ * self-post is just the thread again and for a link post could be
+ * anywhere. `over_18` threads are dropped.
+ *
+ * @param {any} json
+ * @return {object[]}
+ */
+function parseReddit(json) {
+  const children = (json && json.data && json.data.children) || [];
+  if (!Array.isArray(children)) return [];
+
+  return children
+      .map((c) => (c && c.data) || {})
+      .filter((d) => d.title && d.permalink && !d.over_18)
+      .map((d) => ({
+        id: String(hash(d.permalink)),
+        type: "reddit",
+        title: String(d.title).trim(),
+        url: `https://www.reddit.com${d.permalink}`,
+        thumbnailUrl:
+          typeof d.thumbnail === "string" && d.thumbnail.startsWith("http") ?
+            d.thumbnail : null,
+        source: d.subreddit_name_prefixed || `r/${d.subreddit || "reddit"}`,
+        publishedAt: Number.isFinite(d.created_utc) ?
+          new Date(d.created_utc * 1000).toISOString() : null,
+        description: null,
+        score: Number.isFinite(d.score) ? d.score : null,
+        commentCount: Number.isFinite(d.num_comments) ? d.num_comments : null,
+      }));
+}
+
 /** Small deterministic string hash for stable media ids. */
 function hash(str) {
   let h = 0;
@@ -188,6 +265,37 @@ function parseGdeltDate(raw) {
 }
 
 /**
+ * A coarse topical tag for a media item, from keywords in its title and
+ * description. This drives an optional filter on the feed ("show only
+ * legal coverage") — it is not a claim about the figure, only about what
+ * a given headline is about, and it degrades to "other" rather than
+ * guessing.
+ *
+ * Order matters: a headline about a "financial fraud lawsuit" is legal
+ * first. The lists are deliberately short and high-precision; a missed
+ * classification just means "other", which is honest.
+ */
+const TOPIC_PATTERNS = [
+  ["legal", /\b(lawsuit|sued?|court|trial|charged|indict|arrest|verdict|guilty|plea|settlement|subpoena|testif|allegation|prosecut|convict|acquit|defamation|litigation)\b/i],
+  ["financial", /\b(bankruptcy|tax|fraud|SEC |insider trading|earnings|revenue|stake|shares|net worth|investment|fund|salary|payout|fined?|debt|audit)\b/i],
+  ["political", /\b(election|campaign|senate|congress|parliament|vote|policy|legislation|minister|governor|president|candidate|endorse|lobby|sanction)\b/i],
+  ["personal", /\b(divorce|marriage|married|dating|relationship|engaged|split|affair|custody|feud|apolog|rehab|health|hospital|diagnos)\b/i],
+  ["professional", /\b(album|film|movie|series|tour|concert|award|nominat|premiere|contract|signed|debut|release|championship|match|transfer|retire)\b/i],
+];
+
+/**
+ * @param {{title?: string, description?: string}} item
+ * @return {"legal"|"financial"|"political"|"personal"|"professional"|"other"}
+ */
+function classifyTopic(item) {
+  const text = `${(item && item.title) || ""} ${(item && item.description) || ""}`;
+  for (const [topic, pattern] of TOPIC_PATTERNS) {
+    if (pattern.test(text)) return topic;
+  }
+  return "other";
+}
+
+/**
  * Removes items that point at the same story.
  *
  * Sources overlap heavily — an article syndicated to three outlets is one
@@ -226,7 +334,10 @@ module.exports = {
   fetchNews,
   fetchVideos,
   fetchGdelt,
+  fetchReddit,
   parseGdelt,
   parseGdeltDate,
+  parseReddit,
+  classifyTopic,
   dedupe,
 };

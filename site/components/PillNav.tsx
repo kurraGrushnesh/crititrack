@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { t } from "@/lib/i18n";
 import ThemeToggle from "./ThemeToggle";
+import LocaleSwitcher from "./LocaleSwitcher";
+import { useLocale } from "./locale-store";
 
 const FIGURE = "/figure/";
 
@@ -10,9 +13,14 @@ const FIGURE = "/figure/";
  * The floating pill navigation. The search lives here — type a name and
  * it opens that figure's live profile — so the home page below can lead
  * with the headline and the categories instead of a search box.
+ *
+ * Shell strings run through `t()` against the reader's chosen locale; the
+ * analytical copy on the pages themselves stays English, per the note in
+ * `lib/i18n.ts`.
  */
 export default function PillNav() {
   const [q, setQ] = useState("");
+  const locale = useLocale();
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -49,22 +57,23 @@ export default function PillNav() {
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search a public figure…"
-            aria-label="Search a public figure"
+            placeholder={t("search.placeholder", locale)}
+            aria-label={t("search.placeholder", locale)}
           />
         </form>
 
         <div className="pillnav-links">
-          <Link href="/category/actors">Categories</Link>
-          <Link href="/compare">Compare</Link>
-          <Link href="/methodology">Method</Link>
+          <Link href="/category/actors">{t("nav.explore", locale)}</Link>
+          <Link href="/compare">{t("nav.compare", locale)}</Link>
+          <Link href="/methodology">{t("nav.method", locale)}</Link>
           <Link href="/about">About</Link>
         </div>
 
+        <LocaleSwitcher />
         <ThemeToggle />
 
         <Link href={FIGURE} className="pillnav-cta">
-          Search
+          {t("nav.search", locale)}
         </Link>
       </nav>
     </div>

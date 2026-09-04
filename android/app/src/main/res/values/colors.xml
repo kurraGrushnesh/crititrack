@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Adaptive launcher-icon background. CritiTrack brand green, the
+         same value the web favicon (site/app/icon.svg) uses. -->
+    <color name="ic_launcher_background">#1C7A53</color>
+</resources>

@@ -3,7 +3,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const {todaySnapshot, isCacheFresh} = require("../lib/store");
+const {todaySnapshot, isCacheFresh, toTrendingRow} = require("../lib/store");
 
 const measured = {
   overallScore: 63.4,
@@ -85,6 +85,43 @@ test("survives an empty sentiment object", () => {
   assert.equal(s.score, 50);
   assert.equal(s.totalMentions, 0);
   assert.equal(s.measured, true);
+});
+
+test("toTrendingRow: maps a full document to the compact public row", () => {
+  const row = toTrendingRow("n-t-rama-rao", {
+    name: "N. T. Rama Rao",
+    requestCount: 42,
+    sentimentScore: 58.3,
+    trendDirection: "up",
+    imageUrl: "https://example.org/ntr.jpg",
+    biography: "ignored",
+  });
+  assert.deepEqual(row, {
+    slug: "n-t-rama-rao",
+    name: "N. T. Rama Rao",
+    requestCount: 42,
+    sentimentScore: 58.3,
+    trendDirection: "up",
+    imageUrl: "https://example.org/ntr.jpg",
+  });
+});
+
+test("toTrendingRow: falls back to the slug when no name is stored", () => {
+  assert.equal(toTrendingRow("some-slug", {}).name, "some-slug");
+});
+
+test("toTrendingRow: a missing or absurd requestCount becomes a non-negative integer", () => {
+  assert.equal(toTrendingRow("s", {}).requestCount, 0);
+  assert.equal(toTrendingRow("s", {requestCount: -5}).requestCount, 0);
+  assert.equal(toTrendingRow("s", {requestCount: 3.7}).requestCount, 4);
+});
+
+test("toTrendingRow: a non-numeric score is null, not coerced to zero", () => {
+  // Zero is a real, strongly-negative score; a missing one must not
+  // masquerade as it on the trending rail.
+  assert.equal(toTrendingRow("s", {sentimentScore: "n/a"}).sentimentScore, null);
+  assert.equal(toTrendingRow("s", {}).sentimentScore, null);
+  assert.equal(toTrendingRow("s", {sentimentScore: 0}).sentimentScore, 0);
 });
 
 test("isCacheFresh: within the window is fresh, past it is not", () => {
