@@ -4,6 +4,7 @@ import PillNav from "@/components/PillNav";
 import SiteFooter from "@/components/SiteFooter";
 import CategoryRail from "@/components/CategoryRail";
 import PersonCard from "@/components/PersonCard";
+import TrendingRail from "@/components/TrendingRail";
 import Reveal from "@/components/Reveal";
 import HeroGradient from "@/components/HeroGradient";
 import HeroReveal from "@/components/HeroReveal";
@@ -81,6 +82,8 @@ export default function Home() {
         </section>
 
         <hr className="divider-rule" />
+
+        <TrendingRail />
 
         <section className="min-section">
           <div className="head">
