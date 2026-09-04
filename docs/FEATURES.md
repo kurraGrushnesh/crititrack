@@ -301,6 +301,26 @@ so this has not been seen on a device.
 
 ---
 
+---
+
+## Follow-on
+
+### Figure's own accounts
+
+**What** — The profile header now shows verified links the figure runs
+themselves — official site, X, Instagram, YouTube, TikTok, Facebook,
+Threads, Bluesky, Mastodon, LinkedIn, IMDb — read off Wikidata and
+validated per platform. These are accounts *by* the person, not coverage
+*about* them, so a reader can leave and check for themselves.
+
+**How to use** — Open any profile; an **"Accounts"** row sits under the
+Watch button. It renders nothing when Wikidata lists no accounts.
+
+**Where** — `functions/lib/entity.js` (`externalLinks`),
+`site/lib/api.ts` (`mapAccounts`), `site/components/ProfileLinks.tsx`.
+
+---
+
 ## Numbering note
 
 Items 3 and 4 shipped in one commit (the Reddit weighting depends on the
