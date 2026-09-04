@@ -63,7 +63,9 @@ export default function CareerSection({
         <h2 id={headingId} className="prof-heading">
           Career
         </h2>
-        <p className="career-empty">Career information unavailable</p>
+        <p className="career-empty">
+          Career information isn&rsquo;t available yet.
+        </p>
       </section>
     );
   }

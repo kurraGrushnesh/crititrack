@@ -334,6 +334,9 @@ class _ShimmerSkeleton extends StatelessWidget {
               // Bio skeleton
               _box(double.infinity, 200),
               const SizedBox(height: 16),
+              // Career timeline skeleton
+              _box(double.infinity, 180),
+              const SizedBox(height: 16),
               // Media skeleton
               _box(double.infinity, 160),
               const SizedBox(height: 16),
