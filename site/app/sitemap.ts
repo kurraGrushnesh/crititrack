@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { DEMO_PROFILES } from "@/lib/demo-data";
-import { CATEGORY_SLUGS } from "@/lib/catalog";
+import { ALL_CATEGORY_SLUGS } from "@/lib/categories";
 
 const SITE = "https://crititrack-f7430.web.app";
 
@@ -21,7 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/report-correction",
     "/watchlist",
     "/privacy",
-    ...CATEGORY_SLUGS.map((s) => `/category/${s}`),
+    ...ALL_CATEGORY_SLUGS.map((s) => `/category/${s}`),
   ];
 
   const profilePaths = DEMO_PROFILES.flatMap((p) => [

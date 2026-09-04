@@ -1,23 +1,21 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  DECADES,
-  decadeOf,
-  rosterFor,
-  topTen,
-  type RosterEntry,
-} from "@/lib/catalog";
+import { DECADES, decadeOf, ROSTER, type RosterEntry } from "@/lib/catalog";
+import { rosterForCategory, topTenForCategory } from "@/lib/categories";
 import PersonCard from "./PersonCard";
 
 /**
  * Category view: a Top 10 (editorial prominence) plus the full roster
  * with a birth-decade filter and a rank/name sort. Client-side so the
  * filters are instant; the data is the static catalogue.
+ *
+ * `slug` accepts both the 35-category and the 6 legacy slugs —
+ * `rosterForCategory` resolves the alias.
  */
 export default function CategoryBrowser({ slug }: { slug: string }) {
-  const roster = useMemo(() => rosterFor(slug), [slug]);
-  const top = useMemo(() => topTen(slug), [slug]);
+  const roster = useMemo(() => rosterForCategory(slug, ROSTER), [slug]);
+  const top = useMemo(() => topTenForCategory(slug, ROSTER), [slug]);
 
   const [decade, setDecade] = useState<number | null>(null);
   const [sort, setSort] = useState<"rank" | "name" | "born">("rank");
@@ -37,18 +35,20 @@ export default function CategoryBrowser({ slug }: { slug: string }) {
 
   return (
     <>
-      <section className="app-section">
-        <h2>Top 10</h2>
-        <p className="sub">
-          A curated list of prominent figures in this category. The order
-          reflects public profile, not any controversy score.
-        </p>
-        <div className="person-grid">
-          {top.map((r, i) => (
-            <PersonCard key={r.name} entry={r} rank={i + 1} />
-          ))}
-        </div>
-      </section>
+      {top.length > 0 && (
+        <section className="app-section">
+          <h2>Top 10</h2>
+          <p className="sub">
+            A curated list of prominent figures in this category. The order
+            reflects public profile, not any controversy score.
+          </p>
+          <div className="person-grid">
+            {top.map((r, i) => (
+              <PersonCard key={r.name} entry={r} rank={i + 1} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="app-section">
         <h2>Everyone in this category</h2>
@@ -88,9 +88,12 @@ export default function CategoryBrowser({ slug }: { slug: string }) {
 
         {filtered.length === 0 ? (
           <p className="state-block">
-            <span className="sb-title">No matches</span>
-            No figures in this category were born in the {decade}s. Clear the
-            filter to see the full list.
+            <span className="sb-title">
+              {roster.length === 0 ? "No one catalogued yet" : "No matches"}
+            </span>
+            {roster.length === 0
+              ? "No one in today's roster resolves to this category. The category itself is real — the catalogue just doesn't have anyone in it yet."
+              : `No figures in this category were born in the ${decade}s. Clear the filter to see the full list.`}
           </p>
         ) : (
           <div className="person-grid">

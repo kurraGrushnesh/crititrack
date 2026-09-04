@@ -357,6 +357,15 @@ export function rosterForCategory(slug: string, roster: RosterEntry[]): RosterEn
   return roster.filter((e) => categoriesFor(e).some((c) => c.slug === canonical));
 }
 
+/** Editorial prominence order = the roster's own order (same rule as
+ * the legacy catalogue's `topTen`). */
+export function topTenForCategory(
+  slug: string,
+  roster: RosterEntry[],
+): RosterEntry[] {
+  return rosterForCategory(slug, roster).slice(0, 10);
+}
+
 /** How many roster people fall under each category — for the explorer. */
 export function categoryCounts(roster: RosterEntry[]): Record<string, number> {
   const counts: Record<string, number> = {};

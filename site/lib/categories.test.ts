@@ -8,6 +8,7 @@ import {
   categoriesFor,
   categoryCounts,
   rosterForCategory,
+  topTenForCategory,
 } from "./categories";
 
 const entry = (over: Partial<RosterEntry>): RosterEntry => ({
@@ -107,6 +108,22 @@ describe("rosterForCategory", () => {
 
   it("an unknown slug returns nothing rather than the whole roster", () => {
     expect(rosterForCategory("not-a-real-category", ROSTER)).toEqual([]);
+  });
+});
+
+describe("topTenForCategory", () => {
+  it("caps at 10 and never exceeds the category's real membership", () => {
+    const top = topTenForCategory("actors-filmmakers", ROSTER);
+    expect(top.length).toBeLessThanOrEqual(10);
+    expect(top.length).toBeGreaterThan(0);
+    const full = rosterForCategory("actors-filmmakers", ROSTER);
+    for (const p of top) expect(full).toContainEqual(p);
+  });
+
+  it("an old slug and its replacement produce the same top ten", () => {
+    expect(topTenForCategory("actors", ROSTER)).toEqual(
+      topTenForCategory("actors-filmmakers", ROSTER),
+    );
   });
 });
 

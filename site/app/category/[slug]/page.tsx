@@ -6,16 +6,17 @@ import SiteFooter from "@/components/SiteFooter";
 import CategoryRail from "@/components/CategoryRail";
 import CategoryBrowser from "@/components/CategoryBrowser";
 import ContextPanel from "@/components/ContextPanel";
+import { ROSTER } from "@/lib/catalog";
 import {
-  CATEGORY_SLUGS,
+  ALL_CATEGORY_SLUGS,
   categoryBySlug,
-  rosterFor,
-} from "@/lib/catalog";
+  rosterForCategory,
+} from "@/lib/categories";
 
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return CATEGORY_SLUGS.map((slug) => ({ slug }));
+  return ALL_CATEGORY_SLUGS.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({
@@ -42,7 +43,7 @@ export default async function CategoryPage({
   const cat = categoryBySlug(slug);
   if (!cat) notFound();
 
-  const count = rosterFor(slug).length;
+  const count = rosterForCategory(slug, ROSTER).length;
 
   return (
     <>
