@@ -5,6 +5,9 @@ import {
   parseWatchlist,
   isWatched,
   toggledWatchlist,
+  addTag,
+  removeTag,
+  renameTag,
   type WatchEntry,
 } from "@/lib/watchlist";
 
@@ -65,15 +68,29 @@ export function useWatchlist(): WatchEntry[] {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
-export function toggleWatch(slug: string, name: string): void {
-  const next = toggledWatchlist(getSnapshot(), slug, name);
+function commit(next: WatchEntry[]): void {
   const serialised = JSON.stringify(next);
   try {
     localStorage.setItem(KEY, serialised);
   } catch {
-    /* storage unavailable; the toggle will not persist */
+    /* storage unavailable; the change will not persist */
   }
   cacheKey = serialised;
   cache = next;
   window.dispatchEvent(new Event(EVENT));
+}
+
+export function toggleWatch(slug: string, name: string): void {
+  commit(toggledWatchlist(getSnapshot(), slug, name));
+}
+
+/** Folder-like tags on a watched figure. */
+export function tagWatch(slug: string, tag: string): void {
+  commit(addTag(getSnapshot(), slug, tag));
+}
+export function untagWatch(slug: string | null, tag: string): void {
+  commit(removeTag(getSnapshot(), slug, tag));
+}
+export function renameWatchTag(from: string, to: string): void {
+  commit(renameTag(getSnapshot(), from, to));
 }
