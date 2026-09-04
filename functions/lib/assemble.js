@@ -43,6 +43,7 @@ const {
 const {linkEvidence} = require("./evidence");
 const {fetchWikiSummary} = require("./wiki");
 const {fetchPageviews, summarise} = require("./pageviews");
+const {buildTimeline} = require("./timeline");
 
 /**
  * @param {{groq: string, news: string, youtube: string}} keys
@@ -242,6 +243,13 @@ async function assembleCelebrity(keys, name, slug) {
       series: pageviews,
       summary: summarise(pageviews),
     },
+    // One dated spine over the sourced record. Sentiment-shift events are
+    // added by the client from the trend series it already receives, so
+    // the server does not need the snapshot history to build this.
+    timeline: buildTimeline({
+      controversies: biography.controversies,
+      attentionSeries: pageviews,
+    }),
     media,
   };
 }

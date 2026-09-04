@@ -17,6 +17,7 @@ import {
   corroborated,
   type Controversy,
 } from "./controversy";
+import { buildTimeline, type TimelineEvent } from "./timeline";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE ?? "https://crititrack-api.onrender.com";
@@ -103,6 +104,7 @@ export interface RealProfile {
   controversies: Controversy[];
   media: MediaLink[];
   attention: Attention | null;
+  timeline: TimelineEvent[];
   candidates: { name: string; description?: string; qid?: string }[];
 }
 
@@ -178,6 +180,18 @@ function mapProfile(j: Json): RealProfile {
   const trendDirection =
     dir === "up" || dir === "down" || dir === "stable" ? dir : "stable";
 
+  const trend: TrendPoint[] = list(s.trendData)
+    .map((d) => ({
+      date: str(d.date) || str(d.day),
+      score: num(d.score) ?? 50,
+      mentions:
+        num(d.totalMentions) ??
+        (num(d.positiveCount) ?? 0) +
+          (num(d.neutralCount) ?? 0) +
+          (num(d.negativeCount) ?? 0),
+    }))
+    .filter((d) => d.date);
+
   return {
     slug: str(j.slug),
     name: str(j.name) || str(j.query),
@@ -211,17 +225,7 @@ function mapProfile(j: Json): RealProfile {
     scoreNews: num(s.scoreNews),
     scoreYoutube: num(s.scoreYoutube),
     scoreInstagram: num(s.scoreInstagram),
-    trend: list(s.trendData)
-      .map((d) => ({
-        date: str(d.date) || str(d.day),
-        score: num(d.score) ?? 50,
-        mentions:
-          num(d.totalMentions) ??
-          (num(d.positiveCount) ?? 0) +
-            (num(d.neutralCount) ?? 0) +
-            (num(d.negativeCount) ?? 0),
-      }))
-      .filter((d) => d.date),
+    trend,
     evidence: list(s.evidence)
       .map((e) => ({
         fragment: str(e.fragment),
@@ -246,6 +250,7 @@ function mapProfile(j: Json): RealProfile {
       }))
       .filter((m) => m.title && m.url),
     attention: mapAttention(j.attention),
+    timeline: buildTimeline(j.timeline, trend),
     candidates: list(entity.candidates).map((c) => ({
       name: str(c.name) || str(c.label),
       description: str(c.description) || undefined,
