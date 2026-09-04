@@ -1277,6 +1277,15 @@ h3 {
   max-width: 68ch;
 }
 
+/* On the live profile the bio sits in a full-width section with nothing
+   beside it, so the 68ch reading measure left a large empty margin. Let
+   the bio and its paragraphs fill the section width there. */
+.figure-main .bio,
+.figure-main .bio-summary,
+.figure-main .bio-background p {
+  max-width: none;
+}
+
 .bio-summary {
   margin: 0;
   color: var(--text-soft);
