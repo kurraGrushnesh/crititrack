@@ -551,7 +551,7 @@ export const TAXONOMY: TaxonomySectorNode[] = [
               {
                 id: "professor",
                 label: "Professor",
-                aliases: ["University Professor", "Academic", "Faculty Member", "Lecturer", "Reader", "Associate Professor", "Assistant Professor"],
+                aliases: ["University Professor", "University Teacher", "Academic", "Faculty Member", "Lecturer", "Reader", "Associate Professor", "Assistant Professor", "Educator (Higher Ed)"],
                 specializations: ["Emeritus Professor", "Visiting Professor", "Endowed Chair"],
               },
               { id: "researcher-academic", label: "Academic Researcher", aliases: ["Postdoctoral Researcher", "Research Fellow"] },
@@ -1094,7 +1094,7 @@ export const TAXONOMY: TaxonomySectorNode[] = [
               {
                 id: "writer",
                 label: "Writer",
-                aliases: ["Author", "Novelist", "Wordsmith"],
+                aliases: ["Author", "Novelist", "Wordsmith", "Autobiographer", "Memoirist", "Prose Writer"],
                 specializations: ["Novelist", "Poet", "Playwright", "Essayist", "Short Story Writer", "Children's Author", "Science Fiction Author", "Non-fiction Author", "Ghostwriter", "Biographer"],
               },
               { id: "book-editor", label: "Book Editor", aliases: ["Literary Editor", "Publishing Editor"] },
