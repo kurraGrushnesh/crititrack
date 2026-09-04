@@ -487,6 +487,62 @@
   letter-spacing: 0.06em;
   color: var(--text-muted);
   margin: 0 0 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.sg-count {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-alt);
+  padding: 1px 7px;
+  border-radius: 999px;
+  letter-spacing: 0;
+}
+.search-viewall {
+  margin-top: 12px;
+  border: 0;
+  background: none;
+  padding: 4px 0;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--brand-strong);
+  cursor: pointer;
+}
+.search-viewall:hover {
+  text-decoration: underline;
+}
+.search-note {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.search-page mark {
+  background: color-mix(in srgb, var(--brand) 45%, transparent);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 1px;
+}
+.search-person:focus-visible,
+.search-tax-chip:focus-visible {
+  outline: 2px solid var(--brand-strong);
+  outline-offset: 2px;
+}
+.sp-type,
+.stc-type {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.stc-type {
+  margin-right: 2px;
+}
+.stc-label {
+  font-weight: 600;
 }
 .search-people {
   display: grid;

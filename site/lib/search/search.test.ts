@@ -91,6 +91,42 @@ describe("search — people", () => {
   });
 });
 
+describe("search — ranking (relevance beats popularity)", () => {
+  it("an exact name match outranks a more prominent partial match", () => {
+    // "Ronaldo" is a token of "Cristiano Ronaldo" (a Top-10 athlete) and
+    // also fuzzy-near "Renaldo"/others — the exact-ish name hit wins.
+    const r = search("Cristiano Ronaldo");
+    expect(r.people[0].name).toBe("Cristiano Ronaldo");
+    expect(r.people[0].tier).toBe(1);
+  });
+
+  it("name matches sit in a better tier than profession-only matches", () => {
+    const r = search("Messi");
+    const messi = r.people.find((p) => p.name === "Lionel Messi")!;
+    expect(messi.tier).toBeLessThanOrEqual(3);
+    // everyone else in the list is a fuzzier match, tier >= messi's
+    for (const p of r.people) expect(p.tier).toBeGreaterThanOrEqual(messi.tier);
+  });
+
+  it("within a profession search, results are ordered by tier then prominence", () => {
+    const r = search("footballers");
+    const tiers = r.people.map((p) => p.tier);
+    // non-decreasing tier
+    expect([...tiers].sort((a, b) => a - b)).toEqual(tiers);
+    // scores strictly non-increasing (the sort key)
+    const scores = r.people.map((p) => p.score);
+    expect([...scores].sort((a, b) => b - a)).toEqual(scores);
+  });
+
+  it("every hit carries a tier and a plain-language matchedOn", () => {
+    for (const p of search("technology CEOs").people) {
+      expect(p.tier).toBeGreaterThanOrEqual(1);
+      expect(p.tier).toBeLessThanOrEqual(6);
+      expect(p.matchedOn.length).toBeGreaterThan(0);
+    }
+  });
+});
+
 describe("search — grouping and honesty", () => {
   it("groups professions and categories, never invents organizations", () => {
     const r = search("cybersecurity");

@@ -48,6 +48,14 @@ export interface PersonHit {
   profession: { label: string; sector: string; industry: string } | null;
   country: string | null;
   score: number;
+  /**
+   * Relevance tier, 1 (best) … 6. Lower always outranks higher no matter
+   * how prominent the person is — an exact name match beats a famous
+   * partial match. Popularity only breaks ties within a tier.
+   */
+  tier: number;
+  /** Plain-language reason this matched, for the UI. */
+  matchedOn: string;
 }
 
 export interface TaxonomyHit {
@@ -98,6 +106,13 @@ interface IndexedPerson {
   sectorId: string | null;
   industryId: string | null;
   country: string | null;
+  /**
+   * 0–120 editorial-prominence signal from the person's position within
+   * their catalogue category (the first ten of each are its "Top 10").
+   * Real, existing data — used only as a tie-breaker within a relevance
+   * tier, never to override relevance.
+   */
+  prominence: number;
 }
 
 let cache: {
@@ -113,8 +128,11 @@ function index() {
   const occCount = new Map<string, number>();
   const sectorCount = new Map<string, number>();
   const industryCount = new Map<string, number>();
+  const seenInCategory = new Map<string, number>();
 
   const people: IndexedPerson[] = ROSTER.map((entry) => {
+    const rank = seenInCategory.get(entry.category) ?? 0;
+    seenInCategory.set(entry.category, rank + 1);
     const prof = catalogueProfession(entry);
     let occId: string | null = null;
     let famId: string | null = null;
@@ -150,6 +168,7 @@ function index() {
       sectorId: secId,
       industryId: indId,
       country: entry.country ?? countryFromDescriptor(entry.descriptor),
+      prominence: Math.max(0, 120 - rank * 6),
     };
   });
 
@@ -302,29 +321,50 @@ export function parseQuery(raw: string): ParsedQuery {
   };
 }
 
-// ── Name scoring ───────────────────────────────────────────────────
+// ── Relevance tiers ────────────────────────────────────────────────
+//
+// 1  exact name / entity match
+// 2  exact alias match            (taxonomy only; roster people have no aliases)
+// 3  prefix / name-token match
+// 4  exact profession / category match
+// 5  specialization / industry / sector match
+// 6  partial / fuzzy match
+// 7  popularity only              (never surfaced on its own here)
+//
+// score = (7 − tier) * 1000 + secondarySignals, where the secondary
+// signals (profession/country/decade/prominence) sum to well under 1000,
+// so a better tier can never be overtaken by a worse one.
 
-function scoreName(queryNorm: string, queryTokens: string[], p: IndexedPerson): number {
-  if (!queryNorm) return 0;
-  if (p.normName === queryNorm) return 1000;
-  if (p.normName.startsWith(queryNorm)) return 820;
-  if (p.normName.includes(queryNorm)) return 620;
-  // token prefixes: "ser wil" → "serena williams"
-  let tokenScore = 0;
-  for (const qt of queryTokens) {
-    if (qt.length < 2) continue;
-    if (p.nameTokens.some((nt) => nt.startsWith(qt))) tokenScore += 220;
-    else if (p.nameTokens.some((nt) => fuzzyClose(nt, qt))) tokenScore += 120;
+const TIER_BASE = 1000;
+
+/** The best (lowest) name tier this person satisfies, or 0. */
+function nameTier(qNorm: string, qTokens: string[], p: IndexedPerson): number {
+  if (!qNorm) return 0;
+  if (p.normName === qNorm) return 1;
+  if (p.normName.startsWith(qNorm)) return 3;
+  const strongTokens = qTokens.filter((t) => t.length >= 2);
+  if (
+    strongTokens.length > 0 &&
+    strongTokens.every((qt) => p.nameTokens.some((nt) => nt.startsWith(qt)))
+  ) {
+    return 3;
   }
-  if (tokenScore) return Math.min(700, tokenScore);
-  if (fuzzyClose(p.normName, queryNorm)) return 300;
+  if (qNorm.length >= 3 && p.normName.includes(qNorm)) return 6;
+  if (fuzzyClose(p.normName, qNorm)) return 6;
+  if (
+    strongTokens.some(
+      (qt) => qt.length >= 3 && p.nameTokens.some((nt) => fuzzyClose(nt, qt)),
+    )
+  ) {
+    return 6;
+  }
   return 0;
 }
 
 // ── Search ─────────────────────────────────────────────────────────
 
-const PEOPLE_LIMIT = 30;
-const TAXONOMY_LIMIT = 8;
+const PEOPLE_LIMIT = 40;
+const TAXONOMY_LIMIT = 10;
 
 export function search(raw: string, explicit: SearchFilters = {}): SearchResult {
   const { people, occCount, sectorCount, industryCount } = index();
@@ -350,45 +390,68 @@ export function search(raw: string, explicit: SearchFilters = {}): SearchResult 
 
   const personHits: PersonHit[] = people
     .map((p): PersonHit | null => {
-      const nameScore = scoreName(nameQuery, nameTokens, p);
+      // Hard filters first — country and decade exclude, never rank.
+      if (filters.country && p.country !== filters.country) return null;
+      if (
+        filters.bornDecade != null &&
+        Math.floor(p.entry.born / 10) * 10 !== filters.bornDecade
+      ) {
+        return null;
+      }
 
-      let taxScore = 0;
-      let taxMatch = !hasTaxonomyIntent && !filters.country && !filters.bornDecade;
+      const nt = nameTier(nameQuery, nameTokens, p);
+
+      // Profession / category tier.
+      let profTier = 0;
+      let matchedOn = "";
       if (filters.occupationId && p.occupationId === filters.occupationId) {
-        taxScore += 500;
-        taxMatch = true;
+        profTier = 4;
+        matchedOn = `profession: ${p.profession?.label}`;
+      } else if (filters.category && p.entry.category === filters.category) {
+        profTier = 4;
+        matchedOn = `category: ${p.entry.category}`;
       } else if (filterFamilyId && p.familyId === filterFamilyId) {
-        // Same occupation family — "YouTubers" also surfaces "Content
-        // Creators", both under the online-creation family.
-        taxScore += 340;
-        taxMatch = true;
-      }
-      if (filters.industryId && p.industryId === filters.industryId) {
-        taxScore += 300;
-        taxMatch = true;
-      }
-      if (filters.sectorId && p.sectorId === filters.sectorId) {
-        taxScore += 200;
-        taxMatch = true;
-      }
-      if (filters.category && p.entry.category === filters.category) {
-        taxScore += 260;
-        taxMatch = true;
+        profTier = 5;
+        matchedOn = `related profession: ${p.profession?.label}`;
+      } else if (filters.industryId && p.industryId === filters.industryId) {
+        profTier = 5;
+        matchedOn = `industry: ${p.profession?.industry}`;
+      } else if (filters.sectorId && p.sectorId === filters.sectorId) {
+        profTier = 5;
+        matchedOn = `sector: ${p.profession?.sector}`;
       }
 
-      let ok = true;
-      if (filters.country) {
-        if (p.country !== filters.country) ok = false;
-      }
-      if (filters.bornDecade != null) {
-        if (Math.floor(p.entry.born / 10) * 10 !== filters.bornDecade) ok = false;
-      }
-      // With a taxonomy/category intent, require the person to match it
-      // (unless they are a strong name hit, since a name search wins).
-      if (hasTaxonomyIntent && !taxMatch && nameScore < 600) ok = false;
+      const tiers = [nt, profTier].filter((x) => x > 0);
+      // A pure country/decade browse with no other intent lists everyone
+      // who passed the hard filters, at the lowest tier.
+      const browseOnly =
+        tiers.length === 0 &&
+        !hasTaxonomyIntent &&
+        !nameQuery &&
+        (filters.country || filters.bornDecade != null);
+      if (tiers.length === 0 && !browseOnly) return null;
 
-      const score = nameScore + taxScore;
-      if (!ok || score <= 0) return null;
+      // A taxonomy intent that this person does not match is dropped,
+      // unless they are a strong name hit (a name search always wins).
+      if (hasTaxonomyIntent && profTier === 0 && (nt === 0 || nt > 3)) {
+        return null;
+      }
+
+      const tier = browseOnly ? 6 : Math.min(...tiers);
+      if (nt > 0 && nt <= tier) {
+        matchedOn =
+          nt === 1 ? "exact name" : nt === 3 ? "name" : "name (approx.)";
+      }
+
+      let secondary = 0;
+      if (nt === 1) secondary += 240;
+      else if (nt === 3) secondary += 140;
+      else if (nt === 6) secondary += 40;
+      if (profTier === 4) secondary += 220;
+      else if (profTier === 5) secondary += 110;
+      if (filters.country && p.country === filters.country) secondary += 180;
+      if (filters.bornDecade != null) secondary += 40;
+      secondary += p.prominence; // 0–120, capped well under one tier
 
       return {
         kind: "person",
@@ -399,7 +462,9 @@ export function search(raw: string, explicit: SearchFilters = {}): SearchResult 
         born: p.entry.born,
         profession: p.profession,
         country: p.country,
-        score,
+        tier,
+        matchedOn: matchedOn || "match",
+        score: (7 - tier) * TIER_BASE + secondary,
       };
     })
     .filter((h): h is PersonHit => h !== null)
@@ -408,7 +473,6 @@ export function search(raw: string, explicit: SearchFilters = {}): SearchResult 
 
   // Professions (occupations + specialisations) matching the query text.
   const professions = rankTaxonomy(
-    parsed,
     [
       ...parsed.occupations.map((o) => ({
         kind: "occupation" as const,
@@ -424,7 +488,7 @@ export function search(raw: string, explicit: SearchFilters = {}): SearchResult 
   );
 
   // Categories = industries + sectors + legacy categories.
-  const categories = rankTaxonomy(parsed, [
+  const categories = rankTaxonomy([
     ...parsed.industries.map((i) => ({
       kind: "industry" as const,
       id: i.id,
@@ -472,74 +536,104 @@ function pathLabel(occId: string): string | null {
   return p ? `${p.sector} · ${p.industry}` : null;
 }
 
-function rankTaxonomy(parsed: ParsedQuery, hits: TaxonomyHit[]): TaxonomyHit[] {
+/**
+ * Ranks taxonomy hits. `score` carries the relevance band (exact label
+ * 900 › exact alias 820 › prefix 700 › contains 500 › fuzzy 350); the
+ * catalogue people-count is folded in as a small tie-breaker (capped at
+ * 99) so it can never lift one band above another.
+ */
+function rankTaxonomy(hits: TaxonomyHit[]): TaxonomyHit[] {
+
   const byId = new Map<string, TaxonomyHit>();
   for (const h of hits) {
-    const existing = byId.get(h.kind + h.id);
-    if (!existing || h.score > existing.score) byId.set(h.kind + h.id, h);
+    const key = h.kind + h.id;
+    const existing = byId.get(key);
+    if (!existing || h.score > existing.score) byId.set(key, h);
   }
   return [...byId.values()]
-    .sort((a, b) => b.score - a.score || b.count - a.count)
+    .sort(
+      (a, b) =>
+        b.score + Math.min(b.count, 99) - (a.score + Math.min(a.count, 99)) ||
+        a.label.localeCompare(b.label),
+    )
     .slice(0, TAXONOMY_LIMIT);
+}
+
+/** Relevance band for a free-text label/alias against a query. */
+function textBand(label: string, aliases: string[], q: string): number {
+  const n = normalizeLabel(label);
+  const na = aliases.map(normalizeLabel);
+  if (n === q) return 900;
+  if (na.includes(q)) return 820;
+  if (n.startsWith(q) || na.some((a) => a.startsWith(q))) return 700;
+  // Whole-word containment only — "actor" must not match "contractor".
+  const word = new RegExp(`\\b${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`);
+  if (word.test(n) || na.some((a) => word.test(a))) return 500;
+  if (fuzzyClose(n, q)) return 350;
+  return 0;
 }
 
 function occupationTextMatches(parsed: ParsedQuery): TaxonomyHit[] {
   const q = parsed.contentTokens.join(" ");
   if (q.length < 3) return [];
   const { occCount } = index();
-  return OCCUPATIONS.filter((o) => {
-    const label = normalizeLabel(o.label);
-    return (
-      label.includes(q) ||
-      o.aliases.some((a) => normalizeLabel(a).includes(q)) ||
-      fuzzyClose(label, q)
-    );
-  }).map((o) => ({
-    kind: "occupation" as const,
-    id: o.id,
-    label: o.label,
-    path: pathLabel(o.id),
-    count: occCount.get(o.id) ?? 0,
-    score: normalizeLabel(o.label) === q ? 850 : 500,
-  }));
+  const out: TaxonomyHit[] = [];
+  for (const o of OCCUPATIONS) {
+    const band = textBand(o.label, o.aliases, q);
+    if (band === 0) continue;
+    out.push({
+      kind: "occupation",
+      id: o.id,
+      label: o.label,
+      path: pathLabel(o.id),
+      count: occCount.get(o.id) ?? 0,
+      score: band,
+    });
+  }
+  return out;
 }
 
 function specializationTextMatches(parsed: ParsedQuery): TaxonomyHit[] {
   const q = parsed.contentTokens.join(" ");
   if (q.length < 3) return [];
-  return SPECIALIZATIONS.filter((s) => {
-    const label = normalizeLabel(s.label);
-    return label.includes(q) || fuzzyClose(label, q);
-  })
-    .slice(0, 6)
-    .map((s) => ({
-      kind: "specialization" as const,
+  const out: TaxonomyHit[] = [];
+  for (const s of SPECIALIZATIONS) {
+    const band = textBand(s.label, [], q);
+    if (band === 0) continue;
+    const p = occupationPath(s.occupationId);
+    out.push({
+      kind: "specialization",
       id: s.id,
       label: s.label,
-      path: (() => {
-        const p = occupationPath(s.occupationId);
-        return p ? `${p.industry} · ${getOccupation(s.occupationId)?.label ?? ""}` : null;
-      })(),
+      path: p
+        ? `${p.industry} · ${getOccupation(s.occupationId)?.label ?? ""}`
+        : null,
       count: 0,
-      score: 450,
-    }));
+      // A specialisation is a step below its parent occupation.
+      score: Math.max(300, band - 100),
+    });
+  }
+  return out.slice(0, 6);
 }
 
 function industryTextMatches(parsed: ParsedQuery): TaxonomyHit[] {
   const q = parsed.contentTokens.join(" ");
   if (q.length < 3) return [];
   const { industryCount } = index();
-  return INDUSTRIES.filter((i) => {
-    const label = normalizeLabel(i.label);
-    return label.includes(q) || fuzzyClose(label, q);
-  }).map((i) => ({
-    kind: "industry" as const,
-    id: i.id,
-    label: i.label,
-    path: SECTORS.find((s) => s.id === i.sectorId)?.label ?? null,
-    count: industryCount.get(i.id) ?? 0,
-    score: 400,
-  }));
+  const out: TaxonomyHit[] = [];
+  for (const i of INDUSTRIES) {
+    const band = textBand(i.label, [], q);
+    if (band === 0) continue;
+    out.push({
+      kind: "industry",
+      id: i.id,
+      label: i.label,
+      path: SECTORS.find((s) => s.id === i.sectorId)?.label ?? null,
+      count: industryCount.get(i.id) ?? 0,
+      score: band,
+    });
+  }
+  return out;
 }
 
 function describe(parsed: ParsedQuery, filters: SearchFilters, peopleCount: number): string[] {
@@ -587,9 +681,9 @@ export function suggest(raw: string, limit = 8): Suggestion[] {
 
   const nameTokens = q.split(" ").filter(Boolean);
   const peopleHits = people
-    .map((p) => ({ p, s: scoreName(q, nameTokens, p) }))
-    .filter((x) => x.s >= 200)
-    .sort((a, b) => b.s - a.s)
+    .map((p) => ({ p, t: nameTier(q, nameTokens, p) }))
+    .filter((x) => x.t > 0 && x.t <= 3)
+    .sort((a, b) => a.t - b.t || b.p.prominence - a.p.prominence)
     .slice(0, 4);
   for (const { p } of peopleHits) {
     out.push({

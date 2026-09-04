@@ -1,18 +1,28 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useMemo, useState, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { search, type SearchFilters } from "@/lib/search";
+import {
+  search,
+  type SearchFilters,
+  type PersonHit,
+  type TaxonomyHit,
+} from "@/lib/search";
 import { DECADES } from "@/lib/catalog";
 import SearchBox from "./SearchBox";
 
 /**
  * The universal search results page. Reads the query and any filter
- * params from the URL, runs the bundled search, and renders grouped
- * results — People, Professions, Industries & Categories — plus a filter
- * bar. Companies / organisations / sports teams show an honest empty
- * state; CritiTrack has no data for them yet.
+ * params from the URL, runs the bundled search, and renders results
+ * grouped and ordered by relevance tier (strongest first).
+ *
+ * Groups appear in a fixed order — People, Companies, Organizations,
+ * Professions, Industries & Categories, Other — and empty groups are
+ * hidden. CritiTrack has no company/organisation/team data, so those
+ * groups never appear; a single footer line says so honestly.
  */
+
+const PER_GROUP = 6;
 
 function readFilters(params: URLSearchParams): SearchFilters {
   const decade = Number(params.get("decade"));
@@ -24,6 +34,73 @@ function readFilters(params: URLSearchParams): SearchFilters {
     category: params.get("category") ?? undefined,
     bornDecade: Number.isFinite(decade) && decade ? decade : undefined,
   };
+}
+
+/** Wraps the matched slice of `text` in <mark>. Case-insensitive. */
+function Highlight({ text, query }: { text: string; query: string }): ReactNode {
+  const q = query.trim();
+  if (q.length < 2) return text;
+  const idx = text.toLowerCase().indexOf(q.toLowerCase());
+  if (idx === -1) return text;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark>{text.slice(idx, idx + q.length)}</mark>
+      {text.slice(idx + q.length)}
+    </>
+  );
+}
+
+const TAX_KIND_LABEL: Record<TaxonomyHit["kind"], string> = {
+  occupation: "Profession",
+  specialization: "Specialisation",
+  industry: "Industry",
+  sector: "Sector",
+  category: "Category",
+};
+
+function Group({
+  title,
+  count,
+  children,
+}: {
+  title: string;
+  count: number;
+  children: ReactNode;
+}) {
+  return (
+    <section className="search-group">
+      <h2>
+        {title} <span className="sg-count">{count}</span>
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+function ExpandableList({
+  total,
+  children,
+}: {
+  total: number;
+  children: (limit: number) => ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const limit = open ? total : PER_GROUP;
+  return (
+    <>
+      {children(limit)}
+      {total > PER_GROUP && !open && (
+        <button
+          type="button"
+          className="search-viewall"
+          onClick={() => setOpen(true)}
+        >
+          View all {total} results →
+        </button>
+      )}
+    </>
+  );
 }
 
 function Inner() {
@@ -46,9 +123,21 @@ function Inner() {
 
   const countries = useMemo(
     () =>
-      [...new Set(result.people.map((p) => p.country).filter(Boolean))].sort() as string[],
+      [...new Set(result.people.map((p) => p.country).filter(Boolean))]
+        .sort() as string[],
     [result.people],
   );
+
+  const taxHref = (t: TaxonomyHit) =>
+    t.kind === "occupation"
+      ? `/search/?occupation=${t.id}`
+      : t.kind === "industry"
+        ? `/search/?industry=${t.id}`
+        : t.kind === "sector"
+          ? `/search/?sector=${t.id}`
+          : t.kind === "category"
+            ? `/search/?category=${t.id}`
+            : `/search/?q=${encodeURIComponent(t.label)}`;
 
   const hasAnything =
     result.people.length > 0 ||
@@ -60,8 +149,8 @@ function Inner() {
       <div className="page-head">
         <h1>Discover</h1>
         <p>
-          Search people, professions, industries and categories. Type a
-          name to open a live profile.
+          Search people, professions, industries and categories. Results are
+          ordered by how closely they match — strongest first.
         </p>
       </div>
 
@@ -75,7 +164,6 @@ function Inner() {
         </p>
       )}
 
-      {/* Active filters */}
       <div className="search-filters">
         {result.filters.country && (
           <button className="filter-chip" onClick={() => setParam("country", null)}>
@@ -151,82 +239,90 @@ function Inner() {
       )}
 
       {result.people.length > 0 && (
-        <section className="search-group">
-          <h2>People ({result.people.length})</h2>
-          <div className="search-people">
-            {result.people.map((p) => (
-              <a
-                key={p.slug}
-                className="search-person"
-                href={`/figure/?q=${encodeURIComponent(p.name)}`}
-              >
-                <span className="sp-name">{p.name}</span>
-                <span className="sp-role">
-                  {p.profession?.label ?? p.descriptor}
-                </span>
-                <span className="sp-meta">
-                  {[p.profession?.industry, p.country]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </span>
-              </a>
-            ))}
-          </div>
-        </section>
+        <Group title="People" count={result.people.length}>
+          <ExpandableList total={result.people.length}>
+            {(limit) => (
+              <div className="search-people">
+                {result.people.slice(0, limit).map((p: PersonHit) => (
+                  <a
+                    key={p.slug}
+                    className="search-person"
+                    href={`/figure/?q=${encodeURIComponent(p.name)}`}
+                  >
+                    <span className="sp-type">Person</span>
+                    <span className="sp-name">
+                      <Highlight text={p.name} query={q} />
+                    </span>
+                    <span className="sp-role">
+                      {p.profession?.label ?? p.descriptor}
+                    </span>
+                    <span className="sp-meta">
+                      {[p.profession?.industry, p.country]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            )}
+          </ExpandableList>
+        </Group>
       )}
 
       {result.professions.length > 0 && (
-        <section className="search-group">
-          <h2>Professions</h2>
-          <div className="search-tax">
-            {result.professions.map((t) => (
-              <a
-                key={t.kind + t.id}
-                className="search-tax-chip"
-                href={`/search/?occupation=${t.kind === "occupation" ? t.id : ""}`}
-              >
-                {t.label}
-                {t.path && <span className="stc-path">{t.path}</span>}
-                {t.count > 0 && <span className="stc-count">{t.count}</span>}
-              </a>
-            ))}
-          </div>
-        </section>
+        <Group title="Professions" count={result.professions.length}>
+          <ExpandableList total={result.professions.length}>
+            {(limit) => (
+              <div className="search-tax">
+                {result.professions.slice(0, limit).map((t) => (
+                  <a
+                    key={t.kind + t.id}
+                    className="search-tax-chip"
+                    href={taxHref(t)}
+                  >
+                    <span className="stc-type">{TAX_KIND_LABEL[t.kind]}</span>
+                    <span className="stc-label">
+                      <Highlight text={t.label} query={q} />
+                    </span>
+                    {t.path && <span className="stc-path">{t.path}</span>}
+                    {t.count > 0 && <span className="stc-count">{t.count}</span>}
+                  </a>
+                ))}
+              </div>
+            )}
+          </ExpandableList>
+        </Group>
       )}
 
       {result.categories.length > 0 && (
-        <section className="search-group">
-          <h2>Industries &amp; categories</h2>
-          <div className="search-tax">
-            {result.categories.map((t) => (
-              <a
-                key={t.kind + t.id}
-                className="search-tax-chip"
-                href={
-                  t.kind === "industry"
-                    ? `/search/?industry=${t.id}`
-                    : t.kind === "sector"
-                      ? `/search/?sector=${t.id}`
-                      : `/search/?category=${t.id}`
-                }
-              >
-                {t.label}
-                {t.path && <span className="stc-path">{t.path}</span>}
-                {t.count > 0 && <span className="stc-count">{t.count}</span>}
-              </a>
-            ))}
-          </div>
-        </section>
+        <Group title="Industries &amp; categories" count={result.categories.length}>
+          <ExpandableList total={result.categories.length}>
+            {(limit) => (
+              <div className="search-tax">
+                {result.categories.slice(0, limit).map((t) => (
+                  <a
+                    key={t.kind + t.id}
+                    className="search-tax-chip"
+                    href={taxHref(t)}
+                  >
+                    <span className="stc-type">{TAX_KIND_LABEL[t.kind]}</span>
+                    <span className="stc-label">
+                      <Highlight text={t.label} query={q} />
+                    </span>
+                    {t.path && <span className="stc-path">{t.path}</span>}
+                    {t.count > 0 && <span className="stc-count">{t.count}</span>}
+                  </a>
+                ))}
+              </div>
+            )}
+          </ExpandableList>
+        </Group>
       )}
 
-      <section className="search-group">
-        <h2>Companies &amp; organisations</h2>
-        <p className="no-records">
-          Not available yet — CritiTrack has no company, organisation or
-          sports-team records. Only people and the profession taxonomy are
-          searchable.
-        </p>
-      </section>
+      <p className="search-note">
+        CritiTrack has no company, organisation or sports-team records yet —
+        only people and the profession taxonomy are searchable.
+      </p>
     </main>
   );
 }
