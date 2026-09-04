@@ -64,15 +64,6 @@ jobs:
       - name: Stage the hosting directory
         run: node tool/assemble_hosting.js
 
-      - name: Check the deploy credential
-        env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          HAS_SECRETS_CONTEXT: ${{ toJSON(secrets) != '{}' }}
-        run: |
-          echo "secrets context non-empty: $HAS_SECRETS_CONTEXT"
-          echo "FIREBASE_SERVICE_ACCOUNT length: ${#FIREBASE_SERVICE_ACCOUNT}"
-          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" | wc -c
-
       - name: Deploy to Firebase Hosting
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
