@@ -28,14 +28,17 @@ decoration that costs usability or frames.
 - The Flutter web build is no longer published. `firebase.json`
   redirects `/app/**` → `/figure/`. The Flutter source and its 346 tests
   stay in the repo for the eventual Android release.
-- Backend: Node/Express on Render (free tier), `getCelebrity` +
-  `report-correction`. reCAPTCHA / App Check configured.
+- Backend: Node/Express on Render (free tier). Endpoints: `getCelebrity`,
+  `report-correction`, `trending` (public), `refresh` and `digest`
+  (shared-secret, driven by the `refresh.yml` / `digest.yml` Actions
+  workflows). reCAPTCHA / App Check configured. CI on `main` is green.
 - **Unverified:** nobody has confirmed a real search on the deployed
   site renders a real profile end to end (the sandbox can't reach
   `onrender.com`).
 - **Open branches** (not merged): `feature/editorial-profile-sections`
   (Flutter dashboard sections go flat), `feature/hero-variants` (four
   swappable hero backgrounds behind `?hero=`).
+- `feature/roadmap-batch` (the 20-feature batch in Phase 6) is **merged**.
 
 ---
 
@@ -91,6 +94,11 @@ Done so far:
 Also shipped from feedback: watchlist keeps real figures; a 6h backend
 payload cache (`~20s → ~2s` on a repeat); a confidence explainer line.
 
+A later 20-feature batch built on top of this phase — timeline, index
+explanation, coverage search + topic filter, saved comparisons,
+watchlist tags, confidence badges, offline cache, deep links, a locale
+switcher and more. See **Phase 6**.
+
 ---
 
 ## Phase 4 — Motion
@@ -112,6 +120,67 @@ payload cache (`~20s → ~2s` on a repeat); a confidence explainer line.
 | 5.2 | Android release build on a machine with the SDK; exercise it on a real device. | Signed App Bundle runs. |
 | 5.3 | Real icon + splash; backend off the cold path (or a proper "waking" state). | First search never looks broken. |
 | 5.4 | Custom domain, SEO, Lighthouse 90+, axe with no criticals. | Submittable. |
+
+**Progress:** 5.3 — a real vector adaptive launcher icon shipped in Phase
+6 (`android/.../mipmap-anydpi-v26/ic_launcher.xml`); the release build
+itself (5.2) still needs an SDK. The `keep-warm.yml` + `refresh.yml`
+workflows keep the Render service warm, which softens but does not remove
+the cold-start problem in 5.3.
+
+---
+
+## Phase 6 — Roadmap feature batch (shipped 2026-09-04)
+
+Twenty features in one batch on `feature/roadmap-batch`, merged to `main`
+(commits `b364bb1..7d96d1f`, merge `f124914`, format-reconcile `f8da7ad`).
+Departs from "one slice per day" at the user's explicit direction. Every
+item has backend/pure-logic + tests; the UI column notes how far the
+visible surface got.
+
+### Data & backend
+
+| # | Feature | Where | UI |
+|---|---|---|---|
+| 1 | Scheduled refresh — records one measured snapshot per figure twice daily, turning the trend line into real history | `.github/workflows/refresh.yml` | n/a (needs a `REFRESH_SECRET` repo secret) |
+| 2 | Trending rail — `GET /trending` ranks the most-looked-up figures by the `requestCount` the scheduler maintains; empty until searches accumulate, never a hard-coded list | `functions/lib/{store,handlers}.js`, `site/lib/trending.ts` | `TrendingRail` on the home page |
+| 3 | Reddit discussion source — keyless public search JSON, deduped into the media list | `functions/lib/media.js` | surfaces in the existing feed |
+| 4 | Reliability-weighted aggregation — tabloids (Mail, Sun, TMZ…) and Reddit threads weighted below wire services | `functions/lib/sentiment/reach.js` | — |
+| 5 | Weekly digest — one collapsed FCM summary per device of how its followed figures moved; skips quiet weeks | `functions/lib/digest.js`, `.github/workflows/digest.yml` | n/a |
+| 6 | Figure timeline — controversies + attention spikes + sentiment shifts on one dated axis; attention stays unsigned | `functions/lib/timeline.js`, `site/lib/timeline.ts` | `FigureTimeline` — new "Timeline" section on the profile |
+| 9 | Topical media classification — legal / financial / political / personal / professional / other, per headline | `functions/lib/media.js`, `site/lib/api.ts` | topic chips in `MediaCoverage` |
+| 14 | Subject response on the correction form — optional `kind: response` across the three validator twins | `functions/lib/correction.js`, `site/lib/correction.ts`, `lib/core/security/correction.dart` | "who are you?" choice on `CorrectionForm` |
+| 16 | Wayback archive link for every cited source (no outbound request) | `functions/lib/archive.js` | "· archived" link on each media card |
+
+### Site — pure logic + UI
+
+| # | Feature | Where | UI |
+|---|---|---|---|
+| 7 | Explain the Controversy Index — per-episode severity × recency × unresolved breakdown that sums to the score | `site/lib/controversy-index.ts` | `IndexExplanation` — collapsible under the gauge |
+| 8 | Saved comparisons — named, reusable figure sets; the pair now lives in `?figures=a,b` so a comparison is a shareable link | `site/lib/comparisons.ts`, `components/comparisons-store.ts` | `SavedComparisons` on the compare page (operates on the demo composites, since compare is still demo-only) |
+| 10 | Keyword search within a figure's coverage — accent/case-insensitive AND-term filter, no request | `site/lib/coverage-search.ts` | search box in `MediaCoverage` |
+| 11 | Watchlist tags (folders) — migration-safe `tags[]` on each entry | `site/lib/watchlist.ts` | filter bar + inline tag/untag in `WatchlistView` |
+| 12 | i18n scaffold — `en` / `hi` catalogue for the shell only; analytical copy stays English by design | `site/lib/i18n.ts`, `components/locale-store.ts` | `LocaleSwitcher` in `PillNav`; `<html lang>` synced |
+| 13 | Public method changelog + version stamp for dating share cards | `site/lib/methodology-version.ts` | changelog list on the Method page |
+| 15 | Unified confidence badges — one high/moderate/low vocabulary for sentiment confidence, fact precision, corroboration | `site/lib/confidence.ts` | `ConfidenceBadge` on the sentiment section |
+| 18 | Offline / last-visit profile cache — localStorage LRU of the last 12 payloads | `site/lib/profile-cache.ts`, `use-celebrity.ts` | "cached copy" notice when the backend is unreachable |
+| 19 | Shareable deep links — `#<section>`, `#controversy-<anchor>`, `#event-<date>` | `site/lib/deep-link.ts` | section + record ids and scroll-on-load in `figure/page.tsx` |
+| 20 | Accessibility pass 2 — SVG `<title>`/`<desc>` and visually-hidden data tables for the charts | `components/{VisuallyHidden,SentimentTrend,AttentionChart}.tsx` | — |
+
+### Platform
+
+| # | Feature | Where | Status |
+|---|---|---|---|
+| 17 | Real adaptive launcher icon (replaces the Flutter default) | `android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml` + `drawable/ic_launcher_foreground.xml` | Resource XML only — **the release build still has not compiled** (no Android SDK in the build environment). Legacy mipmap PNG remains the pre-API-26 fallback. |
+
+### Known gaps in this batch
+
+- Deep-link *builders* exist (`deep-link.ts`) but there is no copy-link
+  button on each section yet — only landing on a link works.
+- Saved comparisons and the compare screen still use the demo composites;
+  the store carries over unchanged to a real-figure compare screen.
+- Tests: backend 238, site 168, all green; Dart `flutter analyze` clean.
+  The `f8da7ad` commit ran `dart format .` repo-wide to clear a
+  long-standing CI format-gate failure (12 files, formatting only).
 
 ---
 
