@@ -47,8 +47,14 @@ jobs:
           cache: npm
           cache-dependency-path: site/package-lock.json
 
+      # `npm install`, not `npm ci`: site/package-lock.json was generated
+      # on a different platform and its optional native-binding tree
+      # (@emnapi / @unrs wasm fallbacks) does not satisfy `npm ci` on the
+      # Linux runner. This is a build-only workflow, so a non-frozen
+      # install is acceptable; regenerate the lockfile on Linux to switch
+      # back to `npm ci`.
       - name: Install site dependencies
-        run: npm ci
+        run: npm install --no-audit --no-fund
         working-directory: site
 
       - name: Build the static export
