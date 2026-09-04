@@ -206,6 +206,9 @@ class _DashboardContent extends ConsumerWidget {
                         ControversySection(
                           controversies: celebrity.biography.controversies,
                           name: celebrity.name,
+                          media: celebrity.mediaItems,
+                          career: celebrity.facts.career,
+                          sentimentEvidence: celebrity.sentimentData.evidence,
                         ),
                         const SizedBox(height: 16),
                         SentimentSection(
@@ -244,6 +247,9 @@ class _DashboardContent extends ConsumerWidget {
               child: ControversySection(
                 controversies: celebrity.biography.controversies,
                 name: celebrity.name,
+                media: celebrity.mediaItems,
+                career: celebrity.facts.career,
+                sentimentEvidence: celebrity.sentimentData.evidence,
               ),
             ),
           ),

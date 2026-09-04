@@ -1,6 +1,8 @@
 import type { Controversy } from "@/lib/controversy";
+import type { Claim } from "@/lib/claims";
 import { controversyAnchor } from "@/lib/deep-link";
 import SourceLink from "./SourceLink";
+import ClaimsMatrix from "./ClaimsMatrix";
 
 const STATUS_LABEL: Record<Controversy["status"], string> = {
   ongoing: "Ongoing",
@@ -14,7 +16,13 @@ const STATUS_LABEL: Record<Controversy["status"], string> = {
  * with no source never reaches this component -- the corroboration gate
  * in `lib/controversy.ts` drops it first.
  */
-export default function ControversyRecord({ item }: { item: Controversy }) {
+export default function ControversyRecord({
+  item,
+  claims,
+}: {
+  item: Controversy;
+  claims?: Claim[];
+}) {
   return (
     <article className="record" id={controversyAnchor(item.title)}>
       <div className="record-top">
@@ -45,6 +53,7 @@ export default function ControversyRecord({ item }: { item: Controversy }) {
       <p className="record-evidence-link">
         <a href="#evidence-explorer">View evidence →</a>
       </p>
+      {claims && <ClaimsMatrix controversyTitle={item.title} claims={claims} />}
     </article>
   );
 }

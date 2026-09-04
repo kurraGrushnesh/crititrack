@@ -35,6 +35,8 @@ import { sentimentConfidence } from "@/lib/confidence";
 import { parseProfileHash } from "@/lib/deep-link";
 import { relativeTime } from "@/lib/time";
 import { useCelebrity } from "@/lib/use-celebrity";
+import { buildEvidenceItems } from "@/lib/evidence";
+import { buildClaimMatrix } from "@/lib/claims";
 import type { RealProfile, ProfileCandidate } from "@/lib/api";
 
 /** The current profile expressed as a chooser card (the "best guess"). */
@@ -87,6 +89,23 @@ function ProfileView({
   const index = useMemo(
     () => computeControversyIndex(profile.controversies),
     [profile.controversies],
+  );
+
+  // Evidence & Source Explorer output, reused here to build the Claim
+  // Verification Matrix — no new fetch, same retrieved sources.
+  const evidenceItems = useMemo(
+    () =>
+      buildEvidenceItems({
+        media: profile.media,
+        controversies: profile.controversies,
+        career: profile.career.timeline,
+        sentimentEvidence: profile.evidence,
+      }),
+    [profile.media, profile.controversies, profile.career.timeline, profile.evidence],
+  );
+  const claims = useMemo(
+    () => buildClaimMatrix(profile.controversies, evidenceItems, profile.wikidataId ?? null),
+    [profile.controversies, evidenceItems, profile.wikidataId],
   );
 
   // Deep links: after the profile renders, jump to the section,
@@ -277,7 +296,7 @@ function ProfileView({
               {[...kept]
                 .sort((a, b) => b.severity - a.severity)
                 .map((c, i) => (
-                  <ControversyRecord key={i} item={c} />
+                  <ControversyRecord key={i} item={c} claims={claims} />
                 ))}
             </>
           )}

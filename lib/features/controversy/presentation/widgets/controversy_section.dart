@@ -13,8 +13,13 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:crititrack/core/domain/models/controversy.dart';
+import 'package:crititrack/core/domain/models/media_item.dart';
+import 'package:crititrack/core/domain/models/person_facts.dart';
+import 'package:crititrack/core/domain/models/sentiment_data.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
+import 'package:crititrack/core/utils/claims.dart';
 import 'package:crititrack/core/utils/controversy_index.dart';
+import 'package:crititrack/core/utils/evidence.dart';
 import 'package:crititrack/features/controversy/presentation/widgets/controversy_card.dart';
 import 'package:crititrack/features/controversy/presentation/widgets/controversy_methodology_sheet.dart';
 
@@ -23,10 +28,23 @@ class ControversySection extends StatelessWidget {
     super.key,
     required this.controversies,
     required this.name,
+    this.media = const [],
+    this.career = const [],
+    this.sentimentEvidence = const [],
+    this.entityId,
   });
 
   final List<Controversy> controversies;
   final String name;
+
+  /// Optional — when supplied (alongside [career]/[sentimentEvidence]),
+  /// the section builds the Claim Verification Matrix for each episode
+  /// from the same retrieved sources the Evidence Explorer uses. Omitted
+  /// call sites simply get no claims section, same as before Step 12.
+  final List<MediaItem> media;
+  final List<CareerEntry> career;
+  final List<SentimentEvidence> sentimentEvidence;
+  final String? entityId;
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +77,18 @@ class ControversySection extends StatelessWidget {
     for (final c in controversies) {
       byCategory[c.category] = (byCategory[c.category] ?? 0) + 1;
     }
+
+    final evidenceItems = buildEvidenceItems(
+      media: media,
+      controversies: controversies,
+      career: career,
+      sentimentEvidence: sentimentEvidence,
+    );
+    final claims = buildClaimMatrix(
+      controversies,
+      evidenceItems,
+      entityId: entityId,
+    );
 
     return _Shell(
       child: Column(
@@ -108,7 +138,11 @@ class ControversySection extends StatelessWidget {
           const SizedBox(height: 16),
 
           // ── Timeline ────────────────────────────────────────────
-          _Timeline(controversies: controversies),
+          _Timeline(
+            controversies: controversies,
+            claims: claims,
+            evidenceItems: evidenceItems,
+          ),
 
           const SizedBox(height: 4),
           Row(
@@ -392,9 +426,15 @@ enum _Order {
 /// order does not rebuild the index panel and the category breakdown,
 /// neither of which depends on it.
 class _Timeline extends StatefulWidget {
-  const _Timeline({required this.controversies});
+  const _Timeline({
+    required this.controversies,
+    this.claims = const [],
+    this.evidenceItems = const [],
+  });
 
   final List<Controversy> controversies;
+  final List<Claim> claims;
+  final List<EvidenceItem> evidenceItems;
 
   @override
   State<_Timeline> createState() => _TimelineState();
@@ -455,7 +495,13 @@ class _TimelineState extends State<_Timeline> {
             ),
           ),
         ],
-        ...sorted.map((c) => ControversyCard(controversy: c)),
+        ...sorted.map(
+          (c) => ControversyCard(
+            controversy: c,
+            claims: claimsForControversy(widget.claims, c.title),
+            evidenceItems: widget.evidenceItems,
+          ),
+        ),
       ],
     );
   }

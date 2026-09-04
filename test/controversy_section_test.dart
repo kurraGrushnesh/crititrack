@@ -80,7 +80,10 @@ void main() {
     expect(find.textContaining('drew criticism'), findsNothing);
     await tester.tap(find.text('Award show remark'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('drew criticism'), findsOneWidget);
+    // The summary itself, plus the base claim card in the new Claim
+    // Verification Matrix (Step 12) restating the same reported event —
+    // intentional duplication, not a regression.
+    expect(find.textContaining('drew criticism'), findsWidgets);
   });
 
   testWidgets('shows the standardised band and data-coverage line', (

@@ -10,6 +10,9 @@ import 'package:crititrack/core/security/safe_url.dart';
 
 import 'package:crititrack/core/domain/models/controversy.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
+import 'package:crititrack/core/utils/claims.dart';
+import 'package:crititrack/core/utils/evidence.dart';
+import 'package:crititrack/features/controversy/presentation/widgets/claims_matrix.dart';
 
 /// Maps a 1–5 severity to a colour on the amber → red ramp.
 Color severityColor(int severity) {
@@ -43,9 +46,22 @@ String severityLabel(int severity) {
 }
 
 class ControversyCard extends StatefulWidget {
-  const ControversyCard({super.key, required this.controversy});
+  const ControversyCard({
+    super.key,
+    required this.controversy,
+    this.claims = const [],
+    this.evidenceItems = const [],
+  });
 
   final Controversy controversy;
+
+  /// This controversy's claims (already filtered by [ControversySection]);
+  /// empty when no Claim Verification Matrix data is available.
+  final List<Claim> claims;
+
+  /// The full evidence pool, so the matrix can resolve a claim's evidence
+  /// IDs to real source rows.
+  final List<EvidenceItem> evidenceItems;
 
   @override
   State<ControversyCard> createState() => _ControversyCardState();
@@ -176,6 +192,11 @@ class _ControversyCardState extends State<ControversyCard> {
                                   const SizedBox(height: 10),
                                   _Sources(sources: c.sources),
                                 ],
+                                if (widget.claims.isNotEmpty)
+                                  ClaimsMatrix(
+                                    claims: widget.claims,
+                                    evidenceItems: widget.evidenceItems,
+                                  ),
                               ],
                             ),
                           ),
