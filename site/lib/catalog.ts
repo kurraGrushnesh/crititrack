@@ -350,6 +350,207 @@ export const ROSTER: RosterEntry[] = [
   { name: "Ryan Trahan", category: "creators", descriptor: "American online video creator", born: 1998 },
   { name: "Bailey Sarian", category: "creators", descriptor: "American storytelling video creator", born: 1988 },
   { name: "Andrew Rea", category: "creators", descriptor: "American cooking video creator, Babish", born: 1987 },
+
+  // ── Academics & Professors ──────────────────────────────────────────
+  { name: "Noam Chomsky", category: "academics", descriptor: "American professor", born: 1928, country: "United States" },
+  { name: "Steven Pinker", category: "academics", descriptor: "Canadian-American professor", born: 1954, country: "United States" },
+  { name: "Michael Sandel", category: "academics", descriptor: "American political philosopher and professor", born: 1953, country: "United States" },
+  { name: "Jordan Peterson", category: "academics", descriptor: "Canadian psychologist and former professor", born: 1962, country: "Canada" },
+  { name: "Niall Ferguson", category: "academics", descriptor: "British historian and professor", born: 1964, country: "United Kingdom" },
+  { name: "Jonathan Haidt", category: "academics", descriptor: "American social psychologist and professor", born: 1963, country: "United States" },
+  { name: "Ibram X. Kendi", category: "academics", descriptor: "American historian and professor", born: 1982, country: "United States" },
+  { name: "Cornel West", category: "academics", descriptor: "American philosopher and professor", born: 1953, country: "United States" },
+
+  // ── Activists & Human Rights ─────────────────────────────────────────
+  { name: "Malala Yousafzai", category: "activists", descriptor: "Pakistani education activist", born: 1997, country: "Pakistan" },
+  { name: "Amal Clooney", category: "lawyers", descriptor: "Lebanese-British human rights lawyer", born: 1978, country: "United Kingdom" },
+  { name: "Bryan Stevenson", category: "activists", descriptor: "American civil rights lawyer", born: 1959, country: "United States" },
+  { name: "Nadia Murad", category: "activists", descriptor: "Iraqi human rights activist", born: 1993, country: "Iraq" },
+  { name: "DeRay Mckesson", category: "activists", descriptor: "American civil rights activist", born: 1985, country: "United States" },
+  { name: "Ai Weiwei", category: "activists", descriptor: "Chinese artist and activist", born: 1957, country: "China" },
+  { name: "Denis Mukwege", category: "activists", descriptor: "Congolese gynaecologist and human rights activist", born: 1955, country: "DR Congo" },
+
+  // ── AI & Machine Learning ────────────────────────────────────────────
+  { name: "Geoffrey Hinton", category: "ai-ml", descriptor: "British-Canadian computer scientist", born: 1947, country: "Canada" },
+  { name: "Yann LeCun", category: "ai-ml", descriptor: "French computer scientist", born: 1960, country: "France" },
+  { name: "Yoshua Bengio", category: "ai-ml", descriptor: "Canadian computer scientist", born: 1964, country: "Canada" },
+  { name: "Fei-Fei Li", category: "ai-ml", descriptor: "Chinese-American computer scientist", born: 1976, country: "United States" },
+  { name: "Andrew Ng", category: "ai-ml", descriptor: "American computer scientist and AI researcher", born: 1976, country: "United States" },
+  { name: "Ilya Sutskever", category: "ai-ml", descriptor: "Russian-Canadian AI researcher", born: 1985, country: "Canada" },
+  { name: "Timnit Gebru", category: "ai-ml", descriptor: "Eritrean-American AI researcher", born: 1983, country: "United States" },
+  { name: "Mustafa Suleyman", category: "ai-ml", descriptor: "British AI researcher", born: 1984, country: "United Kingdom" },
+  { name: "Dario Amodei", category: "ai-ml", descriptor: "American AI researcher", born: 1983, country: "United States" },
+
+  // ── Architects ───────────────────────────────────────────────────────
+  { name: "Bjarke Ingels", category: "architects", descriptor: "Danish architect", born: 1974, country: "Denmark" },
+  { name: "Frank Gehry", category: "architects", descriptor: "Canadian-American architect", born: 1929, country: "United States" },
+  { name: "Renzo Piano", category: "architects", descriptor: "Italian architect", born: 1937, country: "Italy" },
+  { name: "Norman Foster", category: "architects", descriptor: "British architect", born: 1935, country: "United Kingdom" },
+  { name: "Tadao Ando", category: "architects", descriptor: "Japanese architect", born: 1941, country: "Japan" },
+  { name: "David Adjaye", category: "architects", descriptor: "Ghanaian-British architect", born: 1966, country: "United Kingdom" },
+  { name: "Zaha Hadid", category: "architects", descriptor: "Iraqi-British architect", born: 1950, country: "United Kingdom" },
+
+  // ── Artists & Designers ──────────────────────────────────────────────
+  { name: "Yayoi Kusama", category: "artists", descriptor: "Japanese artist", born: 1929, country: "Japan" },
+  { name: "Jeff Koons", category: "artists", descriptor: "American artist", born: 1955, country: "United States" },
+  { name: "Marina Abramović", category: "artists", descriptor: "Serbian performance artist", born: 1946, country: "Serbia" },
+  { name: "Takashi Murakami", category: "artists", descriptor: "Japanese artist", born: 1962, country: "Japan" },
+  { name: "Kehinde Wiley", category: "artists", descriptor: "American portrait artist", born: 1977, country: "United States" },
+  { name: "Es Devlin", category: "artists", descriptor: "British stage designer and artist", born: 1971, country: "United Kingdom" },
+
+  // ── Chefs & Food ─────────────────────────────────────────────────────
+  { name: "Gordon Ramsay", category: "chefs", descriptor: "British chef", born: 1966, country: "United Kingdom" },
+  { name: "José Andrés", category: "chefs", descriptor: "Spanish-American chef", born: 1969, country: "United States" },
+  { name: "Massimo Bottura", category: "chefs", descriptor: "Italian chef", born: 1962, country: "Italy" },
+  { name: "Dominique Crenn", category: "chefs", descriptor: "French-American chef", born: 1965, country: "United States" },
+  { name: "David Chang", category: "chefs", descriptor: "American chef", born: 1977, country: "United States" },
+  { name: "Alice Waters", category: "chefs", descriptor: "American chef", born: 1944, country: "United States" },
+  { name: "René Redzepi", category: "chefs", descriptor: "Danish chef", born: 1977, country: "Denmark" },
+  { name: "Marcus Samuelsson", category: "chefs", descriptor: "Swedish-Ethiopian chef", born: 1971, country: "United States" },
+
+  // ── Doctors & Healthcare ─────────────────────────────────────────────
+  { name: "Anthony Fauci", category: "doctors", descriptor: "American physician", born: 1940, country: "United States" },
+  { name: "Sanjay Gupta", category: "doctors", descriptor: "American neurosurgeon and medical journalist", born: 1969, country: "United States" },
+  { name: "Atul Gawande", category: "doctors", descriptor: "American surgeon and writer", born: 1965, country: "United States" },
+  { name: "Devi Shetty", category: "doctors", descriptor: "Indian cardiac surgeon", born: 1953, country: "India" },
+  { name: "Tedros Adhanom Ghebreyesus", category: "doctors", descriptor: "Ethiopian public health official, WHO Director-General", born: 1965, country: "Ethiopia" },
+  { name: "Soumya Swaminathan", category: "doctors", descriptor: "Indian paediatrician and public health official", born: 1959, country: "India" },
+  { name: "Leana Wen", category: "doctors", descriptor: "American physician and public health official", born: 1983, country: "United States" },
+
+  // ── Economists ───────────────────────────────────────────────────────
+  { name: "Paul Krugman", category: "economists", descriptor: "American economist", born: 1953, country: "United States" },
+  { name: "Esther Duflo", category: "economists", descriptor: "French-American economist", born: 1972, country: "United States" },
+  { name: "Amartya Sen", category: "economists", descriptor: "Indian economist", born: 1933, country: "India" },
+  { name: "Thomas Piketty", category: "economists", descriptor: "French economist", born: 1971, country: "France" },
+  { name: "Joseph Stiglitz", category: "economists", descriptor: "American economist", born: 1943, country: "United States" },
+  { name: "Raghuram Rajan", category: "economists", descriptor: "Indian economist, former Reserve Bank Governor", born: 1963, country: "India" },
+  { name: "Gita Gopinath", category: "economists", descriptor: "Indian-American economist", born: 1971, country: "United States" },
+
+  // ── Education ────────────────────────────────────────────────────────
+  { name: "Wendy Kopp", category: "education", descriptor: "American educator", born: 1967, country: "United States" },
+  { name: "Geoffrey Canada", category: "education", descriptor: "American educator", born: 1952, country: "United States" },
+  { name: "Linda Darling-Hammond", category: "education", descriptor: "American education researcher and professor", born: 1951, country: "United States" },
+  { name: "Angela Duckworth", category: "education", descriptor: "American professor", born: 1970, country: "United States" },
+  { name: "Andreas Schleicher", category: "education", descriptor: "German education researcher", born: 1964, country: "Germany" },
+
+  // ── Engineers ────────────────────────────────────────────────────────
+  { name: "Burt Rutan", category: "engineers", descriptor: "American aerospace engineer", born: 1943, country: "United States" },
+  { name: "Gwynne Shotwell", category: "engineers", descriptor: "American engineer and business executive", born: 1963, country: "United States" },
+  { name: "Radia Perlman", category: "engineers", descriptor: "American computer engineer", born: 1951, country: "United States" },
+  { name: "Limor Fried", category: "engineers", descriptor: "American electrical engineer", born: 1979, country: "United States" },
+  { name: "Marc Raibert", category: "engineers", descriptor: "American engineer and roboticist", born: 1949, country: "United States" },
+  { name: "Tony Fadell", category: "engineers", descriptor: "American engineer and inventor", born: 1969, country: "United States" },
+
+  // ── Entrepreneurs & Founders (additional) ────────────────────────────
+  { name: "Melanie Perkins", category: "entrepreneurs", descriptor: "Australian entrepreneur, Canva co-founder", born: 1987, country: "Australia" },
+  { name: "Whitney Wolfe Herd", category: "entrepreneurs", descriptor: "American entrepreneur, Bumble founder", born: 1989, country: "United States" },
+
+  // ── Environmental & Climate ──────────────────────────────────────────
+  { name: "Jane Goodall", category: "environment", descriptor: "British conservationist", born: 1934, country: "United Kingdom" },
+  { name: "David Attenborough", category: "environment", descriptor: "British conservationist and broadcaster", born: 1926, country: "United Kingdom" },
+  { name: "Vandana Shiva", category: "environment", descriptor: "Indian environmental scientist and activist", born: 1952, country: "India" },
+  { name: "Wangari Maathai", category: "environment", descriptor: "Kenyan environmentalist", born: 1940, country: "Kenya" },
+  { name: "Christiana Figueres", category: "environment", descriptor: "Costa Rican diplomat and climate policy leader", born: 1956, country: "Costa Rica" },
+  { name: "Bill McKibben", category: "environment", descriptor: "American environmentalist and writer", born: 1960, country: "United States" },
+
+  // ── Esports & Gaming ─────────────────────────────────────────────────
+  { name: "Lee Sang-hyeok", category: "esports", descriptor: "South Korean esports player, known as Faker", born: 1996, country: "South Korea" },
+  { name: "Oleksandr Kostyliev", category: "esports", descriptor: "Ukrainian esports player, known as s1mple", born: 1997, country: "Ukraine" },
+  { name: "Johan Sundstein", category: "esports", descriptor: "Danish esports player, known as N0tail", born: 1996, country: "Denmark" },
+
+  // ── Explorers & Adventurers ──────────────────────────────────────────
+  { name: "Bear Grylls", category: "explorers", descriptor: "British adventurer", born: 1974, country: "United Kingdom" },
+  { name: "Alex Honnold", category: "explorers", descriptor: "American rock climber and adventurer", born: 1985, country: "United States" },
+  { name: "Sylvia Earle", category: "explorers", descriptor: "American explorer and oceanographer", born: 1935, country: "United States" },
+  { name: "Ranulph Fiennes", category: "explorers", descriptor: "British explorer", born: 1944, country: "United Kingdom" },
+  { name: "Nirmal Purja", category: "explorers", descriptor: "Nepali mountaineer and explorer", born: 1983, country: "Nepal" },
+
+  // ── Fashion ──────────────────────────────────────────────────────────
+  { name: "Anna Wintour", category: "fashion", descriptor: "British-American fashion editor", born: 1949, country: "United States" },
+  { name: "Tom Ford", category: "fashion", descriptor: "American fashion designer", born: 1961, country: "United States" },
+  { name: "Stella McCartney", category: "fashion", descriptor: "British fashion designer", born: 1971, country: "United Kingdom" },
+  { name: "Donatella Versace", category: "fashion", descriptor: "Italian fashion designer", born: 1955, country: "Italy" },
+  { name: "Miuccia Prada", category: "fashion", descriptor: "Italian fashion designer", born: 1949, country: "Italy" },
+  { name: "Alexander Wang", category: "fashion", descriptor: "American fashion designer", born: 1983, country: "United States" },
+
+  // ── Finance & Investors ──────────────────────────────────────────────
+  { name: "Ray Dalio", category: "finance", descriptor: "American investor", born: 1949, country: "United States" },
+  { name: "Cathie Wood", category: "finance", descriptor: "American investor, ARK Invest founder", born: 1955, country: "United States" },
+  { name: "Ken Griffin", category: "finance", descriptor: "American investor, Citadel founder", born: 1968, country: "United States" },
+  { name: "Christine Lagarde", category: "finance", descriptor: "French central banker, President of the European Central Bank", born: 1956, country: "France" },
+  { name: "Janet Yellen", category: "finance", descriptor: "American central banker and economist", born: 1946, country: "United States" },
+  { name: "Howard Marks", category: "finance", descriptor: "American investor, Oaktree Capital co-founder", born: 1946, country: "United States" },
+  { name: "Abigail Johnson", category: "finance", descriptor: "American chief executive of Fidelity Investments", born: 1961, country: "United States" },
+
+  // ── Journalists & Media ──────────────────────────────────────────────
+  { name: "Christiane Amanpour", category: "journalists", descriptor: "British-Iranian journalist", born: 1958, country: "United Kingdom" },
+  { name: "Anderson Cooper", category: "journalists", descriptor: "American journalist", born: 1967, country: "United States" },
+  { name: "Fareed Zakaria", category: "journalists", descriptor: "Indian-American journalist", born: 1964, country: "United States" },
+  { name: "Oprah Winfrey", category: "journalists", descriptor: "American media executive and journalist", born: 1954, country: "United States" },
+  { name: "Ezra Klein", category: "journalists", descriptor: "American journalist and columnist", born: 1984, country: "United States" },
+  { name: "Ronan Farrow", category: "journalists", descriptor: "American investigative journalist", born: 1987, country: "United States" },
+
+  // ── Lawyers & Legal ──────────────────────────────────────────────────
+  { name: "Ruth Bader Ginsburg", category: "lawyers", descriptor: "American judge, Supreme Court Justice", born: 1933, country: "United States" },
+  { name: "Sonia Sotomayor", category: "lawyers", descriptor: "American judge, Supreme Court Justice", born: 1954, country: "United States" },
+  { name: "David Boies", category: "lawyers", descriptor: "American lawyer", born: 1941, country: "United States" },
+  { name: "Gloria Allred", category: "lawyers", descriptor: "American lawyer", born: 1941, country: "United States" },
+  { name: "Alan Dershowitz", category: "lawyers", descriptor: "American lawyer and legal scholar", born: 1938, country: "United States" },
+  { name: "Ben Crump", category: "lawyers", descriptor: "American lawyer", born: 1969, country: "United States" },
+
+  // ── Military & Defense ───────────────────────────────────────────────
+  { name: "David Petraeus", category: "military", descriptor: "American retired military officer, former general", born: 1952, country: "United States" },
+  { name: "Mark Milley", category: "military", descriptor: "American retired military officer, former general", born: 1958, country: "United States" },
+  { name: "Valery Zaluzhny", category: "military", descriptor: "Ukrainian military officer, former general", born: 1973, country: "Ukraine" },
+  { name: "H. R. McMaster", category: "military", descriptor: "American retired military officer, former general", born: 1962, country: "United States" },
+  { name: "Stanley McChrystal", category: "military", descriptor: "American retired military officer, former general", born: 1954, country: "United States" },
+  { name: "Colin Powell", category: "military", descriptor: "American retired military officer and statesman", born: 1937, country: "United States" },
+
+  // ── Police & Law Enforcement ─────────────────────────────────────────
+  { name: "Christopher Wray", category: "police", descriptor: "American police officer", born: 1966, country: "United States" },
+  { name: "William Bratton", category: "police", descriptor: "American police officer, former police commissioner", born: 1947, country: "United States" },
+  { name: "Cressida Dick", category: "police", descriptor: "British police officer, former police commissioner", born: 1960, country: "United Kingdom" },
+
+  // ── Real Estate ──────────────────────────────────────────────────────
+  { name: "Stephen Ross", category: "real-estate", descriptor: "American real estate developer", born: 1940, country: "United States" },
+  { name: "Barbara Corcoran", category: "real-estate", descriptor: "American real estate agent and businesswoman", born: 1949, country: "United States" },
+  { name: "Grant Cardone", category: "real-estate", descriptor: "American real estate investor", born: 1958, country: "United States" },
+
+  // ── Religious & Spiritual Leaders ────────────────────────────────────
+  { name: "Pope Francis", category: "religious", descriptor: "Argentine religious leader, Pope", born: 1936, country: "Vatican City" },
+  { name: "Dalai Lama", category: "religious", descriptor: "Tibetan religious leader", born: 1935, country: "India" },
+  { name: "Rick Warren", category: "religious", descriptor: "American religious leader and author", born: 1954, country: "United States" },
+  { name: "T. D. Jakes", category: "religious", descriptor: "American religious leader and author", born: 1957, country: "United States" },
+
+  // ── Royalty & Public Figures ─────────────────────────────────────────
+  { name: "King Charles III", category: "royalty", descriptor: "British monarch", born: 1948, country: "United Kingdom" },
+  { name: "Naruhito", category: "royalty", descriptor: "Japanese monarch, Emperor of Japan", born: 1960, country: "Japan" },
+  { name: "Felipe VI", category: "royalty", descriptor: "Spanish monarch, King of Spain", born: 1968, country: "Spain" },
+  { name: "Prince William", category: "royalty", descriptor: "British noble, Prince of Wales", born: 1982, country: "United Kingdom" },
+  { name: "Catherine, Princess of Wales", category: "royalty", descriptor: "British noble, Princess of Wales", born: 1982, country: "United Kingdom" },
+  { name: "Albert II, Prince of Monaco", category: "royalty", descriptor: "Monégasque monarch, Prince of Monaco", born: 1958, country: "Monaco" },
+
+  // ── Scientists & Researchers (additional) ────────────────────────────
+  { name: "Jennifer Doudna", category: "scientists", descriptor: "American biochemist", born: 1964, country: "United States" },
+  { name: "Katalin Karikó", category: "scientists", descriptor: "Hungarian-American biochemist", born: 1955, country: "United States" },
+  { name: "Neil deGrasse Tyson", category: "scientists", descriptor: "American astrophysicist and science communicator", born: 1958, country: "United States" },
+  { name: "Brian Cox", category: "scientists", descriptor: "British physicist and science communicator", born: 1968, country: "United Kingdom" },
+  { name: "Michio Kaku", category: "scientists", descriptor: "American theoretical physicist", born: 1947, country: "United States" },
+
+  // ── Social & Community Leaders ───────────────────────────────────────
+  { name: "Scott Harrison", category: "social", descriptor: "American nonprofit leader, charity: water founder", born: 1975, country: "United States" },
+  { name: "Jacqueline Novogratz", category: "social", descriptor: "American nonprofit leader, Acumen founder", born: 1961, country: "United States" },
+  { name: "Ai-jen Poo", category: "social", descriptor: "American labour organiser and nonprofit leader", born: 1974, country: "United States" },
+  { name: "Van Jones", category: "social", descriptor: "American commentator and nonprofit leader", born: 1968, country: "United States" },
+
+  // ── Writers & Authors ────────────────────────────────────────────────
+  { name: "Margaret Atwood", category: "writers", descriptor: "Canadian author", born: 1939, country: "Canada" },
+  { name: "Salman Rushdie", category: "writers", descriptor: "British-Indian author", born: 1947, country: "United Kingdom" },
+  { name: "Chimamanda Ngozi Adichie", category: "writers", descriptor: "Nigerian author", born: 1977, country: "Nigeria" },
+  { name: "Haruki Murakami", category: "writers", descriptor: "Japanese author", born: 1949, country: "Japan" },
+  { name: "Stephen King", category: "writers", descriptor: "American author", born: 1947, country: "United States" },
+  { name: "Colson Whitehead", category: "writers", descriptor: "American author", born: 1969, country: "United States" },
+  { name: "Elif Shafak", category: "writers", descriptor: "Turkish-British author", born: 1971, country: "United Kingdom" },
 ];
 
 export function categoryBySlug(slug: string): Category | undefined {
@@ -357,11 +558,57 @@ export function categoryBySlug(slug: string): Category | undefined {
 }
 
 /**
+ * `RosterEntry.category` → one occupation phrase that is guaranteed to
+ * resolve on the taxonomy, used only when a person's own `descriptor`
+ * does not resolve directly (e.g. it names two occupations joined by
+ * "and", which the resolver does not attempt to split). This is the
+ * same safety net the original six categories always had — every entry
+ * added since keeps its own `category` tag and gets the matching hint,
+ * so it lands in its intended category even when its descriptor's exact
+ * wording does not resolve on its own. Shared by `catalogueProfession`
+ * below and `lib/categories.ts`'s `categoriesFor`.
+ */
+export const CATEGORY_HINT: Record<string, string> = {
+  actors: "actor",
+  politicians: "politician",
+  athletes: "athlete",
+  musicians: "musician",
+  business: "entrepreneur",
+  creators: "content creator",
+  academics: "professor",
+  activists: "activist",
+  "ai-ml": "computer scientist",
+  architects: "architect",
+  artists: "artist",
+  chefs: "chef",
+  doctors: "physician",
+  economists: "economist",
+  education: "educator",
+  engineers: "engineer",
+  entrepreneurs: "entrepreneur",
+  environment: "conservationist",
+  esports: "esports player",
+  explorers: "explorer",
+  fashion: "fashion designer",
+  finance: "investor",
+  journalists: "journalist",
+  lawyers: "lawyer",
+  military: "military officer",
+  police: "police officer",
+  "real-estate": "real estate developer",
+  religious: "religious leader",
+  royalty: "monarch",
+  scientists: "scientist",
+  social: "nonprofit leader",
+  writers: "author",
+};
+
+/**
  * Resolves a roster entry onto the global taxonomy from its neutral
  * `descriptor` (a verified fact this file already carries — e.g. "Indian
  * javelin thrower"). Returns null rather than guessing when the
- * descriptor does not map. The six legacy `category` slugs are used only
- * as a last-resort hint.
+ * descriptor does not map. `entry.category` is used only as a
+ * last-resort hint via {@link CATEGORY_HINT}.
  */
 export function catalogueProfession(entry: RosterEntry): {
   label: string;
@@ -376,14 +623,6 @@ export function catalogueProfession(entry: RosterEntry): {
       industry: direct.path.industry,
     };
   }
-  const CATEGORY_HINT: Record<string, string> = {
-    actors: "actor",
-    politicians: "politician",
-    athletes: "athlete",
-    musicians: "musician",
-    business: "entrepreneur",
-    creators: "content creator",
-  };
   const hint = CATEGORY_HINT[entry.category];
   const viaHint = hint ? resolveCatalogueOccupation(hint) : null;
   return viaHint

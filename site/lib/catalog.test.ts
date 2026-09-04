@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   CATEGORIES,
   CATEGORY_SLUGS,
+  CATEGORY_HINT,
   ROSTER,
   categoryBySlug,
   catalogueProfession,
@@ -36,8 +37,15 @@ describe("categories", () => {
 
 describe("roster", () => {
   it("every entry belongs to a real category and has a plausible birth year", () => {
+    // `category` is a legacy 6-slug label for the original roster, or
+    // one of the newer category keys `CATEGORY_HINT` recognises — either
+    // way it must be a real, known tag, never an ad hoc string.
+    const knownCategoryTags = new Set([
+      ...CATEGORY_SLUGS,
+      ...Object.keys(CATEGORY_HINT),
+    ]);
     for (const r of ROSTER) {
-      expect(CATEGORY_SLUGS).toContain(r.category);
+      expect(knownCategoryTags).toContain(r.category);
       expect(r.born).toBeGreaterThan(1900);
       expect(r.born).toBeLessThan(2015);
       expect(r.name.trim().length).toBeGreaterThan(1);

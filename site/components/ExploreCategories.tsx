@@ -3,7 +3,13 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ROSTER } from "@/lib/catalog";
-import { CATEGORIES, categoryCounts, type DiscoveryCategory } from "@/lib/categories";
+import {
+  CATEGORIES,
+  categoryCounts,
+  topTenForCategory,
+  type DiscoveryCategory,
+} from "@/lib/categories";
+import Monogram from "./Monogram";
 
 /**
  * The category discovery surface: featured categories, a full 35-category
@@ -88,6 +94,9 @@ function CategoryCard({
   category: DiscoveryCategory;
   count: number;
 }) {
+  const preview =
+    count > 0 ? topTenForCategory(category.slug, ROSTER).slice(0, 4) : [];
+
   return (
     <Link href={`/category/${category.slug}`} className="category-card glass">
       <span className="cc-top">
@@ -95,6 +104,16 @@ function CategoryCard({
         <span className="cc-count">{count === 1 ? "1 person" : `${count} people`}</span>
       </span>
       <span className="cc-blurb">{category.blurb}</span>
+      {preview.length > 0 && (
+        <span className="cc-preview" aria-hidden="true">
+          {preview.map((p) => (
+            <Monogram key={p.name} name={p.name} size={26} className="cc-preview-avatar" />
+          ))}
+          {count > preview.length && (
+            <span className="cc-preview-more">+{count - preview.length}</span>
+          )}
+        </span>
+      )}
     </Link>
   );
 }

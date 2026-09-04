@@ -9,6 +9,8 @@ import {
   categoryCounts,
   rosterForCategory,
   topTenForCategory,
+  rankCategoryMembers,
+  resolutionQuality,
 } from "./categories";
 
 const entry = (over: Partial<RosterEntry>): RosterEntry => ({
@@ -128,15 +130,74 @@ describe("topTenForCategory", () => {
 });
 
 describe("categoryCounts", () => {
-  it("counts every category, including empty ones, and never fabricates a total", () => {
-    const counts = categoryCounts(ROSTER);
+  it("counts every category, including ones nobody in the roster belongs to", () => {
+    // A synthetic single-person roster, not the real (and growing) one —
+    // this pins the honest-zero behaviour itself, not today's coverage.
+    const counts = categoryCounts([entry({ category: "actors" })]);
     expect(Object.keys(counts)).toHaveLength(35);
-    expect(counts["actors-filmmakers"]).toBeGreaterThan(0);
-    // A profession simply absent from today's roster is honestly zero.
+    expect(counts["actors-filmmakers"]).toBe(1);
+    // A category this one person does not belong to is honestly zero,
+    // never invented or omitted.
     expect(counts["real-estate"]).toBe(0);
+  });
+
+  it("on the real roster, every person contributes at least one tag", () => {
+    const counts = categoryCounts(ROSTER);
+    expect(counts["actors-filmmakers"]).toBeGreaterThan(0);
     const totalTags = Object.values(counts).reduce((a, b) => a + b, 0);
-    // Every person contributes at least one tag, and several contribute
-    // more than one, so the tag total exceeds the roster size.
+    // Several people contribute more than one tag, so the tag total
+    // exceeds the roster size.
     expect(totalTags).toBeGreaterThanOrEqual(ROSTER.length);
+  });
+});
+
+describe("resolutionQuality", () => {
+  it("is direct when the descriptor's own wording resolves the taxonomy", () => {
+    expect(resolutionQuality(entry({ descriptor: "American actor" }))).toBe("direct");
+  });
+
+  it("is hint when only the category tag's fallback resolves it", () => {
+    // A compound "X and Y" descriptor the resolver does not split, on a
+    // roster entry whose category has a real CATEGORY_HINT.
+    expect(
+      resolutionQuality(
+        entry({ category: "doctors", descriptor: "American physician and immunologist" }),
+      ),
+    ).toBe("hint");
+  });
+
+  it("is none when neither the descriptor nor an unrecognised category tag resolves", () => {
+    expect(
+      resolutionQuality(entry({ category: "zzz-unknown", descriptor: "xyz and abc" })),
+    ).toBe("none");
+  });
+});
+
+describe("rankCategoryMembers", () => {
+  it("ranks a directly-resolved descriptor above one that only resolved via hint", () => {
+    const direct = entry({ name: "Direct Person", descriptor: "American actor" });
+    const viaHint = entry({
+      name: "Hint Person",
+      descriptor: "American thespian and screen performer", // resolves via hint only
+    });
+    const ranked = rankCategoryMembers([viaHint, direct]);
+    expect(ranked[0].name).toBe("Direct Person");
+  });
+
+  it("uses a recorded country as a tiebreaker, then falls back to roster order", () => {
+    const withCountry = entry({ name: "Has Country", descriptor: "American actor", country: "United States" });
+    const withoutCountry = entry({ name: "No Country", descriptor: "American actor" });
+    const ranked = rankCategoryMembers([withoutCountry, withCountry]);
+    expect(ranked[0].name).toBe("Has Country");
+  });
+
+  it("never drops or duplicates a member — only reorders", () => {
+    const members = [
+      entry({ name: "A", descriptor: "American actor" }),
+      entry({ name: "B", descriptor: "American actor" }),
+      entry({ name: "C", descriptor: "American actor" }),
+    ];
+    const ranked = rankCategoryMembers(members);
+    expect(ranked.map((r) => r.name).sort()).toEqual(["A", "B", "C"]);
   });
 });

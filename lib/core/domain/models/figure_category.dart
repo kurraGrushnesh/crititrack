@@ -35,6 +35,7 @@ class RosterEntry extends Equatable {
     required this.category,
     required this.descriptor,
     required this.born,
+    this.country,
   });
 
   final String name;
@@ -45,6 +46,10 @@ class RosterEntry extends Equatable {
 
   /// Approximate birth year, for the decade filter.
   final int born;
+
+  /// Country of nationality, spelled out only where the descriptor does
+  /// not already carry a demonym. A verifiable fact, not a guess.
+  final String? country;
 
   int get decade => (born ~/ 10) * 10;
 

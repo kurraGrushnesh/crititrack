@@ -1234,3 +1234,20 @@
   border-style: dashed;
   color: var(--text-muted);
 }
+
+.cc-preview {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+}
+.cc-preview-avatar {
+  margin-right: -8px;
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+}
+.cc-preview-more {
+  margin-left: 10px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}

@@ -22,7 +22,11 @@
  */
 
 import { resolveCatalogueOccupation } from "./professional-identity";
-import { CATEGORIES as LEGACY_CATEGORIES, type RosterEntry } from "./catalog";
+import {
+  CATEGORIES as LEGACY_CATEGORIES,
+  CATEGORY_HINT,
+  type RosterEntry,
+} from "./catalog";
 
 export interface DiscoveryCategory {
   slug: string;
@@ -302,24 +306,15 @@ function resolvedIdsFor(entry: RosterEntry): ResolvedIds | null {
       occupationId: r.occupationId,
     };
   }
-  // Same last-resort hint `catalogueProfession` uses in lib/catalog.ts,
-  // kept in sync so a person who is discoverable on a category page is
-  // discoverable in Professional Identity too.
-  const hint = LEGACY_HINT[entry.category];
+  // The same last-resort hint `catalogueProfession` uses in
+  // lib/catalog.ts (one shared map), so a person who is discoverable on
+  // a category page is discoverable in Professional Identity too.
+  const hint = CATEGORY_HINT[entry.category];
   const rh = hint ? resolveCatalogueOccupation(hint) : null;
   return rh
     ? { sectorId: rh.path.sectorId, industryId: rh.path.industryId, occupationId: rh.occupationId }
     : null;
 }
-
-const LEGACY_HINT: Record<string, string> = {
-  actors: "actor",
-  politicians: "politician",
-  athletes: "athlete",
-  musicians: "musician",
-  business: "entrepreneur",
-  creators: "content creator",
-};
 
 function matches(cat: DiscoveryCategory, ids: ResolvedIds | null): boolean {
   if (!ids) return false;
@@ -327,6 +322,22 @@ function matches(cat: DiscoveryCategory, ids: ResolvedIds | null): boolean {
   if (cat.industries?.includes(ids.industryId)) return true;
   if (cat.sectors?.includes(ids.sectorId)) return true;
   return false;
+}
+
+/**
+ * How specifically a person's own `descriptor` places them in the
+ * taxonomy — a real, computed signal (not a popularity or activity
+ * metric) used to rank a category page: "direct" when the descriptor's
+ * own wording resolved a taxonomy occupation, "hint" when only the
+ * roster's category tag did (see {@link CATEGORY_HINT}), "none" when
+ * neither did (the entry only appears via the legacy-category fallback).
+ */
+export type ResolutionQuality = "direct" | "hint" | "none";
+
+export function resolutionQuality(entry: RosterEntry): ResolutionQuality {
+  if (resolveCatalogueOccupation(entry.descriptor)) return "direct";
+  if (CATEGORY_HINT[entry.category]) return "hint";
+  return "none";
 }
 
 /**
@@ -357,8 +368,46 @@ export function rosterForCategory(slug: string, roster: RosterEntry[]): RosterEn
   return roster.filter((e) => categoriesFor(e).some((c) => c.slug === canonical));
 }
 
+/**
+ * Ranks a category's members for display. This is a relevance ranking,
+ * not a popularity one: a person whose own descriptor resolved the
+ * category directly outranks one who only landed here via the
+ * last-resort category hint, and a person with a recorded country (a
+ * completeness signal) outranks one without — both real, computed
+ * facts, never an invented "activity" or "trending" number. Editorial
+ * roster order is the final tiebreaker, same rule the legacy catalogue
+ * always used.
+ *
+ * Live signals this deliberately does not use — recent news volume,
+ * attention, sentiment, CritiScore — only exist once a real profile is
+ * fetched; the catalogue never fetches one in bulk to avoid exactly the
+ * "popularity decides everything" ranking the spec warns against, and to
+ * avoid an expensive per-person request on every catalogue page load.
+ */
+export function rankCategoryMembers(members: RosterEntry[]): RosterEntry[] {
+  const qualityScore: Record<ResolutionQuality, number> = {
+    direct: 2,
+    hint: 1,
+    none: 0,
+  };
+  return members
+    .map((entry, order) => ({ entry, order }))
+    .sort((a, b) => {
+      const q = qualityScore[resolutionQuality(b.entry)] - qualityScore[resolutionQuality(a.entry)];
+      if (q !== 0) return q;
+      const completeness = Number(!!b.entry.country) - Number(!!a.entry.country);
+      if (completeness !== 0) return completeness;
+      return a.order - b.order;
+    })
+    .map((x) => x.entry);
+}
+
 /** Editorial prominence order = the roster's own order (same rule as
- * the legacy catalogue's `topTen`). */
+ * the legacy catalogue's `topTen` — unchanged, so existing categories
+ * keep their established Top 10). Fewer than 10 real people means fewer
+ * than 10 shown — never padded. Callers that want the relevance-ranked
+ * order instead (useful once a category's members were not hand-ordered
+ * by prominence) can sort with {@link rankCategoryMembers} directly. */
 export function topTenForCategory(
   slug: string,
   roster: RosterEntry[],

@@ -2,7 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { DECADES, decadeOf, ROSTER, type RosterEntry } from "@/lib/catalog";
-import { rosterForCategory, topTenForCategory } from "@/lib/categories";
+import {
+  rosterForCategory,
+  topTenForCategory,
+  rankCategoryMembers,
+} from "@/lib/categories";
 import PersonCard from "./PersonCard";
 
 /**
@@ -18,13 +22,14 @@ export default function CategoryBrowser({ slug }: { slug: string }) {
   const top = useMemo(() => topTenForCategory(slug, ROSTER), [slug]);
 
   const [decade, setDecade] = useState<number | null>(null);
-  const [sort, setSort] = useState<"rank" | "name" | "born">("rank");
+  const [sort, setSort] = useState<"rank" | "name" | "born" | "relevance">("rank");
 
   const filtered = useMemo(() => {
     let list: RosterEntry[] = roster.map((r) => r);
     if (decade != null) list = list.filter((r) => decadeOf(r.born) === decade);
     if (sort === "name") list = [...list].sort((a, b) => a.name.localeCompare(b.name));
     if (sort === "born") list = [...list].sort((a, b) => a.born - b.born);
+    if (sort === "relevance") list = rankCategoryMembers(list);
     return list;
   }, [roster, decade, sort]);
 
@@ -74,14 +79,25 @@ export default function CategoryBrowser({ slug }: { slug: string }) {
           <span className="fb-label" style={{ marginLeft: 12 }}>
             Sort
           </span>
-          {(["rank", "name", "born"] as const).map((s) => (
+          {(["rank", "relevance", "name", "born"] as const).map((s) => (
             <button
               key={s}
               type="button"
               aria-pressed={sort === s}
               onClick={() => setSort(s)}
+              title={
+                s === "relevance"
+                  ? "How directly each person's profession resolved this category, then completeness of their record"
+                  : undefined
+              }
             >
-              {s === "rank" ? "Prominence" : s === "name" ? "A–Z" : "Age"}
+              {s === "rank"
+                ? "Prominence"
+                : s === "relevance"
+                  ? "Relevance"
+                  : s === "name"
+                    ? "A–Z"
+                    : "Age"}
             </button>
           ))}
         </div>
