@@ -110,36 +110,112 @@
 }
 .ix-explain-body {
   margin-top: 12px;
-  overflow-x: auto;
 }
-.ix-table {
-  width: 100%;
-  border-collapse: collapse;
+.ix-cards {
+  display: grid;
+  gap: 8px;
+}
+.ix-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+}
+.ix-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+.ix-card-title {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+.ix-card-points {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--brand-strong);
+  white-space: nowrap;
+}
+.ix-card-reason {
+  margin: 4px 0 6px;
   font-size: 0.85rem;
+  color: var(--text-soft);
 }
-.ix-table th,
-.ix-table td {
-  text-align: right;
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--border);
+.ix-card-factors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
-.ix-table th:first-child,
-.ix-table td:first-child {
-  text-align: left;
-}
-.ix-table thead th {
-  color: var(--text-muted);
-  font-weight: 600;
-}
-.ix-table tfoot td {
-  font-weight: 700;
-  border-bottom: none;
+.ix-total {
+  margin-top: 12px;
+  font-size: 0.88rem;
 }
 .ix-curve {
-  margin-top: 10px;
+  margin-top: 6px;
   font-size: 0.8rem;
   color: var(--text-muted);
+}
+.ix-gate-note {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+}
+
+/* ── Score history chart ───────────────────────────────────────── */
+
+.ix-history {
+  margin-top: 16px;
+}
+.ix-history-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.ix-history-svg {
+  width: 100%;
+  max-width: 320px;
+  height: 56px;
+  display: block;
+}
+.ix-history-line {
+  stroke: var(--brand);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ix-history-years {
+  display: flex;
+  justify-content: space-between;
+  max-width: 320px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.ix-history-note {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── Compare: score difference ─────────────────────────────────── */
+
+.compare-diff {
+  margin: 12px 0 4px;
+  font-size: 0.92rem;
+  color: var(--text-soft);
+}
+.compare-diff strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── Media topic filter + coverage search ───────────────────────── */

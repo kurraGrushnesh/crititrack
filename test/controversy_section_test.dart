@@ -82,4 +82,66 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('drew criticism'), findsOneWidget);
   });
+
+  testWidgets('shows the standardised band and data-coverage line', (
+    tester,
+  ) async {
+    const items = [
+      Controversy(
+        title: 'Fully sourced episode',
+        summary: 'summary',
+        category: ControversyCategory.legal,
+        severity: 5,
+        status: ControversyStatus.ongoing,
+        year: 2026,
+        sources: ['Reuters'],
+      ),
+    ];
+
+    await tester.pumpWidget(
+      _host(const ControversySection(controversies: items, name: 'Jane Doe')),
+    );
+
+    // One severe, ongoing, current-year, sourced episode lands "High" or
+    // "Very High" — either way a band pill and a coverage line render.
+    expect(
+      find.textContaining(RegExp(r'Very High|High|Moderate')),
+      findsWidgets,
+    );
+    expect(find.textContaining('Data coverage:'), findsOneWidget);
+  });
+
+  testWidgets('the methodology button opens the breakdown sheet', (
+    tester,
+  ) async {
+    const items = [
+      Controversy(
+        title: 'Regulatory inquiry',
+        summary: 'summary',
+        category: ControversyCategory.legal,
+        severity: 4,
+        status: ControversyStatus.ongoing,
+        year: 2026,
+        sources: ['https://reuters.com/story'],
+      ),
+    ];
+
+    await tester.pumpWidget(
+      _host(const ControversySection(controversies: items, name: 'Jane Doe')),
+    );
+
+    expect(find.text('How this score was computed'), findsOneWidget);
+    await tester.tap(find.text('How this score was computed'));
+    await tester.pumpAndSettle();
+
+    // The sheet is open: episode card, curve explanation, both notes.
+    expect(find.textContaining('Regulatory inquiry'), findsWidgets);
+    expect(find.textContaining('not Public Sentiment'), findsOneWidget);
+    expect(find.textContaining('corroborate'), findsOneWidget);
+    expect(find.byTooltip('Close'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('not Public Sentiment'), findsNothing);
+  });
 }

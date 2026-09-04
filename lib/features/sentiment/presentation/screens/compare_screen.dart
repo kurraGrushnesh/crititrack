@@ -622,6 +622,25 @@ class _ControversyComparison extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: row.color.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    scoreBandFor(row.index.score).band.label,
+                    style: TextStyle(
+                      color: row.color,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 9.5,
+                    ),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 5),
@@ -654,6 +673,16 @@ class _ControversyComparison extends StatelessWidget {
             ),
             const SizedBox(height: 14),
           ],
+          if (rows.length > 1)
+            Text(
+              'A higher score means more documented, unresolved and recent '
+              'episodes — not a verdict on who is the worse person.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: palette.textMuted,
+                fontSize: 10.5,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
         ],
       ),
     );

@@ -196,3 +196,150 @@ function labelFor(score: number): string {
   if (score < 75) return "Highly controversial";
   return "Lightning rod";
 }
+
+// ── STEP 9: CritiScore 2.0 — presentation, transparency, history ───────
+//
+// Everything below is derived arithmetic over the same structured
+// `Controversy[]` the score itself comes from. No network call, no model,
+// no new stored data: history and "previous score" are honest recomputes
+// over the episodes' own recorded years, clearly presented as that rather
+// than as a live-tracked snapshot the app never took.
+
+/** The standardised comparison band the spec asks for, independent of
+ * the more evocative `label` above (which stays for the descriptive
+ * line; `band` is for comparing figures on a common scale). */
+export type ScoreBand = "Very Low" | "Low" | "Moderate" | "High" | "Very High";
+
+export interface ScoreBandInfo {
+  band: ScoreBand;
+  min: number;
+  max: number;
+}
+
+const BANDS: { band: ScoreBand; min: number; max: number }[] = [
+  { band: "Very Low", min: 0, max: 19 },
+  { band: "Low", min: 20, max: 39 },
+  { band: "Moderate", min: 40, max: 59 },
+  { band: "High", min: 60, max: 79 },
+  { band: "Very High", min: 80, max: 100 },
+];
+
+export function scoreBand(score: number): ScoreBandInfo {
+  const s = clamp(score, 0, 100);
+  const hit = BANDS.find((b) => s >= b.min && s <= b.max) ?? BANDS[BANDS.length - 1];
+  return { band: hit.band, min: hit.min, max: hit.max };
+}
+
+export type ConfidenceLevel = "High" | "Medium" | "Low";
+
+export interface IndexConfidence {
+  level: ConfidenceLevel;
+  /** Fraction (0..1) of episodes backed by at least one source. */
+  sourcedRatio: number;
+  /** Fraction (0..1) of episodes with a recorded year. */
+  datedRatio: number;
+  /** A plain-language reason built from the two ratios above. */
+  reason: string;
+}
+
+/**
+ * How well-supported the score's inputs are — not a model's confidence in
+ * itself, a count of how many episodes are sourced and dated. Every
+ * severity-4/5 episode is already required to have a source by the
+ * corroboration gate (`passesCorroborationGate`); this shows that
+ * coverage rather than asserting a feeling about the number.
+ *
+ * Returns null for an empty list — there is nothing to rate.
+ */
+export function indexConfidence(items: Controversy[]): IndexConfidence | null {
+  if (items.length === 0) return null;
+
+  const sourced = items.filter((c) => c.sources.length > 0).length;
+  const dated = items.filter((c) => c.year != null).length;
+  const sourcedRatio = sourced / items.length;
+  const datedRatio = dated / items.length;
+
+  const level: ConfidenceLevel =
+    sourcedRatio >= 0.8 && datedRatio >= 0.8
+      ? "High"
+      : sourcedRatio >= 0.5 && datedRatio >= 0.5
+        ? "Medium"
+        : "Low";
+
+  const n = items.length;
+  const reason =
+    `${sourced} of ${n} episode${n === 1 ? "" : "s"} sourced, ` +
+    `${dated} of ${n} dated`;
+
+  return { level, sourcedRatio, datedRatio, reason };
+}
+
+/**
+ * The index as it would read if computed at the end of `asOfYear` —
+ * episodes dated after that year are excluded (an undated episode's
+ * timing is unknown, so it is kept in every year rather than guessed
+ * into one). Recency is measured from `asOfYear`, not the real present.
+ *
+ * This is a genuine recomputation over real, already-dated data — not a
+ * stored snapshot the app took at the time. Callers must present it as
+ * a reconstruction (see `IndexChange`/`IndexHistory` below), not as
+ * "the score on that day."
+ */
+export function indexAsOf(items: Controversy[], asOfYear: number): ControversyIndex {
+  const known = items.filter((c) => c.year == null || c.year <= asOfYear);
+  return computeControversyIndex(known, asOfYear);
+}
+
+export interface IndexChange {
+  current: number;
+  previous: number;
+  previousYear: number;
+  delta: number;
+}
+
+/**
+ * Current score vs. a reconstruction as of the end of the prior year.
+ * Null when there is nothing to compare against — every episode is
+ * either undated or from `currentYear` itself, so a "previous" figure
+ * would not mean anything.
+ */
+export function indexChange(
+  items: Controversy[],
+  currentYear?: number,
+): IndexChange | null {
+  const year = currentYear ?? new Date().getFullYear();
+  const hasEarlierDated = items.some((c) => c.year != null && c.year < year);
+  if (!hasEarlierDated) return null;
+
+  const current = computeControversyIndex(items, year).score;
+  const previous = indexAsOf(items, year - 1).score;
+  return { current, previous, previousYear: year - 1, delta: current - previous };
+}
+
+export interface IndexHistoryPoint {
+  year: number;
+  score: number;
+}
+
+/**
+ * A year-by-year reconstruction from the earliest dated episode through
+ * `currentYear`. Empty when there are fewer than two distinct dated
+ * years to show a shape across — a flat one-point "history" is not a
+ * history, and this deliberately returns nothing rather than a
+ * misleadingly flat line for a person with only one dated episode.
+ */
+export function indexHistory(
+  items: Controversy[],
+  currentYear?: number,
+): IndexHistoryPoint[] {
+  const year = currentYear ?? new Date().getFullYear();
+  const years = [...new Set(items.map((c) => c.year).filter((y): y is number => y != null))];
+  if (years.length < 2) return [];
+
+  const start = Math.min(...years);
+  const points: IndexHistoryPoint[] = [];
+  for (let y = start; y <= year; y++) {
+    points.push({ year: y, score: indexAsOf(items, y).score });
+  }
+  return points;
+}

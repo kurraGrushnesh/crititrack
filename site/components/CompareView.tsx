@@ -3,7 +3,11 @@
 import { Suspense, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DEMO_PROFILES, demoProfileBySlug } from "@/lib/demo-data";
-import { computeControversyIndex, roundedScore } from "@/lib/controversy-index";
+import {
+  computeControversyIndex,
+  roundedScore,
+  scoreBand,
+} from "@/lib/controversy-index";
 import { corroborated } from "@/lib/controversy";
 import { parseComparisonQuery } from "@/lib/deep-link";
 import SentimentTrend from "./SentimentTrend";
@@ -63,6 +67,8 @@ function CompareInner() {
         </label>
       </div>
 
+      <ScoreDifference left={left} right={right} />
+
       <div className="compare-cols">
         {[left, right].map((slug, i) =>
           demoProfileBySlug(slug) == null ? (
@@ -75,6 +81,31 @@ function CompareInner() {
         )}
       </div>
     </>
+  );
+}
+
+/**
+ * The gap between the two CritiScores, shown once above both columns
+ * rather than repeated per card. Deliberately neutral: it states the
+ * difference in points, never that one person is "worse" — the score is
+ * a documented-episode count, not a verdict.
+ */
+function ScoreDifference({ left, right }: { left: string; right: string }) {
+  const l = demoProfileBySlug(left);
+  const r = demoProfileBySlug(right);
+  if (!l || !r) return null;
+
+  const li = computeControversyIndex(corroborated(l.controversies));
+  const ri = computeControversyIndex(corroborated(r.controversies));
+  const diff = Math.abs(roundedScore(li) - roundedScore(ri));
+
+  return (
+    <p className="compare-diff">
+      {l.name} <strong>{roundedScore(li)}</strong> ({scoreBand(li.score).band}) vs.{" "}
+      {r.name} <strong>{roundedScore(ri)}</strong> ({scoreBand(ri.score).band}) —{" "}
+      a {diff}-point difference in documented episodes, not a ranking of the
+      two people.
+    </p>
   );
 }
 
@@ -104,7 +135,9 @@ function ComparePanel({ slug }: { slug: string }) {
         <div>
           <dt>Controversy Index</dt>
           <dd>
-            {roundedScore(index)} / 100 &nbsp;&middot;&nbsp; {index.label}
+            {roundedScore(index)} / 100 &nbsp;&middot;&nbsp;{" "}
+            <span className="tag">{scoreBand(index.score).band}</span>
+            &nbsp;&middot;&nbsp; {index.label}
           </dd>
         </div>
         <div>

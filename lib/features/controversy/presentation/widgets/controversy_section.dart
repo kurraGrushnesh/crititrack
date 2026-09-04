@@ -16,6 +16,7 @@ import 'package:crititrack/core/domain/models/controversy.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
 import 'package:crititrack/core/utils/controversy_index.dart';
 import 'package:crititrack/features/controversy/presentation/widgets/controversy_card.dart';
+import 'package:crititrack/features/controversy/presentation/widgets/controversy_methodology_sheet.dart';
 
 class ControversySection extends StatelessWidget {
   const ControversySection({
@@ -74,7 +75,7 @@ class ControversySection extends StatelessWidget {
           const SizedBox(height: 16),
 
           // ── Controversy Index ───────────────────────────────────
-          _IndexPanel(index: index),
+          _IndexPanel(index: index, controversies: controversies),
           const SizedBox(height: 14),
 
           // ── Category breakdown ──────────────────────────────────
@@ -143,15 +144,19 @@ class ControversySection extends StatelessWidget {
 // ── Index panel ───────────────────────────────────────────────────
 
 class _IndexPanel extends StatelessWidget {
-  const _IndexPanel({required this.index});
+  const _IndexPanel({required this.index, required this.controversies});
 
   final ControversyIndex index;
+  final List<Controversy> controversies;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = context.palette;
     final color = _indexColor(index.score);
+    final band = scoreBandFor(index.score);
+    final confidence = indexConfidence(controversies);
+    final change = indexChange(controversies);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -203,6 +208,42 @@ class _IndexPanel extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 3,
+                ),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  band.band.label,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+              if (change != null)
+                Text(
+                  '${change.previous.round()} → ${change.current.round()}  '
+                  '${change.delta >= 0 ? "+" : ""}${change.delta.round()} '
+                  'since ${change.previousYear}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: palette.textSecondary,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+            ],
+          ),
           const SizedBox(height: 10),
           // Meter
           ClipRRect(
@@ -233,6 +274,19 @@ class _IndexPanel extends StatelessWidget {
               color: palette.textSecondary,
             ),
           ),
+          if (confidence != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Data coverage: ${_confidenceLabel(confidence.level)} '
+              '(${confidence.reason})',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: palette.textMuted,
+                fontSize: 12,
+              ),
+            ),
+          ],
+          const SizedBox(height: 10),
+          _MethodologyButton(controversies: controversies, index: index),
         ],
       ),
     );
@@ -243,6 +297,54 @@ class _IndexPanel extends StatelessWidget {
     if (score < 55) return AppTheme.warning;
     if (score < 75) return const Color(0xFFE8834A);
     return AppTheme.error;
+  }
+}
+
+String _confidenceLabel(ConfidenceLevel level) => switch (level) {
+  ConfidenceLevel.high => 'High',
+  ConfidenceLevel.medium => 'Medium',
+  ConfidenceLevel.low => 'Low',
+};
+
+/// Opens the full-methodology bottom sheet — the mobile answer to the
+/// web's "How this is calculated" link. A large enough tap target that
+/// it does not need a tiny disclosure affordance to find.
+class _MethodologyButton extends StatelessWidget {
+  const _MethodologyButton({required this.controversies, required this.index});
+
+  final List<Controversy> controversies;
+  final ControversyIndex index;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return InkWell(
+      borderRadius: AppTheme.radiusSm,
+      onTap:
+          () => showControversyMethodologySheet(
+            context,
+            controversies: controversies,
+            index: index,
+          ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 48),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.functions_rounded, size: 14, color: palette.brandText),
+            const SizedBox(width: 6),
+            Text(
+              'How this score was computed',
+              style: TextStyle(
+                color: palette.brandText,
+                fontWeight: FontWeight.w600,
+                fontSize: 12.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

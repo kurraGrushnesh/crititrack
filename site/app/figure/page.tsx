@@ -7,6 +7,7 @@ import PillNav from "@/components/PillNav";
 import SiteFooter from "@/components/SiteFooter";
 import ControversyIndexGauge from "@/components/ControversyIndexGauge";
 import IndexExplanation from "@/components/IndexExplanation";
+import IndexHistoryChart from "@/components/IndexHistoryChart";
 import ControversyRecord from "@/components/ControversyRecord";
 import WatchButton from "@/components/WatchButton";
 import { confidenceLabel } from "@/components/ConfidenceMeter";
@@ -204,7 +205,8 @@ function ProfileView({
             <h2>Controversy Index</h2>
             <Link href="/controversy-index">How it is calculated</Link>
           </div>
-          <ControversyIndexGauge index={index} />
+          <ControversyIndexGauge index={index} controversies={profile.controversies} />
+          <IndexHistoryChart controversies={profile.controversies} />
           <IndexExplanation controversies={profile.controversies} />
         </section>
       </Reveal>

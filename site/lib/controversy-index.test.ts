@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   computeControversyIndex,
   explainControversyIndex,
+  scoreBand,
+  indexConfidence,
+  indexAsOf,
+  indexChange,
+  indexHistory,
 } from "./controversy-index";
 import type { Controversy } from "./controversy";
 import { parseControversy } from "./controversy";
@@ -189,6 +194,107 @@ describe("explainControversyIndex", () => {
     const ex = explainControversyIndex([], 2026);
     expect(ex.score).toBe(0);
     expect(ex.rows).toEqual([]);
+  });
+});
+
+describe("scoreBand", () => {
+  it("matches the spec's five ranges", () => {
+    expect(scoreBand(0).band).toBe("Very Low");
+    expect(scoreBand(19).band).toBe("Very Low");
+    expect(scoreBand(20).band).toBe("Low");
+    expect(scoreBand(39).band).toBe("Low");
+    expect(scoreBand(40).band).toBe("Moderate");
+    expect(scoreBand(59).band).toBe("Moderate");
+    expect(scoreBand(60).band).toBe("High");
+    expect(scoreBand(79).band).toBe("High");
+    expect(scoreBand(80).band).toBe("Very High");
+    expect(scoreBand(100).band).toBe("Very High");
+  });
+
+  it("clamps out-of-range input rather than throwing", () => {
+    expect(scoreBand(-5).band).toBe("Very Low");
+    expect(scoreBand(150).band).toBe("Very High");
+  });
+});
+
+describe("indexConfidence", () => {
+  it("is null for no episodes — nothing to rate", () => {
+    expect(indexConfidence([])).toBeNull();
+  });
+
+  it("is High when every episode is sourced and dated", () => {
+    const conf = indexConfidence([
+      c({ sources: ["Reuters"], year: 2024 }),
+      c({ sources: ["AP"], year: 2023 }),
+    ]);
+    expect(conf?.level).toBe("High");
+    expect(conf?.sourcedRatio).toBe(1);
+    expect(conf?.datedRatio).toBe(1);
+  });
+
+  it("is Low when most episodes are unsourced and undated", () => {
+    const conf = indexConfidence([
+      c({ sources: [], year: undefined }),
+      c({ sources: [], year: undefined }),
+      c({ sources: ["AP"], year: 2020 }),
+    ]);
+    expect(conf?.level).toBe("Low");
+  });
+
+  it("the reason string names the real counts, not a vague claim", () => {
+    const conf = indexConfidence([
+      c({ sources: ["AP"], year: 2020 }),
+      c({ sources: [], year: undefined }),
+    ]);
+    expect(conf?.reason).toBe("1 of 2 episodes sourced, 1 of 2 dated");
+  });
+});
+
+describe("indexAsOf", () => {
+  it("excludes an episode dated after the cutoff", () => {
+    const items = [c({ severity: 5, year: 2020 }), c({ severity: 5, year: 2025 })];
+    const asOf2021 = indexAsOf(items, 2021);
+    expect(asOf2021.total).toBe(1);
+  });
+
+  it("keeps an undated episode at every point in time", () => {
+    const items = [c({ severity: 3, year: undefined })];
+    expect(indexAsOf(items, 2010).total).toBe(1);
+    expect(indexAsOf(items, 2030).total).toBe(1);
+  });
+});
+
+describe("indexChange", () => {
+  it("is null with nothing dated before the current year", () => {
+    expect(indexChange([c({ year: 2026 })], 2026)).toBeNull();
+    expect(indexChange([c({ year: undefined })], 2026)).toBeNull();
+  });
+
+  it("reports a real delta when an earlier-dated episode exists", () => {
+    const items = [c({ severity: 3, year: 2020 }), c({ severity: 5, year: 2026 })];
+    const change = indexChange(items, 2026);
+    expect(change).not.toBeNull();
+    expect(change!.previousYear).toBe(2025);
+    expect(change!.current).toBeGreaterThan(change!.previous);
+    expect(change!.delta).toBeCloseTo(change!.current - change!.previous);
+  });
+});
+
+describe("indexHistory", () => {
+  it("is empty with fewer than two distinct dated years", () => {
+    expect(indexHistory([c({ year: 2024 })], 2026)).toEqual([]);
+    expect(indexHistory([c({ year: 2024 }), c({ year: 2024 })], 2026)).toEqual([]);
+    expect(indexHistory([c({ year: undefined })], 2026)).toEqual([]);
+  });
+
+  it("spans from the earliest dated year through the current year", () => {
+    const items = [c({ year: 2023 }), c({ year: 2025 })];
+    const h = indexHistory(items, 2026);
+    expect(h.map((p) => p.year)).toEqual([2023, 2024, 2025, 2026]);
+    // Monotonic-ish sanity: the final point matches computeControversyIndex.
+    expect(h[h.length - 1].score).toBeCloseTo(
+      computeControversyIndex(items, 2026).score,
+    );
   });
 });
 

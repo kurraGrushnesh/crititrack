@@ -94,6 +94,34 @@ export default function ControversyIndexPage() {
             <li>55 to 74: Highly controversial</li>
             <li>75 and above: Lightning rod</li>
           </ul>
+          <p>
+            Profiles also show a standardised five-band scale for comparing
+            two figures on the same footing: <strong>0–19 Very Low</strong>,{" "}
+            <strong>20–39 Low</strong>, <strong>40–59 Moderate</strong>,{" "}
+            <strong>60–79 High</strong>, <strong>80–100 Very High</strong>.
+            It is the same score, just read against a common scale rather
+            than the more descriptive label above.
+          </p>
+
+          <h2>Data coverage confidence</h2>
+          <p>
+            Every profile also shows how well-supported the score&rsquo;s
+            inputs are — the fraction of episodes with at least one source
+            and the fraction with a recorded year — as High, Medium or Low.
+            This is not a model&rsquo;s opinion of the number; it is a count
+            of the sourcing and dates the episodes themselves carry.
+          </p>
+
+          <h2>Score history</h2>
+          <p>
+            When a figure has controversies dated in at least two different
+            years, the profile shows a year-by-year score history. Every
+            point is a genuine recomputation of the formula above, using
+            only the episodes dated on or before that year — never a
+            snapshot the app stored at the time, since it does not store
+            one. A person with too little dated history simply shows no
+            history chart, rather than an invented or flat one.
+          </p>
 
           <h2>A worked example</h2>
           <p>Three records, evaluated as of 2026:</p>

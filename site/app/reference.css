@@ -316,6 +316,37 @@
   font-variant-numeric: tabular-nums;
 }
 
+.ip-headline {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ip-band {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.ip-band.band-verylow,
+.ip-band.band-low {
+  color: var(--good);
+  background: color-mix(in srgb, var(--good) 14%, transparent);
+}
+.ip-band.band-moderate {
+  color: var(--mid);
+  background: color-mix(in srgb, var(--mid) 16%, transparent);
+}
+.ip-band.band-high,
+.ip-band.band-veryhigh {
+  color: var(--bad);
+  background: color-mix(in srgb, var(--bad) 14%, transparent);
+}
+
 .index-panel .ip-label {
   font-family: var(--font-display), Georgia, serif;
   font-size: 1.25rem;
@@ -323,15 +354,48 @@
   margin-bottom: 4px;
 }
 
+.ip-change {
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  margin: 4px 0;
+}
+.ip-change .is-up {
+  color: var(--bad);
+  font-weight: 700;
+}
+.ip-change .is-down {
+  color: var(--good);
+  font-weight: 700;
+}
+.ip-change-caveat {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: 0.82rem;
+}
+
 .index-panel .ip-meta {
   font-size: 0.9rem;
   color: var(--text-soft);
+}
+
+.ip-confidence {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  margin-top: 4px;
 }
 
 .index-panel .ip-note {
   font-size: 0.8rem;
   color: var(--text-muted);
   margin-top: 8px;
+}
+
+.ip-vs-sentiment {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border);
 }
 
 @media (max-width: 560px) {
