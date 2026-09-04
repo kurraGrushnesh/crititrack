@@ -50,8 +50,14 @@ export interface ProfessionalIdentity {
   roles: string[];
   industries: IndustryEntry[];
   specializations: SpecializationEntry[];
-  /** Skills / topics. Empty until a reliable source is wired. */
+  /** Domains from Wikidata "field of work" (P101). Empty when none. */
   expertise: string[];
+  /**
+   * A one-word derived summary of where the person sits professionally —
+   * "Former", "Executive", "Academic", "Researcher", "Active" — or null
+   * when there is no signal. Derived from the data, never invented.
+   */
+  careerStatus: string | null;
   /** Source occupation labels that did not map to the taxonomy. */
   unresolved: string[];
   /** True when there is nothing worth rendering. */
@@ -65,6 +71,7 @@ const EMPTY: ProfessionalIdentity = {
   industries: [],
   specializations: [],
   expertise: [],
+  careerStatus: null,
   unresolved: [],
   empty: true,
 };
@@ -81,9 +88,61 @@ function looksLikeRole(text: string): boolean {
   return /\b(of|at|for)\b/i.test(text) || /\d/.test(text);
 }
 
+/** Tidy a Wikidata field-of-work label for display as an expertise chip. */
+function cleanExpertise(raw: string): string {
+  const s = raw.trim().replace(/\s+/g, " ");
+  // Wikidata labels are lowercase ("artificial intelligence"); Title-case
+  // the leading letter of each word unless it already has capitals.
+  if (/[A-Z]/.test(s)) return s;
+  return s.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/**
+ * Derived career-status label, from real signals only:
+ *   deceased            → null (the concept does not apply)
+ *   "former"/"retired"  → "Former"
+ *   executive/founder   → "Executive"
+ *   professor/academic  → "Academic"
+ *   researcher/scientist→ "Researcher"
+ *   otherwise, if there is a resolved profession or role → "Active"
+ *   nothing             → null
+ */
+function deriveCareerStatus(args: {
+  deceased: boolean;
+  professionText: string;
+  roles: string[];
+  occupationLabels: string[];
+  primarySectorId: string | null;
+}): string | null {
+  if (args.deceased) return null;
+  const text = `${args.professionText} ${args.roles.join(" ")}`.toLowerCase();
+  if (/\b(former|ex[-\s])/.test(text) || /\bretired\b/.test(text)) return "Former";
+
+  const occ = args.occupationLabels.map((l) => l.toLowerCase());
+  const any = (re: RegExp) => occ.some((l) => re.test(l));
+  if (any(/chief executive|entrepreneur|founder|executive|managing director/)) {
+    return "Executive";
+  }
+  if (args.primarySectorId === "education" || any(/professor|lecturer|academic/)) {
+    return "Academic";
+  }
+  if (
+    args.primarySectorId === "science-research" ||
+    any(/researcher|scientist/)
+  ) {
+    return "Researcher";
+  }
+
+  return occ.length > 0 || args.roles.length > 0 ? "Active" : null;
+}
+
 export function buildProfessionalIdentity(input: {
   occupations?: string[];
   professionText?: string;
+  /** Wikidata "field of work" (P101) labels. */
+  fieldsOfWork?: string[];
+  /** Whether the person has a recorded death date. */
+  deceased?: boolean;
 }): ProfessionalIdentity {
   const rawOccupations = (input.occupations ?? [])
     .map((s) => (typeof s === "string" ? s.trim() : ""))
@@ -153,13 +212,38 @@ export function buildProfessionalIdentity(input: {
     roles.push(professionText);
   }
 
+  // Expertise: Wikidata "field of work" labels, deduped, cleaned, capped.
+  const seenExpertise = new Set<string>();
+  const expertise: string[] = [];
+  for (const raw of input.fieldsOfWork ?? []) {
+    if (typeof raw !== "string" || !raw.trim()) continue;
+    const clean = cleanExpertise(raw);
+    const key = clean.toLowerCase();
+    if (seenExpertise.has(key)) continue;
+    seenExpertise.add(key);
+    expertise.push(clean);
+    if (expertise.length >= 6) break;
+  }
+
+  const occupationLabels = [
+    ...(primary ? [primary.label] : []),
+    ...secondary.map((s) => s.label),
+  ];
+
   const identity: ProfessionalIdentity = {
     primary,
     secondary,
     roles,
     industries: [...industryById.values()],
     specializations: [...specById.values()],
-    expertise: [],
+    expertise,
+    careerStatus: deriveCareerStatus({
+      deceased: input.deceased === true,
+      professionText,
+      roles,
+      occupationLabels,
+      primarySectorId: primary?.path.sectorId ?? null,
+    }),
     unresolved,
     empty: false,
   };
@@ -167,7 +251,8 @@ export function buildProfessionalIdentity(input: {
     !identity.primary &&
     identity.secondary.length === 0 &&
     identity.roles.length === 0 &&
-    identity.specializations.length === 0;
+    identity.specializations.length === 0 &&
+    identity.expertise.length === 0;
 
   return identity.empty ? EMPTY : identity;
 }

@@ -345,6 +345,8 @@ function mapProfile(j: Json): RealProfile {
     professional: buildProfessionalIdentity({
       occupations: strs(obj(entity.facts).occupations),
       professionText: str(bio.profession),
+      fieldsOfWork: strs(obj(entity.facts).fieldsOfWork),
+      deceased: Boolean(str(obj(entity.facts).deathDate)),
     }),
     candidates: list(entity.candidates).map((c) => ({
       name: str(c.name) || str(c.label),

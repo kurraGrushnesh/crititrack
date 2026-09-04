@@ -370,21 +370,31 @@
   color: var(--text-muted);
   margin: 0 0 2px;
 }
+.prof-rows {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 .prof-row {
   display: grid;
   grid-template-columns: 120px 1fr;
   gap: 12px;
   align-items: start;
+  margin: 0;
 }
 .prof-row-label {
   font-size: 0.8rem;
   color: var(--text-muted);
   padding-top: 4px;
+  margin: 0;
 }
 .prof-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  margin: 0;
+  min-width: 0;
 }
 .prof-chip {
   display: inline-block;
@@ -409,6 +419,27 @@
 .prof-chip.is-muted {
   color: var(--text-muted);
   font-weight: 500;
+}
+.prof-chip.is-status {
+  border-color: var(--border-strong);
+}
+/* Status carries a small dot as well as text/border, so meaning does not
+   rest on colour alone. */
+.prof-chip.is-status::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+  background: var(--text-muted);
+}
+.prof-chip.status-active::before {
+  background: var(--good);
+}
+.prof-chip.status-former::before {
+  background: var(--mid);
 }
 @media (max-width: 560px) {
   .prof-row {

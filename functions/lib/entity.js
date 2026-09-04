@@ -58,6 +58,11 @@ const PROPS = {
   notableWork: "P800",
   education: "P69",
   birthPlace: "P19",
+  // "field of work" — the domain(s) a person is professionally known
+  // for, e.g. "artificial intelligence", "human rights". Sourced, so it
+  // is a real basis for a profile's "expertise" line rather than a
+  // model's guess. Comes in the same wbgetentities call, no extra fetch.
+  fieldOfWork: "P101",
 };
 
 /**
@@ -301,6 +306,7 @@ function extractFacts(entity) {
     notableWorkIds: idClaims(entity, PROPS.notableWork).slice(0, MAX_WORKS),
     educationIds: idClaims(entity, PROPS.education).slice(0, MAX_EDUCATION),
     birthPlaceId: idClaims(entity, PROPS.birthPlace)[0] || null,
+    fieldOfWorkIds: idClaims(entity, PROPS.fieldOfWork).slice(0, 6),
     links: externalLinks(entity),
   };
 }
@@ -440,6 +446,7 @@ async function resolveFactLabels(facts) {
     ...facts.notableWorkIds,
     ...facts.educationIds,
     ...(facts.birthPlaceId ? [facts.birthPlaceId] : []),
+    ...(facts.fieldOfWorkIds || []),
   ];
 
   let labels = {};
@@ -472,6 +479,9 @@ async function resolveFactLabels(facts) {
         .filter(Boolean),
     education: facts.educationIds.map((id) => labels[id]).filter(Boolean),
     birthPlace: (facts.birthPlaceId && labels[facts.birthPlaceId]) || null,
+    fieldsOfWork: (facts.fieldOfWorkIds || [])
+        .map((id) => labels[id])
+        .filter(Boolean),
     links: facts.links,
   };
 }

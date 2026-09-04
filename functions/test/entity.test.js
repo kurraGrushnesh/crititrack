@@ -209,6 +209,18 @@ test("birthPlaceId is null rather than undefined when absent", () => {
   assert.equal(extractFacts({claims: {}}).birthPlaceId, null);
 });
 
+test("field of work (P101) is read and capped at six", () => {
+  const e = {
+    claims: {
+      P101: Array.from({length: 9}, (_, i) => claimId(`Q${100 + i}`)),
+    },
+  };
+  assert.deepEqual(extractFacts(e).fieldOfWorkIds, [
+    "Q100", "Q101", "Q102", "Q103", "Q104", "Q105",
+  ]);
+  assert.deepEqual(extractFacts({claims: {}}).fieldOfWorkIds, []);
+});
+
 test("external identifiers become URLs", () => {
   const e = {
     claims: {
