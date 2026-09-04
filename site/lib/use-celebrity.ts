@@ -16,8 +16,9 @@ const inflight = new Map<string, Promise<RealProfile>>();
 const TTL_MS = 10 * 60 * 1000;
 const stamped = new Map<string, number>();
 
-function key(name: string): string {
-  return name.trim().toLowerCase();
+function key(name: string, qid?: string): string {
+  const base = name.trim().toLowerCase();
+  return qid ? `${base}#${qid}` : base;
 }
 
 /** Lets the "how it's built" demos and tests prime the cache. */
@@ -26,8 +27,12 @@ export function primeProfile(name: string, profile: RealProfile): void {
   stamped.set(key(name), Date.now());
 }
 
-async function load(name: string, signal: AbortSignal): Promise<RealProfile> {
-  const k = key(name);
+async function load(
+  name: string,
+  qid: string | undefined,
+  signal: AbortSignal,
+): Promise<RealProfile> {
+  const k = key(name, qid);
   const age = Date.now() - (stamped.get(k) ?? 0);
   const hit = cache.get(k);
   if (hit && age < TTL_MS) return hit;
@@ -35,7 +40,7 @@ async function load(name: string, signal: AbortSignal): Promise<RealProfile> {
   const existing = inflight.get(k);
   if (existing) return existing;
 
-  const p = fetchProfile(name, { signal })
+  const p = fetchProfile(name, { qid, signal })
     .then((profile) => {
       cache.set(k, profile);
       stamped.set(k, Date.now());
@@ -72,11 +77,15 @@ type Resolved = { name: string; nonce: number; state: CelebrityState };
  * result exists for the current name, so the effect only ever calls
  * setState from an async callback — never synchronously in its body.
  */
-export function useCelebrity(name: string | null): {
+export function useCelebrity(
+  name: string | null,
+  qid?: string,
+): {
   state: CelebrityState;
   retry: () => void;
 } {
   const trimmed = name?.trim() ?? "";
+  const pinned = qid?.trim() || undefined;
   const [resolved, setResolved] = useState<Resolved | null>(null);
   const [nonce, setNonce] = useState(0);
   const mounted = useRef(true);
@@ -94,10 +103,10 @@ export function useCelebrity(name: string | null): {
     const ctrl = new AbortController();
     const settle = (state: CelebrityState) => {
       if (ctrl.signal.aborted || !mounted.current) return;
-      setResolved({ name: trimmed, nonce, state });
+      setResolved({ name: `${trimmed}#${pinned ?? ""}`, nonce, state });
     };
 
-    load(trimmed, ctrl.signal)
+    load(trimmed, pinned, ctrl.signal)
       .then((profile) => {
         if (!profile.name) {
           settle({
@@ -145,10 +154,12 @@ export function useCelebrity(name: string | null): {
       });
 
     return () => ctrl.abort();
-  }, [trimmed, nonce]);
+  }, [trimmed, pinned, nonce]);
 
   const current =
-    resolved && resolved.name === trimmed && resolved.nonce === nonce
+    resolved &&
+    resolved.name === `${trimmed}#${pinned ?? ""}` &&
+    resolved.nonce === nonce
       ? resolved.state
       : null;
 

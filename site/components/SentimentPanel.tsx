@@ -163,14 +163,19 @@ export default function SentimentPanel({
         id={`${panelId}-${tab}`}
         aria-labelledby={`${panelId}-${tab}-tab`}
       >
-        {tab === "split" && (
-          <SentimentDonut
-            positive={counts.positive}
-            neutral={counts.neutral}
-            negative={counts.negative}
-            sampleSize={profile.sampleSize}
-          />
-        )}
+        {tab === "split" &&
+          (counts.positive + counts.neutral + counts.negative > 0 ? (
+            <SentimentDonut
+              positive={counts.positive}
+              neutral={counts.neutral}
+              negative={counts.negative}
+              sampleSize={profile.sampleSize}
+            />
+          ) : (
+            <p className="senti-empty">
+              Not enough classified mentions yet to break sentiment down.
+            </p>
+          ))}
 
         {tab === "trend" &&
           (profile.trend.length >= 2 ? (

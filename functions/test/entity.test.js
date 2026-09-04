@@ -3,8 +3,15 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const {extractFacts, isHuman, PROPS, HUMAN, INSTANCE_OF} =
-  require("../lib/entity");
+const {
+  extractFacts,
+  isHuman,
+  resolutionConfidence,
+  sitelinkCount,
+  PROPS,
+  HUMAN,
+  INSTANCE_OF,
+} = require("../lib/entity");
 
 /** A Wikidata time claim. */
 function time(value, precision) {
@@ -298,4 +305,88 @@ test("the expanded fields are empty, not missing, on a bare entity", () => {
   assert.deepEqual(f.notableWorkIds, []);
   assert.deepEqual(f.educationIds, []);
   assert.deepEqual(f.links, {});
+});
+
+// ── resolution confidence ──────────────────────────────────────────────
+
+/**
+ * A minimal described entity for the confidence classifier.
+ * @param {{label: string, aliases?: string[], sitelinks?: number,
+ *   description?: string}} o
+ */
+function described(o) {
+  return {
+    hit: {id: "Q1", label: o.label, description: o.description || ""},
+    entity: {
+      labels: {en: {value: o.label}},
+      descriptions: o.description ? {en: {value: o.description}} : {},
+      aliases: {en: (o.aliases || []).map((v) => ({value: v}))},
+      sitelinks: Object.fromEntries(
+          Array.from({length: o.sitelinks || 0}, (_, i) => [`w${i}`, {}]),
+      ),
+    },
+  };
+}
+
+test("sitelinkCount counts language editions, 0 when absent", () => {
+  assert.equal(sitelinkCount({sitelinks: {enwiki: {}, dewiki: {}}}), 2);
+  assert.equal(sitelinkCount({}), 0);
+  assert.equal(sitelinkCount(null), 0);
+});
+
+test("one well-documented exact-name match is high confidence", () => {
+  const best = described({label: "Zendaya", sitelinks: 90});
+  assert.equal(resolutionConfidence("Zendaya", best, [best]), "high");
+});
+
+test("two notable people who share the queried name are ambiguous", () => {
+  // "Michael Jordan" — the basketball player and the AI professor both
+  // carry the name and both have many Wikipedia editions.
+  const athlete = described({label: "Michael Jordan", sitelinks: 90});
+  const professor = described({
+    label: "Michael I. Jordan",
+    aliases: ["Michael Jordan"],
+    sitelinks: 20,
+  });
+  assert.equal(
+      resolutionConfidence("Michael Jordan", athlete, [athlete, professor]),
+      "ambiguous",
+  );
+});
+
+test("a minor same-named person pulls a strong match down to medium", () => {
+  const star = described({label: "Chris Evans", sitelinks: 70});
+  const other = described({label: "Chris Evans", sitelinks: 2});
+  assert.equal(
+      resolutionConfidence("Chris Evans", star, [star, other]),
+      "medium",
+  );
+});
+
+test("a strong same-named person makes it ambiguous", () => {
+  const actor = described({label: "Chris Evans", sitelinks: 70});
+  const presenter = described({label: "Chris Evans", sitelinks: 14});
+  assert.equal(
+      resolutionConfidence("Chris Evans", actor, [actor, presenter]),
+      "ambiguous",
+  );
+});
+
+test("a thinly-documented top match is low confidence", () => {
+  const obscure = described({label: "Jane Q Public", sitelinks: 1});
+  assert.equal(
+      resolutionConfidence("Jane Q Public", obscure, [obscure]),
+      "low",
+  );
+});
+
+test("similar names alone never trigger ambiguity", () => {
+  // Same profession, same country, near-identical spelling — but the
+  // second person's name does not actually match the query.
+  const best = described({label: "Ronaldo", sitelinks: 80});
+  const nazario = described({label: "Ronaldo Nazário", sitelinks: 60});
+  assert.equal(
+      resolutionConfidence("Ronaldo", best, [best, nazario]),
+      "high",
+  );
 });

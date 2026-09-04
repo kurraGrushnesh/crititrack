@@ -134,18 +134,170 @@ async function resolvePerson(name) {
     if (humans.length === 0) return null;
 
     const [best, ...rest] = humans;
+
+    // Compact card data for every alternative, resolved in one round trip.
+    const candidates = await buildCandidates(rest);
+    const confidence = resolutionConfidence(name, best, humans);
+
     return {
       ...(await toPerson(best.hit, best.entity, name)),
-      candidates: rest.map(({hit, entity}) => ({
-        qid: hit.id,
-        label: labelOf(entity) || hit.label || "",
-        description: descriptionOf(entity) || hit.description || "",
-      })),
+      sitelinks: sitelinkCount(best.entity),
+      confidence,
+      candidates,
     };
   } catch (e) {
     logger.warn(`entity resolution failed for "${name}": ${e.message}`);
     return null;
   }
+}
+
+/** Sitelink count = number of Wikipedia language editions with an article. */
+function sitelinkCount(entity) {
+  return entity && entity.sitelinks ?
+    Object.keys(entity.sitelinks).length :
+    0;
+}
+
+/** First entity-id value of a claim, or null. */
+function firstClaimId(entity, prop) {
+  return idClaims(entity, prop)[0] || null;
+}
+
+/** Commons portrait URL from a P18 image claim, or null. */
+function portraitUrl(entity) {
+  const claims = ((entity && entity.claims && entity.claims.P18) || [])
+      .filter((c) => !isDeprecated(c));
+  for (const c of claims) {
+    const v = c && c.mainsnak && c.mainsnak.datavalue &&
+      c.mainsnak.datavalue.value;
+    if (typeof v === "string" && v.trim()) {
+      const file = encodeURIComponent(v.trim().replace(/ /g, "_"));
+      return `https://commons.wikimedia.org/wiki/Special:FilePath/${file}?width=160`;
+    }
+  }
+  return null;
+}
+
+/** A short "YYYY" birth year for a disambiguation card, or null. */
+function birthYear(entity) {
+  const t = timeClaim(entity, PROPS.birthDate);
+  return t ? t.slice(0, 4) : null;
+}
+
+/**
+ * Turns the runner-up human hits into compact disambiguation cards:
+ * name, description, occupation, country, portrait, birth year, qid,
+ * prominence. One extra label lookup resolves every occupation and
+ * citizenship id at once.
+ *
+ * @param {Array<{hit: object, entity: object}>} rest
+ * @return {Promise<Array<object>>}
+ */
+async function buildCandidates(rest) {
+  const idsToLabel = new Set();
+  const partial = rest.map(({hit, entity}) => {
+    const occId = firstClaimId(entity, PROPS.occupation);
+    const cityId = firstClaimId(entity, PROPS.citizenship);
+    if (occId) idsToLabel.add(occId);
+    if (cityId) idsToLabel.add(cityId);
+    return {
+      qid: hit.id,
+      label: labelOf(entity) || hit.label || "",
+      description: descriptionOf(entity) || hit.description || "",
+      occId,
+      cityId,
+      image: portraitUrl(entity),
+      birthYear: birthYear(entity),
+      sitelinks: sitelinkCount(entity),
+    };
+  });
+
+  let labels = {};
+  if (idsToLabel.size > 0) {
+    try {
+      const ents = await describeLabels([...idsToLabel]);
+      for (const id of idsToLabel) {
+        const l = ents[id] ? labelOf(ents[id]) : "";
+        if (l) labels[id] = l;
+      }
+    } catch (e) {
+      logger.warn(`candidate label lookup failed: ${e.message}`);
+      labels = {};
+    }
+  }
+
+  return partial.map((c) => ({
+    qid: c.qid,
+    label: c.label,
+    description: c.description,
+    occupation: (c.occId && labels[c.occId]) || null,
+    country: (c.cityId && labels[c.cityId]) || null,
+    image: c.image,
+    birthYear: c.birthYear,
+    prominence: c.sitelinks,
+  }));
+}
+
+/**
+ * How sure we are that `best` is the person the searcher meant.
+ *
+ *   high      — the query names exactly one well-documented person, and
+ *               no other candidate both matches the name and is notable.
+ *   medium    — one clear best match, but a lesser same-named person
+ *               exists, or the name is not an exact match.
+ *   low       — the top match is thinly documented, or the query did not
+ *               cleanly match any candidate's name.
+ *   ambiguous — two or more candidates match the name and are each
+ *               notable ("Michael Jordan").
+ *
+ * Names being similar, or a shared profession/country, are never enough
+ * on their own — the check is name-match plus independent notability
+ * (sitelink count), not name similarity.
+ *
+ * @param {string} query
+ * @param {{hit: object, entity: object}} best
+ * @param {Array<{hit: object, entity: object}>} humans all human hits
+ * @return {"high"|"medium"|"low"|"ambiguous"}
+ */
+function resolutionConfidence(query, best, humans) {
+  const q = normName(query);
+  const named = (e, hit) =>
+    normName(labelOf(e) || (hit && hit.label)) === q ||
+    aliasesOf(e).some((a) => normName(a) === q);
+
+  const bestNamed = named(best.entity, best.hit);
+  const bestLinks = sitelinkCount(best.entity);
+
+  // Other people whose name — not just profession or country — also
+  // answers the query, ranked by how independently documented they are.
+  const namesakes = humans
+      .slice(1)
+      .filter(({hit, entity}) => named(entity, hit))
+      .map(({entity}) => sitelinkCount(entity));
+
+  if (!bestNamed) {
+    // The query did not match the chosen label. A lone, well-documented
+    // result is a loose match (low); anything else is genuinely unclear.
+    return humans.length === 1 && bestLinks >= 5 ? "low" : "ambiguous";
+  }
+  // A second person who both shares the name and is notable in their own
+  // right — this is the "Michael Jordan" case, and we must not pick.
+  if (namesakes.some((n) => n >= 5)) return "ambiguous";
+  if (bestLinks < 3) return "low";
+  // A minor namesake exists: the best match is still clear, but flag it.
+  if (namesakes.length > 0) return "medium";
+  return "high";
+}
+
+/** Normalised name for equality checks: lowercased, punctuation stripped. */
+function normName(s) {
+  return String(s || "")
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .toLowerCase()
+      .replace(/[.'’-]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
 }
 
 /**
@@ -168,6 +320,9 @@ async function resolveByQid(qid) {
 
     return {
       ...(await toPerson({id: qid, label: "", description: ""}, entity, qid)),
+      sitelinks: sitelinkCount(entity),
+      // The caller picked this exact record, so resolution is settled.
+      confidence: "high",
       candidates: [],
     };
   } catch (e) {
@@ -227,7 +382,10 @@ async function describe(ids) {
   const u = new URL(API);
   u.searchParams.set("action", "wbgetentities");
   u.searchParams.set("ids", ids.join("|"));
-  u.searchParams.set("props", "claims|labels|descriptions|aliases");
+  // sitelinks: the number of Wikipedia language editions is a strong,
+  // source-backed prominence signal used to score resolution confidence
+  // and to tell two same-named people apart.
+  u.searchParams.set("props", "claims|labels|descriptions|aliases|sitelinks");
   u.searchParams.set("languages", "en");
   u.searchParams.set("format", "json");
 
@@ -269,6 +427,8 @@ function aliasesOf(e) {
 module.exports = {
   resolvePerson,
   resolveByQid,
+  resolutionConfidence,
+  sitelinkCount,
   extractFacts,
   isHuman,
   HUMAN,

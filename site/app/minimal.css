@@ -973,6 +973,12 @@ h3 {
 
 .senti-tabpanel {
   padding-top: 20px;
+}
+
+/* Only reserve height while a chart is actually shown, so a figure with
+   too little data to draw one does not leave a tall empty band above the
+   evidence and analysis blocks. */
+.senti-tabpanel:has(svg) {
   min-height: 260px;
 }
 

@@ -765,3 +765,66 @@
   background: var(--text);
   color: var(--bg);
 }
+
+/* ── Entity disambiguation chooser ──────────────────────────────────── */
+.disambig-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+  max-width: 640px;
+}
+.disambig-card {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  width: 100%;
+  text-align: left;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.disambig-card:hover,
+.disambig-card:focus-visible {
+  border-color: var(--text);
+  transform: translateY(-1px);
+}
+.disambig-photo {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+.disambig-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.disambig-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.disambig-name {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.disambig-desc {
+  color: var(--text);
+}
+.disambig-meta {
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}

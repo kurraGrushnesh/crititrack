@@ -15,6 +15,7 @@ import SentimentPanel from "@/components/SentimentPanel";
 import AttentionChart from "@/components/AttentionChart";
 import FigureTimeline from "@/components/FigureTimeline";
 import ProfileLinks from "@/components/ProfileLinks";
+import DisambiguationChooser from "@/components/DisambiguationChooser";
 import ProfessionalIdentity from "@/components/ProfessionalIdentity";
 import { Stat, StatRow } from "@/components/Stat";
 import MediaCoverage from "@/components/MediaCoverage";
@@ -31,7 +32,18 @@ import { sentimentConfidence } from "@/lib/confidence";
 import { parseProfileHash } from "@/lib/deep-link";
 import { relativeTime } from "@/lib/time";
 import { useCelebrity } from "@/lib/use-celebrity";
-import type { RealProfile } from "@/lib/api";
+import type { RealProfile, ProfileCandidate } from "@/lib/api";
+
+/** The current profile expressed as a chooser card (the "best guess"). */
+function selfCandidate(p: RealProfile): ProfileCandidate {
+  return {
+    name: p.name,
+    qid: p.wikidataId,
+    description: p.profession || undefined,
+    occupation: p.professional?.primary?.label || undefined,
+    imageUrl: p.imageUrl,
+  };
+}
 
 function initials(name: string): string {
   return name
@@ -284,7 +296,18 @@ function FigureInner() {
   const params = useSearchParams();
   const router = useRouter();
   const q = params.get("q")?.trim() ?? "";
-  const { state, retry } = useCelebrity(q || null);
+  const qid = params.get("qid")?.trim() ?? "";
+  const { state, retry } = useCelebrity(q || null, qid || undefined);
+
+  // The searcher pinned a specific person, or the backend was confident:
+  // show the profile. Only step in when resolution is genuinely unclear
+  // and there are real alternatives to offer.
+  const needsChoice =
+    state.status === "ready" &&
+    !qid &&
+    (state.profile.resolution === "ambiguous" ||
+      state.profile.resolution === "low") &&
+    state.profile.candidates.length > 0;
 
   if (!q) {
     return (
@@ -302,7 +325,15 @@ function FigureInner() {
 
       {state.status === "loading" && <FigureSkeleton name={q} />}
 
-      {state.status === "ready" && (
+      {state.status === "ready" && needsChoice && (
+        <DisambiguationChooser
+          query={q}
+          best={selfCandidate(state.profile)}
+          candidates={state.profile.candidates}
+        />
+      )}
+
+      {state.status === "ready" && !needsChoice && (
         <ProfileView profile={state.profile} cachedAt={state.cachedAt} />
       )}
 

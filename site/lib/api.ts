@@ -193,7 +193,25 @@ export interface RealProfile {
   timeline: TimelineEvent[];
   accounts: ProfileAccount[];
   professional: ProfessionalIdentity;
-  candidates: { name: string; description?: string; qid?: string }[];
+
+  /**
+   * How sure the backend is that this is the person the searcher meant.
+   * Absent on records assembled before entity resolution shipped — treat
+   * a missing value as "high" so existing profiles are unaffected.
+   */
+  resolution: "high" | "medium" | "low" | "ambiguous";
+  /** Other real people the name could have meant, for the chooser. */
+  candidates: ProfileCandidate[];
+}
+
+export interface ProfileCandidate {
+  name: string;
+  qid?: string;
+  description?: string;
+  occupation?: string;
+  country?: string;
+  imageUrl?: string;
+  birthYear?: string;
 }
 
 export class ApiError extends Error {
@@ -252,6 +270,11 @@ function mapAttention(v: unknown): Attention | null {
           }
         : null,
   };
+}
+
+/** Missing / unrecognised confidence means an older record: assume high. */
+function resolutionBand(v: string): RealProfile["resolution"] {
+  return v === "medium" || v === "low" || v === "ambiguous" ? v : "high";
 }
 
 function mapProfile(j: Json): RealProfile {
@@ -348,11 +371,18 @@ function mapProfile(j: Json): RealProfile {
       fieldsOfWork: strs(obj(entity.facts).fieldsOfWork),
       deceased: Boolean(str(obj(entity.facts).deathDate)),
     }),
-    candidates: list(entity.candidates).map((c) => ({
-      name: str(c.name) || str(c.label),
-      description: str(c.description) || undefined,
-      qid: str(c.qid) || undefined,
-    })),
+    resolution: resolutionBand(str(entity.confidence)),
+    candidates: list(entity.candidates)
+      .map((c) => ({
+        name: str(c.name) || str(c.label),
+        qid: str(c.qid) || undefined,
+        description: str(c.description) || undefined,
+        occupation: str(c.occupation) || undefined,
+        country: str(c.country) || undefined,
+        imageUrl: str(c.image) || str(c.imageUrl) || undefined,
+        birthYear: str(c.birthYear) || undefined,
+      }))
+      .filter((c) => c.name),
   };
 }
 
