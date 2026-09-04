@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { Attention } from "@/lib/api";
 import {
   attentionGeometry,
@@ -8,6 +8,7 @@ import {
   formatCompact,
   shortDate,
 } from "@/lib/attention";
+import VisuallyHidden from "./VisuallyHidden";
 
 /**
  * Public attention: daily Wikipedia pageviews over the trailing window.
@@ -22,6 +23,8 @@ export default function AttentionChart({ data }: { data: Attention }) {
   const geo = attentionGeometry(data.series, W, H);
   const svgRef = useRef<SVGSVGElement>(null);
   const [hover, setHover] = useState<number | null>(null);
+  const titleId = useId();
+  const descId = useId();
 
   if (!geo) return null;
   const { line, area, points, peakIndex, maxViews } = geo;
@@ -49,12 +52,20 @@ export default function AttentionChart({ data }: { data: Attention }) {
           viewBox={`0 0 ${W} ${H}`}
           className="attention-svg"
           role="img"
-          aria-label={`Wikipedia pageviews${
-            s ? `, ${changeLabel(s.changePct)} over ${s.days} days, peak ${formatCompact(s.peak.views)}` : ""
-          }`}
+          aria-labelledby={`${titleId} ${descId}`}
           onPointerMove={onMove}
           onPointerLeave={() => setHover(null)}
         >
+          <title id={titleId}>Daily Wikipedia pageviews</title>
+          <desc id={descId}>
+            {s
+              ? `${changeLabel(s.changePct)} over ${s.days} days. Peak ${formatCompact(
+                  s.peak.views,
+                )} on ${shortDate(s.peak.date)}; latest ${formatCompact(
+                  s.latest.views,
+                )} on ${shortDate(s.latest.date)}. Full daily figures follow in a table.`
+              : "Daily figures follow in a table."}
+          </desc>
           <line
             x1="0"
             y1={H}
@@ -152,6 +163,26 @@ export default function AttentionChart({ data }: { data: Attention }) {
           </div>
         </dl>
       )}
+
+      <VisuallyHidden as="div">
+        <table>
+          <caption>Daily Wikipedia pageviews. Source: {data.source}.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Pageviews</th>
+            </tr>
+          </thead>
+          <tbody>
+            {points.map((p) => (
+              <tr key={p.date}>
+                <td>{p.date}</td>
+                <td>{Math.round(p.views).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </VisuallyHidden>
 
       <p className="form-note">Source: {data.source}.</p>
     </div>

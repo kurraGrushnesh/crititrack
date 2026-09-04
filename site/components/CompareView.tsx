@@ -94,6 +94,7 @@ function ComparePanel({ slug }: { slug: string }) {
               points={p.trend}
               current={p.sentimentScore}
               direction={p.trendDirection}
+              label={p.name}
             />
           </dd>
         </div>
