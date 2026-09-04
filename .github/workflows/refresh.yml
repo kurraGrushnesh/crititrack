@@ -41,6 +41,7 @@ jobs:
         env:
           REFRESH_SECRET: ${{ secrets.REFRESH_SECRET }}
         run: |
+          echo "REFRESH_SECRET length: ${#REFRESH_SECRET}"
           if [ -z "$REFRESH_SECRET" ]; then
             echo "REFRESH_SECRET is not configured; skipping."
             exit 0
