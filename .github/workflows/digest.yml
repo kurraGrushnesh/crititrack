@@ -1,0 +1,42 @@
+name: digest
+
+# Sends every device registered for alerts a once-a-week summary of how
+# the figures it follows have moved, by calling POST /digest. Same shared
+# secret as the refresh job (REFRESH_SECRET). Skipped, not failed, when
+# the secret is absent.
+#
+# Monday mornings. runWeeklyDigest spends nothing upstream — Firestore
+# reads plus FCM sends — and skips any device whose figures produced no
+# movement, so a quiet week sends nothing.
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: digest
+  cancel-in-progress: false
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Call POST /digest
+        env:
+          REFRESH_SECRET: ${{ secrets.REFRESH_SECRET }}
+        run: |
+          if [ -z "$REFRESH_SECRET" ]; then
+            echo "REFRESH_SECRET is not configured; skipping."
+            exit 0
+          fi
+          body=$(curl -sS --fail-with-body \
+            --max-time 300 --retry 2 --retry-delay 30 \
+            -X POST \
+            -H "X-Refresh-Secret: $REFRESH_SECRET" \
+            https://crititrack-api.onrender.com/digest)
+          echo "digest -> $body"
+          echo "$body" | grep -q '"sent":'

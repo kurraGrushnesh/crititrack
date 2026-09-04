@@ -24,6 +24,7 @@ const {
   handleReportCorrection,
   handleTrending,
   runScheduledRefresh,
+  runWeeklyDigest,
 } = require("./lib/handlers");
 
 initializeApp();
@@ -78,4 +79,16 @@ exports.refreshTrackedCelebrities = onSchedule(
       retryCount: 0,
     },
     () => runScheduledRefresh(readKeys()),
+);
+
+exports.weeklyDigest = onSchedule(
+    {
+      // Monday 08:00 UTC.
+      schedule: "0 8 * * 1",
+      timeZone: "Etc/UTC",
+      timeoutSeconds: 300,
+      memory: "256MiB",
+      retryCount: 0,
+    },
+    () => runWeeklyDigest({}),
 );

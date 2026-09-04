@@ -448,6 +448,35 @@ async function readDevicesForSlug(slug) {
 }
 
 /**
+ * Every registered device, for the weekly digest job. Unlike
+ * `readDevicesForSlug` this is not filtered — the digest visits every
+ * device once and builds its summary from the figures that device
+ * follows.
+ *
+ * @return {Promise<Array<object>>} device rows, each carrying its own id
+ */
+async function listAllDevices() {
+  const snap = await getFirestore().collection(DEVICES).get();
+  return snap.docs.map((d) => ({id: d.id, ...d.data()}));
+}
+
+/**
+ * Records that a digest run happened and what it sent, keyed by date, so
+ * a re-run in the same week overwrites rather than piling up and there is
+ * an audit trail separate from the logs.
+ *
+ * @param {{devices: number, sent: number, movers: number}} summary
+ * @return {Promise<void>}
+ */
+async function writeDigestRun(summary, now = new Date()) {
+  const date = now.toISOString().slice(0, 10);
+  await getFirestore().collection("digests").doc(date).set(
+      {...summary, date, ranAt: FieldValue.serverTimestamp()},
+      {merge: true},
+  );
+}
+
+/**
  * Removes device rows whose tokens FCM has told us are permanently dead.
  *
  * Deleting the whole row rather than blanking the token is deliberate: a
@@ -516,6 +545,8 @@ module.exports = {
   listTracked,
   listTrending,
   toTrendingRow,
+  listAllDevices,
+  writeDigestRun,
   todaySnapshot,
   readSnapshotHistory,
   readLastAlertedAt,
