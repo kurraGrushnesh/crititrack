@@ -9,7 +9,6 @@
 /// Dependencies: [dashboardProvider] for async celebrity data.
 library;
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

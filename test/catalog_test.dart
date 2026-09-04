@@ -32,8 +32,7 @@ void main() {
 
   group('roster', () {
     test('every entry is in a real category with a plausible birth year', () {
-      final slugs =
-          CatalogAdapter.categories().map((c) => c.slug).toSet();
+      final slugs = CatalogAdapter.categories().map((c) => c.slug).toSet();
       for (final r in kRoster) {
         expect(slugs, contains(r.category));
         expect(r.born, greaterThan(1900));
@@ -59,8 +58,10 @@ void main() {
 
     test('every category can fill a Top 10', () {
       for (final c in CatalogAdapter.categories()) {
-        expect(CatalogAdapter.rosterFor(c.slug).length,
-            greaterThanOrEqualTo(10));
+        expect(
+          CatalogAdapter.rosterFor(c.slug).length,
+          greaterThanOrEqualTo(10),
+        );
         expect(CatalogAdapter.topTen(c.slug), hasLength(10));
       }
     });
@@ -68,8 +69,10 @@ void main() {
 
   group('helpers', () {
     test('figureByName is case-insensitive', () {
-      expect(CatalogAdapter.figureByName('serena williams')?.category,
-          'athletes');
+      expect(
+        CatalogAdapter.figureByName('serena williams')?.category,
+        'athletes',
+      );
       expect(CatalogAdapter.figureByName('  Beyoncé ')?.category, 'musicians');
     });
 

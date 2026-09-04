@@ -16,12 +16,13 @@ class PersonTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final initials = entry.name
-        .split(RegExp(r'\s+'))
-        .where((w) => w.isNotEmpty)
-        .take(2)
-        .map((w) => w[0].toUpperCase())
-        .join();
+    final initials =
+        entry.name
+            .split(RegExp(r'\s+'))
+            .where((w) => w.isNotEmpty)
+            .take(2)
+            .map((w) => w[0].toUpperCase())
+            .join();
     final hue = (entry.name.hashCode.abs() % 360).toDouble();
 
     return Semantics(
@@ -41,8 +42,7 @@ class PersonTile extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 22,
-                backgroundColor:
-                    HSLColor.fromAHSL(1, hue, 0.4, 0.2).toColor(),
+                backgroundColor: HSLColor.fromAHSL(1, hue, 0.4, 0.2).toColor(),
                 child: Text(
                   initials,
                   style: TextStyle(
@@ -65,9 +65,9 @@ class PersonTile extends StatelessWidget {
                       entry.descriptor,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: palette.textMuted,
-                          ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: palette.textMuted),
                     ),
                   ],
                 ),
@@ -78,9 +78,9 @@ class PersonTile extends StatelessWidget {
                   child: Text(
                     '$rank',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: palette.brandText,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      color: palette.brandText,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
             ],

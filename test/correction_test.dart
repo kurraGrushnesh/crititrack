@@ -18,9 +18,11 @@ CleanCorrection valid({
     slug: slug ?? 'marisol-quivera',
     field: field ?? 'controversy',
     kind: kind,
-    claim: claim ??
+    claim:
+        claim ??
         'The profile says the arena dates were cancelled with no refunds.',
-    correction: correction ??
+    correction:
+        correction ??
         "Refunds were issued within a week; the delay was the promoter's.",
     evidenceUrl: evidenceUrl,
     email: email,
@@ -92,10 +94,7 @@ void main() {
         input: {'evidenceUrl': 'javascript:alert(1)'},
         field: 'evidenceUrl',
       ),
-      'a malformed email': (
-        input: {'email': 'not-an-email'},
-        field: 'email',
-      ),
+      'a malformed email': (input: {'email': 'not-an-email'}, field: 'email'),
     };
 
     cases.forEach((name, spec) {
@@ -111,11 +110,7 @@ void main() {
             email: spec.input['email'],
           ),
           throwsA(
-            isA<CorrectionError>().having(
-              (e) => e.field,
-              'field',
-              spec.field,
-            ),
+            isA<CorrectionError>().having((e) => e.field, 'field', spec.field),
           ),
         );
       });

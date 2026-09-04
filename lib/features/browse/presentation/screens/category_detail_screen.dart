@@ -43,69 +43,78 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
 
   Future<void> _openFilters() async {
     final roster = CatalogAdapter.rosterFor(widget.slug);
-    final decades = CatalogAdapter.decades
-        .where((d) => roster.any((r) => r.decade == d))
-        .toList();
+    final decades =
+        CatalogAdapter.decades
+            .where((d) => roster.any((r) => r.decade == d))
+            .toList();
 
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
-      builder: (sheetContext) => StatefulBuilder(
-        builder: (sheetContext, setSheet) => Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Born', style: Theme.of(context).textTheme.titleSmall),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: [
-                  ChoiceChip(
-                    label: const Text('Any'),
-                    selected: _decade == null,
-                    onSelected: (_) {
-                      setSheet(() {});
-                      setState(() => _decade = null);
-                    },
+      builder:
+          (sheetContext) => StatefulBuilder(
+            builder:
+                (sheetContext, setSheet) => Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Born',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          ChoiceChip(
+                            label: const Text('Any'),
+                            selected: _decade == null,
+                            onSelected: (_) {
+                              setSheet(() {});
+                              setState(() => _decade = null);
+                            },
+                          ),
+                          for (final d in decades)
+                            ChoiceChip(
+                              label: Text('${d}s'),
+                              selected: _decade == d,
+                              onSelected: (_) {
+                                setSheet(() {});
+                                setState(() => _decade = d);
+                              },
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Sort',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          for (final s in _Sort.values)
+                            ChoiceChip(
+                              label: Text(switch (s) {
+                                _Sort.prominence => 'Prominence',
+                                _Sort.name => 'A–Z',
+                                _Sort.age => 'Age',
+                              }),
+                              selected: _sort == s,
+                              onSelected: (_) {
+                                setSheet(() {});
+                                setState(() => _sort = s);
+                              },
+                            ),
+                        ],
+                      ),
+                    ],
                   ),
-                  for (final d in decades)
-                    ChoiceChip(
-                      label: Text('${d}s'),
-                      selected: _decade == d,
-                      onSelected: (_) {
-                        setSheet(() {});
-                        setState(() => _decade = d);
-                      },
-                    ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Text('Sort', style: Theme.of(context).textTheme.titleSmall),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: [
-                  for (final s in _Sort.values)
-                    ChoiceChip(
-                      label: Text(switch (s) {
-                        _Sort.prominence => 'Prominence',
-                        _Sort.name => 'A–Z',
-                        _Sort.age => 'Age',
-                      }),
-                      selected: _sort == s,
-                      onSelected: (_) {
-                        setSheet(() {});
-                        setState(() => _sort = s);
-                      },
-                    ),
-                ],
-              ),
-            ],
+                ),
           ),
-        ),
-      ),
     );
   }
 
@@ -147,17 +156,19 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: [
-          Text(category.blurb,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: palette.textMuted,
-                  )),
+          Text(
+            category.blurb,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: palette.textMuted),
+          ),
           const SizedBox(height: 20),
           Text('Top 10', style: Theme.of(context).textTheme.titleLarge),
           Text(
             'Ordered by public prominence, not by controversy.',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: palette.textMuted,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: palette.textMuted),
           ),
           const SizedBox(height: 12),
           for (var i = 0; i < top.length; i++) ...[
@@ -168,8 +179,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
           Row(
             children: [
               Expanded(
-                child: Text('Everyone in this category',
-                    style: Theme.of(context).textTheme.titleLarge),
+                child: Text(
+                  'Everyone in this category',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
               ),
               TextButton.icon(
                 onPressed: _openFilters,
@@ -185,9 +198,9 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
               child: Center(
                 child: Text(
                   'No figures here were born in the ${_decade}s.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: palette.textMuted,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: palette.textMuted),
                 ),
               ),
             )

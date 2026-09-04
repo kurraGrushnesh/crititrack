@@ -61,23 +61,20 @@ class EditorialHeader extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-      child: wide
-          ? Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(flex: 5, child: nameBlock),
-                const SizedBox(width: 28),
-                Expanded(flex: 4, child: portrait),
-              ],
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                nameBlock,
-                const SizedBox(height: 24),
-                portrait,
-              ],
-            ),
+      child:
+          wide
+              ? Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 5, child: nameBlock),
+                  const SizedBox(width: 28),
+                  Expanded(flex: 4, child: portrait),
+                ],
+              )
+              : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [nameBlock, const SizedBox(height: 24), portrait],
+              ),
     );
   }
 
@@ -99,33 +96,33 @@ class _StatTable extends StatelessWidget {
     final side = BorderSide(color: palette.borderStrong);
 
     Widget cell(String k, String v, {required bool first}) => Expanded(
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border(left: first ? BorderSide.none : side),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(left: first ? BorderSide.none : side),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+        child: Column(
+          children: [
+            Text(
+              k.toUpperCase(),
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: palette.textMuted,
+                letterSpacing: 0.8,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
-            child: Column(
-              children: [
-                Text(
-                  k.toUpperCase(),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: palette.textMuted,
-                    letterSpacing: 0.8,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  v,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
-                ),
-              ],
+            const SizedBox(height: 6),
+            Text(
+              v,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
-          ),
-        );
+          ],
+        ),
+      ),
+    );
 
     return Container(
       constraints: const BoxConstraints(maxWidth: 460),
@@ -160,30 +157,31 @@ class _Portrait extends StatelessWidget {
         child: Text(
           _initials(name),
           style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: palette.textPrimary,
-              ),
+            fontWeight: FontWeight.w800,
+            color: palette.textPrimary,
+          ),
         ),
       ),
     );
 
-    final Widget content = (imageUrl == null || imageUrl!.isEmpty)
-        ? fallback
-        : ColorFiltered(
-            colorFilter: const ColorFilter.matrix(<double>[
-              0.2126, 0.7152, 0.0722, 0, 0, //
-              0.2126, 0.7152, 0.0722, 0, 0, //
-              0.2126, 0.7152, 0.0722, 0, 0, //
-              0, 0, 0, 1, 0,
-            ]),
-            child: CachedNetworkImage(
-              imageUrl: imageUrl!,
-              fit: BoxFit.cover,
-              alignment: const Alignment(0, -0.25),
-              placeholder: (_, __) => fallback,
-              errorWidget: (_, __, ___) => fallback,
-            ),
-          );
+    final Widget content =
+        (imageUrl == null || imageUrl!.isEmpty)
+            ? fallback
+            : ColorFiltered(
+              colorFilter: const ColorFilter.matrix(<double>[
+                0.2126, 0.7152, 0.0722, 0, 0, //
+                0.2126, 0.7152, 0.0722, 0, 0, //
+                0.2126, 0.7152, 0.0722, 0, 0, //
+                0, 0, 0, 1, 0,
+              ]),
+              child: CachedNetworkImage(
+                imageUrl: imageUrl!,
+                fit: BoxFit.cover,
+                alignment: const Alignment(0, -0.25),
+                placeholder: (_, __) => fallback,
+                errorWidget: (_, __, ___) => fallback,
+              ),
+            );
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
@@ -200,10 +198,11 @@ class _Portrait extends StatelessWidget {
     );
   }
 
-  static String _initials(String name) => name
-      .split(RegExp(r'\s+'))
-      .where((w) => w.isNotEmpty)
-      .take(2)
-      .map((w) => w[0].toUpperCase())
-      .join();
+  static String _initials(String name) =>
+      name
+          .split(RegExp(r'\s+'))
+          .where((w) => w.isNotEmpty)
+          .take(2)
+          .map((w) => w[0].toUpperCase())
+          .join();
 }

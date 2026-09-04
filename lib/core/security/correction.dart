@@ -169,9 +169,10 @@ CleanCorrection validateCorrection({
   }
 
   final kindValue = (kind ?? '').trim().toLowerCase();
-  final parsedKind = kindValue.isEmpty
-      ? CorrectionKind.correction
-      : CorrectionKind.parse(kindValue);
+  final parsedKind =
+      kindValue.isEmpty
+          ? CorrectionKind.correction
+          : CorrectionKind.parse(kindValue);
   if (parsedKind == null) {
     throw const CorrectionError('kind', 'invalid', 'Unknown submission type.');
   }

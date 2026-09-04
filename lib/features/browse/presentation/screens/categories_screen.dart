@@ -26,9 +26,9 @@ class CategoriesScreen extends StatelessWidget {
           'Each category has a curated Top 10 by public prominence, plus '
           'filters. Scores and evidence come from a live analysis when you '
           'open a profile.',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: palette.textMuted,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: palette.textMuted),
         ),
         const SizedBox(height: 20),
         for (final c in categories) ...[
@@ -56,17 +56,17 @@ class CategoriesScreen extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       c.blurb,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: palette.textMuted,
-                          ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: palette.textMuted),
                     ),
                     const SizedBox(height: 10),
                     Text(
                       'Leads with '
                       '${CatalogAdapter.topTen(c.slug).first.name}',
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: palette.brandText,
-                          ),
+                        color: palette.brandText,
+                      ),
                     ),
                   ],
                 ),

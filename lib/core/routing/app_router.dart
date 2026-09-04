@@ -46,17 +46,18 @@ final GoRouter appRouter = GoRouter(
     // views (dashboard, webview, alerts) are pushed over the shell and
     // are full-screen.
     StatefulShellRoute.indexedStack(
-      builder: (context, state, navigationShell) =>
-          MainShell(navigationShell: navigationShell),
+      builder:
+          (context, state, navigationShell) =>
+              MainShell(navigationShell: navigationShell),
       branches: [
         StatefulShellBranch(
           routes: [
             GoRoute(
               path: '/',
               name: 'home',
-              builder: (context, state) => HomeScreen(
-                initialQuery: state.uri.queryParameters['q'],
-              ),
+              builder:
+                  (context, state) =>
+                      HomeScreen(initialQuery: state.uri.queryParameters['q']),
             ),
           ],
         ),
@@ -70,9 +71,10 @@ final GoRouter appRouter = GoRouter(
                 GoRoute(
                   path: ':category',
                   name: 'category',
-                  builder: (context, state) => CategoryDetailScreen(
-                    slug: state.pathParameters['category']!,
-                  ),
+                  builder:
+                      (context, state) => CategoryDetailScreen(
+                        slug: state.pathParameters['category']!,
+                      ),
                 ),
               ],
             ),

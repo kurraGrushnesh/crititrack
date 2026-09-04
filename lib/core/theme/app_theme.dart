@@ -355,16 +355,18 @@ abstract final class AppTheme {
         surfaceTintColor: Colors.transparent,
         iconTheme: WidgetStateProperty.resolveWith(
           (states) => IconThemeData(
-            color: states.contains(WidgetState.selected)
-                ? palette.brandText
-                : palette.textMuted,
+            color:
+                states.contains(WidgetState.selected)
+                    ? palette.brandText
+                    : palette.textMuted,
           ),
         ),
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => textTheme.labelSmall!.copyWith(
-            color: states.contains(WidgetState.selected)
-                ? palette.textPrimary
-                : palette.textMuted,
+            color:
+                states.contains(WidgetState.selected)
+                    ? palette.textPrimary
+                    : palette.textMuted,
             fontWeight: FontWeight.w600,
           ),
         ),
