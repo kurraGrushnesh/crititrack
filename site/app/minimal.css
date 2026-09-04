@@ -574,6 +574,18 @@ h3 {
   padding-bottom: 12px;
 }
 
+/* Keep the portrait from towering over a short name/stat column and
+   leaving dead space beside it. Capped height, pinned to the top-right
+   of the grid cell. Only while the two-column grid is in play. */
+@media (min-width: 821px) {
+  .figure-main .portrait-frame {
+    align-self: start;
+    justify-self: end;
+    width: auto;
+    max-height: 360px;
+  }
+}
+
 @media (max-width: 560px) {
   .figure-main .min-section {
     padding-top: 28px;

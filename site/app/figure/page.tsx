@@ -147,8 +147,6 @@ function ProfileView({
           <div style={{ marginTop: 24 }}>
             <WatchButton slug={profile.slug} name={profile.name} />
           </div>
-
-          <ProfileLinks accounts={profile.accounts} />
         </div>
 
         <div className="portrait-frame">
@@ -164,6 +162,12 @@ function ProfileView({
           )}
         </div>
       </div>
+
+      {profile.accounts.length > 0 && (
+        <div className="figure-accounts">
+          <ProfileLinks accounts={profile.accounts} />
+        </div>
+      )}
 
       {(profile.summary || profile.notableWorks.length > 0) && (
         <div className="min-section" id="summary" style={{ paddingTop: 8 }}>

@@ -354,12 +354,19 @@
 
 /* ── Profile account links ─────────────────────────────────────── */
 
+/* A slim full-width strip between the profile header and the bio, so it
+   never leaves a gap under a short header column. */
+.figure-accounts {
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding: 4px 24px 0;
+}
+
 .profile-links {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 8px 12px;
-  margin-top: 18px;
 }
 .profile-links-label {
   font-size: 0.75rem;
