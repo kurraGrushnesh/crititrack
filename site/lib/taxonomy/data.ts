@@ -127,6 +127,12 @@ export const TAXONOMY: TaxonomySectorNode[] = [
                 ],
               },
               {
+                id: "computer-scientist",
+                label: "Computer Scientist",
+                aliases: ["Computing Researcher", "Theoretical Computer Scientist"],
+                specializations: ["Algorithms Researcher", "Systems Researcher", "HCI Researcher", "Cryptographer"],
+              },
+              {
                 id: "ai-researcher",
                 label: "AI Researcher",
                 aliases: [
@@ -612,7 +618,7 @@ export const TAXONOMY: TaxonomySectorNode[] = [
               {
                 id: "entrepreneur",
                 label: "Entrepreneur",
-                aliases: ["Founder", "Co-Founder", "Business Owner", "Businessperson", "Businessman", "Businesswoman", "Industrialist", "Business Magnate"],
+                aliases: ["Founder", "Co-Founder", "Business Owner", "Businessperson", "Businessman", "Businesswoman", "Industrialist", "Business Magnate", "Fashion Entrepreneur", "Media Entrepreneur"],
                 specializations: ["Serial Entrepreneur", "Social Entrepreneur"],
               },
               { id: "venture-capitalist", label: "Venture Capitalist", aliases: ["VC", "Startup Investor"] },
@@ -893,7 +899,7 @@ export const TAXONOMY: TaxonomySectorNode[] = [
               },
               { id: "news-anchor", label: "News Anchor", aliases: ["News Presenter", "Newsreader", "Anchor"] },
               { id: "editor", label: "Editor", aliases: ["Editor-in-Chief", "Managing Editor", "News Editor", "Commissioning Editor"] },
-              { id: "columnist", label: "Columnist", aliases: ["Opinion Writer", "Op-ed Writer", "Commentator", "Pundit"] },
+              { id: "columnist", label: "Columnist", aliases: ["Opinion Writer", "Op-ed Writer", "Commentator", "Pundit", "Political Writer", "Political Commentator"] },
               { id: "media-executive", label: "Media Executive", aliases: ["Media Proprietor", "Media Mogul", "Publisher", "Press Baron"] },
             ],
           },
@@ -1198,6 +1204,13 @@ export const TAXONOMY: TaxonomySectorNode[] = [
         label: "Individual Sports",
         families: [
           {
+            id: "general-athletics",
+            label: "General",
+            occupations: [
+              { id: "athlete", label: "Athlete", aliases: ["Sportsperson", "Sportsman", "Sportswoman", "Sports Competitor"], specializations: ["Olympian", "Paralympian"] },
+            ],
+          },
+          {
             id: "racket-sports",
             label: "Racket Sports",
             occupations: [
@@ -1211,7 +1224,7 @@ export const TAXONOMY: TaxonomySectorNode[] = [
             id: "athletics-track",
             label: "Athletics",
             occupations: [
-              { id: "athlete-track-field", label: "Track and Field Athlete", aliases: ["Athlete", "Sprinter", "Runner", "Long-distance Runner", "Marathon Runner", "Jumper", "Thrower"], specializations: ["Sprinter", "Middle-distance Runner", "Long-distance Runner", "Marathoner", "High Jumper", "Long Jumper", "Javelin Thrower", "Shot Putter", "Pole Vaulter", "Hurdler"] },
+              { id: "athlete-track-field", label: "Track and Field Athlete", aliases: ["Sprinter", "Runner", "Long-distance Runner", "Marathon Runner", "Jumper", "Thrower", "Athletics Competitor"], specializations: ["Sprinter", "Middle-distance Runner", "Long-distance Runner", "Marathoner", "High Jumper", "Long Jumper", "Javelin Thrower", "Shot Putter", "Pole Vaulter", "Hurdler"] },
             ],
           },
           {
