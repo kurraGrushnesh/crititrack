@@ -14,6 +14,7 @@ import ConfidenceBadge from "@/components/ConfidenceBadge";
 import SentimentPanel from "@/components/SentimentPanel";
 import AttentionChart from "@/components/AttentionChart";
 import FigureTimeline from "@/components/FigureTimeline";
+import ProfileLinks from "@/components/ProfileLinks";
 import { Stat, StatRow } from "@/components/Stat";
 import MediaCoverage from "@/components/MediaCoverage";
 import BioSection from "@/components/BioSection";
@@ -146,6 +147,8 @@ function ProfileView({
           <div style={{ marginTop: 24 }}>
             <WatchButton slug={profile.slug} name={profile.name} />
           </div>
+
+          <ProfileLinks accounts={profile.accounts} />
         </div>
 
         <div className="portrait-frame">

@@ -225,6 +225,42 @@ test("external identifiers become URLs", () => {
   assert.equal(links.website, "https://example.com");
 });
 
+test("the wider social set becomes URLs, each validated per platform", () => {
+  const e = {
+    claims: {
+      P2397: [claimStr("UC" + "a".repeat(22))],
+      P2013: [claimStr("official.page")],
+      P7085: [claimStr("the.star")],
+      P6634: [claimStr("jane-doe-123")],
+      P17427: [claimStr("thestar")],
+      P12361: [claimStr("star.bsky.social")],
+      P4033: [claimStr("star@mastodon.social")],
+    },
+  };
+  const links = extractFacts(e).links;
+  assert.equal(links.youtube, "https://www.youtube.com/channel/UC" + "a".repeat(22));
+  assert.equal(links.facebook, "https://www.facebook.com/official.page");
+  assert.equal(links.tiktok, "https://www.tiktok.com/@the.star");
+  assert.equal(links.linkedin, "https://www.linkedin.com/in/jane-doe-123");
+  assert.equal(links.threads, "https://www.threads.net/@thestar");
+  assert.equal(links.bluesky, "https://bsky.app/profile/star.bsky.social");
+  assert.equal(links.mastodon, "https://mastodon.social/@star");
+});
+
+test("a malformed YouTube channel id or bare Bluesky handle is dropped", () => {
+  const e = {
+    claims: {
+      P2397: [claimStr("HC123")], // not a UC-prefixed 24-char id
+      P12361: [claimStr("nodothandle")], // no domain part
+      P4033: [claimStr("notmastodon")], // no user@instance
+    },
+  };
+  const links = extractFacts(e).links;
+  assert.equal(links.youtube, undefined);
+  assert.equal(links.bluesky, undefined);
+  assert.equal(links.mastodon, undefined);
+});
+
 test("an IMDb title id on a person is rejected, not linked to a film", () => {
   const e = {claims: {P345: [claimStr("tt1234567")]}};
   assert.equal(extractFacts(e).links.imdb, undefined);

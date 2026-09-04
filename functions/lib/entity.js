@@ -80,6 +80,13 @@ const EXTERNAL = {
   x: "P2002",
   instagram: "P2003",
   website: "P856",
+  youtube: "P2397", // channel id, "UC..."
+  facebook: "P2013", // page/profile id or vanity name
+  tiktok: "P7085", // handle without the "@"
+  linkedin: "P6634", // personal profile vanity id
+  threads: "P17427", // handle without the "@"
+  bluesky: "P12361", // full handle, e.g. "name.bsky.social"
+  mastodon: "P4033", // "user@instance.tld"
 };
 
 /** How many occupations to keep. Wikidata often lists a dozen. */
@@ -374,6 +381,40 @@ function externalLinks(entity) {
   if (ig && /^[A-Za-z0-9._]{1,30}$/.test(ig)) {
     out.instagram = `https://www.instagram.com/${ig}/`;
   }
+
+  const yt = raw(EXTERNAL.youtube);
+  if (yt && /^UC[A-Za-z0-9_-]{22}$/.test(yt)) {
+    out.youtube = `https://www.youtube.com/channel/${yt}`;
+  }
+
+  const fb = raw(EXTERNAL.facebook);
+  if (fb && /^[A-Za-z0-9.]{2,60}$/.test(fb)) {
+    out.facebook = `https://www.facebook.com/${fb}`;
+  }
+
+  const tt = raw(EXTERNAL.tiktok);
+  if (tt && /^[A-Za-z0-9._]{2,24}$/.test(tt)) {
+    out.tiktok = `https://www.tiktok.com/@${tt}`;
+  }
+
+  const li = raw(EXTERNAL.linkedin);
+  if (li && /^[A-Za-z0-9-]{3,100}$/.test(li)) {
+    out.linkedin = `https://www.linkedin.com/in/${li}`;
+  }
+
+  const th = raw(EXTERNAL.threads);
+  if (th && /^[A-Za-z0-9._]{1,30}$/.test(th)) {
+    out.threads = `https://www.threads.net/@${th}`;
+  }
+
+  const bsky = raw(EXTERNAL.bluesky);
+  if (bsky && /^[A-Za-z0-9.-]{3,253}$/.test(bsky) && bsky.includes(".")) {
+    out.bluesky = `https://bsky.app/profile/${bsky}`;
+  }
+
+  const masto = raw(EXTERNAL.mastodon);
+  const mm = masto && masto.match(/^([A-Za-z0-9_]{1,30})@([A-Za-z0-9.-]{3,253})$/);
+  if (mm) out.mastodon = `https://${mm[2]}/@${mm[1]}`;
 
   const site = raw(EXTERNAL.website);
   if (site && /^https?:\/\//i.test(site)) out.website = site;

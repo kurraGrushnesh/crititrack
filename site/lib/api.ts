@@ -88,6 +88,46 @@ export function topicsPresent(media: MediaLink[]): MediaTopic[] {
   return MEDIA_TOPICS.filter((t) => seen.has(t));
 }
 
+/**
+ * A verified link to something the figure runs themselves — an official
+ * site, a primary social account, an IMDb page. The handle is read off
+ * Wikidata; the URL shape and per-platform validation are the backend's
+ * (`functions/lib/entity.js`). Shown so a reader can leave and check.
+ */
+export interface ProfileAccount {
+  /** Stable key: "x", "instagram", "youtube", "website", "imdb", … */
+  platform: string;
+  /** Human label for the link. */
+  label: string;
+  url: string;
+}
+
+/** Display order and labels for the account links. */
+const ACCOUNT_META: { key: string; label: string }[] = [
+  { key: "website", label: "Official site" },
+  { key: "x", label: "X" },
+  { key: "instagram", label: "Instagram" },
+  { key: "youtube", label: "YouTube" },
+  { key: "tiktok", label: "TikTok" },
+  { key: "facebook", label: "Facebook" },
+  { key: "threads", label: "Threads" },
+  { key: "bluesky", label: "Bluesky" },
+  { key: "mastodon", label: "Mastodon" },
+  { key: "linkedin", label: "LinkedIn" },
+  { key: "imdb", label: "IMDb" },
+];
+
+export function mapAccounts(v: unknown): ProfileAccount[] {
+  const links = obj(v);
+  const out: ProfileAccount[] = [];
+  for (const { key, label } of ACCOUNT_META) {
+    const url = str(links[key]);
+    // Only http(s); the backend already validates, this is defence in depth.
+    if (url && /^https:\/\//i.test(url)) out.push({ platform: key, label, url });
+  }
+  return out;
+}
+
 export interface AttentionPoint {
   date: string;
   views: number;
@@ -147,6 +187,7 @@ export interface RealProfile {
   media: MediaLink[];
   attention: Attention | null;
   timeline: TimelineEvent[];
+  accounts: ProfileAccount[];
   candidates: { name: string; description?: string; qid?: string }[];
 }
 
@@ -295,6 +336,7 @@ function mapProfile(j: Json): RealProfile {
       .filter((m) => m.title && m.url),
     attention: mapAttention(j.attention),
     timeline: buildTimeline(j.timeline, trend),
+    accounts: mapAccounts(obj(entity.facts).links),
     candidates: list(entity.candidates).map((c) => ({
       name: str(c.name) || str(c.label),
       description: str(c.description) || undefined,

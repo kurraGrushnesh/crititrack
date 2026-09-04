@@ -352,6 +352,39 @@
   margin-bottom: 20px;
 }
 
+/* ── Profile account links ─────────────────────────────────────── */
+
+.profile-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 12px;
+  margin-top: 18px;
+}
+.profile-links-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.profile-links ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.profile-links a {
+  font-size: 0.85rem;
+  color: var(--brand-strong);
+  text-decoration: none;
+}
+.profile-links a:hover {
+  text-decoration: underline;
+}
+
 /* ── Locale switcher ────────────────────────────────────────────── */
 
 .locale-switch {
