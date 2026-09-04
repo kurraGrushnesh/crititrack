@@ -66,7 +66,14 @@ jobs:
       - name: Run functions tests
         run: npm test
         working-directory: functions
+      # Non-blocking: `npm audit` calls registry.npmjs.org's advisory
+      # endpoint at run time, which has been flaky enough to fail this
+      # job on infrastructure rather than on our dependencies. The result
+      # is still surfaced in the log and the step is marked failed when
+      # something real turns up; it just no longer fails the run. A
+      # scheduled `npm audit` (audit.yml) is the place for a hard gate.
       - name: Audit dependencies
+        continue-on-error: true
         run: npm audit --audit-level=high
         working-directory: functions
 

@@ -1,0 +1,75 @@
+name: deploy-site
+
+# Publishes the Next.js static export to Firebase Hosting
+# (crititrack-f7430.web.app) on every push to main that touches the site.
+#
+# The build → stage → deploy steps mirror the manual process:
+#   cd site && npm run build         # -> site/out
+#   node tool/assemble_hosting.js    # site/out -> ./dist
+#   firebase deploy --only hosting
+#
+# It needs one repository secret, FIREBASE_SERVICE_ACCOUNT: the JSON key
+# of a service account with the "Firebase Hosting Admin" role on the
+# crititrack-f7430 project (the same kind of credential the backend uses
+# for Firestore, a separate account is fine). If the secret is absent the
+# job builds and stages but skips the deploy, so a fork stays green.
+#
+# Only hosting is deployed — never functions (needs a billed plan) or
+# Firestore rules (changed deliberately, not on a site push).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "firebase.json"
+      - "tool/assemble_hosting.js"
+      - ".github/workflows/firebase-hosting.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-site
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install site dependencies
+        run: npm ci
+        working-directory: site
+
+      - name: Build the static export
+        run: npm run build
+        working-directory: site
+
+      - name: Stage the hosting directory
+        run: node tool/assemble_hosting.js
+
+      - name: Deploy to Firebase Hosting
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "FIREBASE_SERVICE_ACCOUNT is not set; built and staged but not deploying."
+            exit 0
+          fi
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-sa.json"
+          npx --yes firebase-tools@15 deploy \
+            --only hosting \
+            --project crititrack-f7430 \
+            --non-interactive \
+            --message "CI: ${GITHUB_SHA::7}"
