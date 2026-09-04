@@ -1162,7 +1162,7 @@ export const TAXONOMY: TaxonomySectorNode[] = [
             id: "football-soccer",
             label: "Association Football",
             occupations: [
-              { id: "footballer", label: "Footballer", aliases: ["Soccer Player", "Association Football Player", "Football Player (Soccer)"], specializations: ["Forward", "Midfielder", "Defender", "Goalkeeper", "Winger", "Striker"] },
+              { id: "footballer", label: "Footballer", aliases: ["Soccer Player", "Association Football Player", "Football Player", "Football Player (Soccer)", "Pro Footballer"], specializations: ["Forward", "Midfielder", "Defender", "Goalkeeper", "Winger", "Striker"] },
             ],
           },
           {

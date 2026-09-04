@@ -16,6 +16,7 @@ import {
   resolveOccupation,
   occupationPath,
   getSector,
+  getOccupation,
   type OccupationPath,
 } from "./taxonomy";
 
@@ -257,6 +258,24 @@ export function buildProfessionalIdentity(input: {
   return identity.empty ? EMPTY : identity;
 }
 
+/**
+ * Role-phrase prefixes common in catalogue descriptors, mapped to a
+ * taxonomy occupation id. "Co-founder of Infosys", "Prime Minister of
+ * India", "Chair of the Adani Group" — the office/role is the first
+ * words, the organisation follows.
+ */
+const ROLE_PREFIXES: [RegExp, string][] = [
+  [/^(co[-\s]?)?founder\b/i, "entrepreneur"],
+  [/^(executive\s+)?chair(person|man|woman)?\b/i, "chairperson"],
+  [/^(chief executive|ceo)\b/i, "chief-executive-officer"],
+  [/^managing director\b/i, "chief-executive-officer"],
+  [/^chief (operating|financial|technology|marketing) officer\b/i, "chief-executive-officer"],
+  [/^(former\s+)?(president|prime minister|vice[-\s]president|chancellor|governor|senator|congress(man|woman)|first minister|premier)\b/i, "politician"],
+  [/^(united states|u\.?s\.?)\s+(representative|senator)\b/i, "politician"],
+  [/^general secretary\b/i, "politician"],
+  [/^chief (medical|sustainability) officer\b/i, "public-health-official"],
+];
+
 /** Convenience for the catalogue: resolve one descriptor to a path. */
 export function resolveCatalogueOccupation(descriptor: string): {
   label: string;
@@ -264,6 +283,7 @@ export function resolveCatalogueOccupation(descriptor: string): {
 } | null {
   const r = resolveOccupation(descriptor);
   if (r) return { label: r.occupation.label, path: r.path };
+
   // The descriptor often carries a nationality prefix ("Indian javelin
   // thrower"); retry on the trailing words.
   const words = descriptor.trim().split(/\s+/);
@@ -272,6 +292,16 @@ export function resolveCatalogueOccupation(descriptor: string): {
     const rt = resolveOccupation(tail);
     if (rt) return { label: rt.occupation.label, path: rt.path };
   }
+
+  // Role-phrase prefix ("Co-founder of …", "Prime Minister of …").
+  for (const [re, occId] of ROLE_PREFIXES) {
+    if (re.test(descriptor.trim())) {
+      const occ = getOccupation(occId);
+      const path = occ && occupationPath(occ.id);
+      if (occ && path) return { label: occ.label, path };
+    }
+  }
+
   return null;
 }
 

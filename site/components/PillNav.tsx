@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { t } from "@/lib/i18n";
 import ThemeToggle from "./ThemeToggle";
 import LocaleSwitcher from "./LocaleSwitcher";
+import SearchBox from "./SearchBox";
 import { useLocale } from "./locale-store";
 
 const FIGURE = "/figure/";
@@ -19,16 +19,7 @@ const FIGURE = "/figure/";
  * `lib/i18n.ts`.
  */
 export default function PillNav() {
-  const [q, setQ] = useState("");
   const locale = useLocale();
-
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
-    const term = q.trim();
-    window.location.href = term
-      ? `${FIGURE}?q=${encodeURIComponent(term)}`
-      : FIGURE;
-  }
 
   return (
     <div className="pillnav-wrap">
@@ -37,30 +28,9 @@ export default function PillNav() {
           CritiTrack
         </Link>
 
-        <form className="pillnav-search" onSubmit={submit} role="search">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <circle
-              cx="11"
-              cy="11"
-              r="7"
-              stroke="currentColor"
-              strokeWidth="2"
-            />
-            <path
-              d="m20 20-3.5-3.5"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-          <input
-            type="search"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder={t("search.placeholder", locale)}
-            aria-label={t("search.placeholder", locale)}
-          />
-        </form>
+        <div className="pillnav-search">
+          <SearchBox placeholder={t("search.placeholder", locale)} />
+        </div>
 
         <div className="pillnav-links">
           <Link href="/category/actors">{t("nav.explore", locale)}</Link>

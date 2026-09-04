@@ -352,6 +352,204 @@
   margin-bottom: 20px;
 }
 
+/* ── Universal search box (typeahead) ─────────────────────────── */
+
+.searchbox {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.searchbox > svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  color: var(--text-muted);
+}
+.searchbox input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  outline: none;
+}
+.searchbox input::placeholder {
+  color: var(--text-muted);
+}
+.searchbox-list {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: -14px;
+  right: -14px;
+  z-index: 80;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--depth-2, 0 12px 32px rgba(0, 0, 0, 0.12));
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.searchbox-group {
+  display: block;
+  padding: 8px 10px 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.searchbox-item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: var(--text);
+}
+.searchbox-item.is-active {
+  background: var(--bg-alt);
+}
+.searchbox-item.is-lookup {
+  color: var(--brand-strong);
+  font-weight: 600;
+}
+.searchbox-item-label {
+  font-size: 0.9rem;
+}
+.searchbox-item-sub {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+/* ── Search results page ─────────────────────────────────────── */
+
+.search-page-box {
+  max-width: 640px;
+  margin: 0 0 20px;
+}
+.search-page-box .searchbox {
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: var(--surface);
+}
+.search-interpretation {
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  margin: 0 0 16px;
+}
+.search-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.filter-chip {
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--brand-strong);
+  background: color-mix(in srgb, var(--brand-strong) 10%, var(--surface));
+  color: var(--brand-strong);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.filter-select {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
+.search-group {
+  margin-bottom: 32px;
+}
+.search-group > h2 {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 0 0 14px;
+}
+.search-people {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.search-person {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s var(--ease-out);
+}
+.search-person:hover {
+  border-color: var(--border-strong);
+}
+.sp-name {
+  font-weight: 700;
+}
+.sp-role {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+.sp-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.search-tax {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.search-tax-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  text-decoration: none;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.stc-path {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+.stc-count {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  background: var(--bg-alt);
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
 /* ── Professional Identity ─────────────────────────────────────── */
 
 .prof-identity {
