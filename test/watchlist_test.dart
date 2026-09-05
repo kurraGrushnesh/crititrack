@@ -43,6 +43,35 @@ void main() {
       final map = figure('a').toMap();
       expect(map.containsKey('imageUrl'), isFalse);
       expect(map.containsKey('lastScore'), isFalse);
+      expect(map.containsKey('lastViewedAt'), isFalse);
+    });
+
+    test('Watch Intelligence fields round-trip through a map', () {
+      final f = WatchedFigure(
+        slug: 'zendaya',
+        name: 'Zendaya',
+        addedAt: DateTime(2026, 1, 1),
+        wikidataId: 'Q1',
+        lastViewedAt: DateTime(2026, 2, 1),
+        lastSeenChangeAt: DateTime(2026, 2, 5),
+        notificationPreferences: const WatchNotificationPreferences(sentimentChanges: false),
+        filters: const WatchFilters(minimumSeverity: WatchMinimumSeverity.major),
+      );
+      final back = WatchedFigure.fromMap(f.toMap())!;
+      expect(back.wikidataId, 'Q1');
+      expect(back.lastViewedAt, f.lastViewedAt);
+      expect(back.lastSeenChangeAt, f.lastSeenChangeAt);
+      expect(back.notificationPreferences.sentimentChanges, isFalse);
+      expect(back.notificationPreferences.careerChanges, isTrue); // untouched default
+      expect(back.filters.minimumSeverity, WatchMinimumSeverity.major);
+    });
+
+    test('a legacy entry with no Watch Intelligence fields still parses, with defaults', () {
+      final back = WatchedFigure.fromMap({'slug': 'x', 'name': 'X'})!;
+      expect(back.lastViewedAt, isNull);
+      expect(back.lastSeenChangeAt, isNull);
+      expect(back.notificationPreferences, const WatchNotificationPreferences());
+      expect(back.filters, const WatchFilters());
     });
   });
 
@@ -130,6 +159,68 @@ void main() {
       await Hive.box<dynamic>(watchlistBoxName).put('worse', {'no': 'slug'});
 
       expect(repo.all().map((f) => f.slug).toList(), ['good']);
+    });
+
+    test('a globally-discovered person (not in any catalogue) watches exactly the same way', () async {
+      // No catalogue lookup happens anywhere in this path — any resolved
+      // slug/name pair can be added.
+      await repo.add(
+        WatchedFigure(
+          slug: 'obscure-researcher-not-in-any-catalogue',
+          name: 'Obscure Researcher',
+          addedAt: DateTime(2026, 1, 1),
+          wikidataId: 'Q123456789',
+        ),
+      );
+      expect(repo.contains('obscure-researcher-not-in-any-catalogue'), isTrue);
+      expect(repo.all().single.wikidataId, 'Q123456789');
+    });
+
+    test('markViewed and markChangesSeen update only the matching figure', () async {
+      await repo.add(figure('a'));
+      await repo.add(figure('b', at: DateTime(2026, 2, 1)));
+
+      final at = DateTime(2026, 3, 1);
+      await repo.markViewed('a', at);
+      await repo.markChangesSeen('a', at);
+
+      final a = repo.all().firstWhere((f) => f.slug == 'a');
+      final b = repo.all().firstWhere((f) => f.slug == 'b');
+      expect(a.lastViewedAt, at);
+      expect(a.lastSeenChangeAt, at);
+      expect(b.lastViewedAt, isNull);
+      expect(b.lastSeenChangeAt, isNull);
+    });
+
+    test('marking viewed/seen on an unwatched slug is a safe no-op', () async {
+      await repo.markViewed('nonexistent', DateTime.now());
+      expect(repo.all(), isEmpty);
+    });
+
+    test('updateNotificationPreferences and updateFilters persist for one figure', () async {
+      await repo.add(figure('a'));
+      await repo.updateNotificationPreferences('a', const WatchNotificationPreferences(newsEvents: false));
+      await repo.updateFilters('a', const WatchFilters(minimumConfidence: WatchMinimumConfidence.high));
+
+      final stored = repo.all().single;
+      expect(stored.notificationPreferences.newsEvents, isFalse);
+      expect(stored.filters.minimumConfidence, WatchMinimumConfidence.high);
+    });
+
+    test('re-adding an already-watched figure preserves its seen cursor and preferences', () async {
+      await repo.add(figure('a'));
+      final at = DateTime(2026, 3, 1);
+      await repo.markChangesSeen('a', at);
+      await repo.updateNotificationPreferences('a', const WatchNotificationPreferences(careerChanges: false));
+
+      // Re-adding (e.g. the Watch button toggled off then on, or a
+      // duplicate add attempt) must not silently reset intelligence state.
+      await repo.add(figure('a', name: 'Refreshed Name'));
+
+      final stored = repo.all().single;
+      expect(stored.name, 'Refreshed Name');
+      expect(stored.lastSeenChangeAt, at);
+      expect(stored.notificationPreferences.careerChanges, isFalse);
     });
   });
 

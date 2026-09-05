@@ -93,3 +93,5 @@ node_modules/
 
 # Generated overview document — regenerate rather than commit
 /CritiTrack-Overview.pdf
+# Playwright CLI output (may contain credentials)
+.playwright-cli/

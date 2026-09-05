@@ -21,6 +21,7 @@ import 'package:crititrack/features/account/presentation/widgets/account_tile.da
 import 'package:crititrack/features/privacy/presentation/widgets/delete_data_tile.dart';
 import 'package:crititrack/features/watchlist/domain/watched_figure.dart';
 import 'package:crititrack/features/watchlist/presentation/providers/watchlist_providers.dart';
+import 'package:crititrack/features/watchlist/presentation/widgets/watch_intelligence_sheet.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key, this.initialQuery});
@@ -458,6 +459,12 @@ class _WatchRow extends ConsumerWidget {
                     ),
                     const SizedBox(width: 4),
                   ],
+                  IconButton(
+                    icon: const Icon(Icons.insights_rounded, size: 16),
+                    tooltip: 'View intelligence for ${figure.name}',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => showWatchIntelligenceSheet(context, figure),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.close_rounded, size: 16),
                     tooltip: 'Remove ${figure.name} from watchlist',

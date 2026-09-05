@@ -8,7 +8,13 @@ import {
   addTag,
   removeTag,
   renameTag,
+  markViewed,
+  markChangesSeen,
+  setNotificationPreferences,
+  setWatchFilters,
   type WatchEntry,
+  type NotificationPreferences,
+  type WatchFilters,
 } from "@/lib/watchlist";
 
 /**
@@ -80,8 +86,8 @@ function commit(next: WatchEntry[]): void {
   window.dispatchEvent(new Event(EVENT));
 }
 
-export function toggleWatch(slug: string, name: string): void {
-  commit(toggledWatchlist(getSnapshot(), slug, name));
+export function toggleWatch(slug: string, name: string, wikidataId?: string): void {
+  commit(toggledWatchlist(getSnapshot(), slug, name, wikidataId));
 }
 
 /** Folder-like tags on a watched figure. */
@@ -93,4 +99,23 @@ export function untagWatch(slug: string | null, tag: string): void {
 }
 export function renameWatchTag(from: string, to: string): void {
   commit(renameTag(getSnapshot(), from, to));
+}
+
+/** Records that the reader opened this watch's intelligence view. */
+export function markWatchViewed(slug: string, at: number): void {
+  commit(markViewed(getSnapshot(), slug, at));
+}
+
+/** Advances the seen-changes cursor — call only when changes have
+ * actually been reviewed, never merely because a list rendered. */
+export function markWatchChangesSeen(slug: string, at: number): void {
+  commit(markChangesSeen(getSnapshot(), slug, at));
+}
+
+export function updateNotificationPreferences(slug: string, prefs: NotificationPreferences): void {
+  commit(setNotificationPreferences(getSnapshot(), slug, prefs));
+}
+
+export function updateWatchFilters(slug: string, filters: WatchFilters): void {
+  commit(setWatchFilters(getSnapshot(), slug, filters));
 }

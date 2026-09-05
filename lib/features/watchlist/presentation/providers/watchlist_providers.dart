@@ -53,4 +53,28 @@ class WatchlistController extends Notifier<List<WatchedFigure>> {
     await _repo.mergeFromCloud();
     state = _repo.all();
   }
+
+  /// Records that the reader opened this watch's intelligence view —
+  /// call only from the intelligence view itself, never from a list
+  /// simply rendering a row.
+  Future<void> markViewed(String slug) async {
+    await _repo.markViewed(slug, DateTime.now());
+    state = _repo.all();
+  }
+
+  /// Advances the seen-changes cursor for one watch.
+  Future<void> markChangesSeen(String slug) async {
+    await _repo.markChangesSeen(slug, DateTime.now());
+    state = _repo.all();
+  }
+
+  Future<void> updateNotificationPreferences(String slug, WatchNotificationPreferences prefs) async {
+    await _repo.updateNotificationPreferences(slug, prefs);
+    state = _repo.all();
+  }
+
+  Future<void> updateFilters(String slug, WatchFilters filters) async {
+    await _repo.updateFilters(slug, filters);
+    state = _repo.all();
+  }
 }

@@ -54,18 +54,29 @@ class WatchlistRepository {
   bool contains(String slug) => _box?.containsKey(slug) ?? false;
 
   /// Adds a figure. Safe to call repeatedly — re-adding refreshes the
-  /// stored display name and image without moving it in the list.
+  /// stored display name and image without moving it in the list or
+  /// resetting the Watch Intelligence state (seen cursor, preferences)
+  /// already recorded against it.
   Future<void> add(WatchedFigure figure) async {
     final box = _box;
     if (box == null) return;
 
-    final existing = _asMap(box.get(figure.slug));
-    final addedAt =
-        existing == null
-            ? figure.addedAt
-            : WatchedFigure.fromMap(existing)?.addedAt ?? figure.addedAt;
+    final existingMap = _asMap(box.get(figure.slug));
+    final existingFigure = existingMap == null ? null : WatchedFigure.fromMap(existingMap);
 
-    await box.put(figure.slug, figure.copyWith(addedAt: addedAt).toMap());
+    final toStore =
+        existingFigure == null
+            ? figure
+            : figure.copyWith(
+              addedAt: existingFigure.addedAt,
+              wikidataId: figure.wikidataId ?? existingFigure.wikidataId,
+              lastViewedAt: existingFigure.lastViewedAt,
+              lastSeenChangeAt: existingFigure.lastSeenChangeAt,
+              notificationPreferences: existingFigure.notificationPreferences,
+              filters: existingFigure.filters,
+            );
+
+    await box.put(figure.slug, toStore.toMap());
     unawaited(_mirrorToCloud());
   }
 
@@ -81,6 +92,29 @@ class WatchlistRepository {
     }
     await add(figure);
     return true;
+  }
+
+  /// Records that the reader opened this watch's intelligence view.
+  Future<void> markViewed(String slug, DateTime at) => _update(slug, (f) => f.copyWith(lastViewedAt: at));
+
+  /// Advances the seen-changes cursor — call only when changes have
+  /// actually been reviewed, never merely because a list rendered.
+  Future<void> markChangesSeen(String slug, DateTime at) =>
+      _update(slug, (f) => f.copyWith(lastSeenChangeAt: at));
+
+  Future<void> updateNotificationPreferences(String slug, WatchNotificationPreferences prefs) =>
+      _update(slug, (f) => f.copyWith(notificationPreferences: prefs));
+
+  Future<void> updateFilters(String slug, WatchFilters filters) =>
+      _update(slug, (f) => f.copyWith(filters: filters));
+
+  Future<void> _update(String slug, WatchedFigure Function(WatchedFigure) transform) async {
+    final box = _box;
+    if (box == null) return;
+    final existing = WatchedFigure.fromMap(_asMap(box.get(slug)) ?? {});
+    if (existing == null) return;
+    await box.put(slug, transform(existing).toMap());
+    unawaited(_mirrorToCloud());
   }
 
   Future<void> clear() async {

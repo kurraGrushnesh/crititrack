@@ -3,13 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { demoProfileBySlug } from "@/lib/demo-data";
-import { allTags, entriesForTag } from "@/lib/watchlist";
+import { allTags, entriesForTag, type WatchEntry } from "@/lib/watchlist";
 import {
   useWatchlist,
   toggleWatch,
   tagWatch,
   untagWatch,
 } from "./watchlist-store";
+import WatchIntelligencePanel from "./WatchIntelligencePanel";
 
 /**
  * The device-local watchlist, with folder-like tags. Tags are stored on
@@ -21,6 +22,7 @@ export default function WatchlistView() {
   const [active, setActive] = useState<string | "all" | "untagged">("all");
   const [adding, setAdding] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
+  const [expanded, setExpanded] = useState<string | null>(null);
 
   if (entries.length === 0) {
     return (
@@ -74,11 +76,12 @@ export default function WatchlistView() {
       )}
 
       <div className="person-grid">
-        {shown.map((e) => {
+        {shown.map((e: WatchEntry) => {
           const demo = demoProfileBySlug(e.slug);
           const href = demo
             ? `/profile/${e.slug}`
             : `/figure/?q=${encodeURIComponent(e.name)}#change-history`;
+          const isExpanded = expanded === e.slug;
           return (
             <div key={e.slug} className="watch-card">
               <Link href={href} className="person-card">
@@ -87,6 +90,17 @@ export default function WatchlistView() {
                   {demo ? `${demo.profession} · illustrative` : "Live profile · view changes"}
                 </span>
               </Link>
+
+              {!demo && (
+                <button
+                  type="button"
+                  className="watch-card-tag wi-toggle"
+                  onClick={() => setExpanded(isExpanded ? null : e.slug)}
+                  aria-expanded={isExpanded}
+                >
+                  {isExpanded ? "Hide intelligence ▲" : "View intelligence ▼"}
+                </button>
+              )}
 
               <div className="watch-card-tags">
                 {e.tags.map((t) => (
@@ -139,6 +153,12 @@ export default function WatchlistView() {
               >
                 Remove
               </button>
+
+              {isExpanded && !demo && (
+                <div className="wi-inline">
+                  <WatchIntelligencePanel entry={e} />
+                </div>
+              )}
             </div>
           );
         })}

@@ -1768,6 +1768,124 @@
   color: var(--text-muted);
 }
 
+/* ── Watch Intelligence (Step 17) ────────────────────────────────── */
+
+.wi-toggle {
+  margin: 6px 0;
+  display: inline-block;
+}
+
+.wi-inline {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+
+.wi-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+}
+.wi-skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+  background: var(--elevated, var(--surface));
+  animation: wi-pulse 1.4s ease-in-out infinite;
+}
+@keyframes wi-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.wi-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.wi-overview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.wi-overview-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.wi-overview-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+.wi-overview-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.wi-cap {
+  text-transform: capitalize;
+}
+.wi-overview-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.wi-last-update {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  margin: 0;
+}
+.wi-section h4 {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin: 0 0 8px;
+}
+.wi-news-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.wi-news-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.wi-news-title {
+  font-size: 0.86rem;
+  font-weight: 500;
+}
+.wi-news-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.wi-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.82rem;
+}
+.wi-links a {
+  color: var(--brand-strong);
+  text-decoration: none;
+}
+.wi-links a:hover {
+  text-decoration: underline;
+}
+
 /* ── Data Coverage & Confidence Center ──────────────────────────── */
 
 .dc-card {

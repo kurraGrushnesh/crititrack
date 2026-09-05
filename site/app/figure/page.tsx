@@ -216,7 +216,7 @@ function ProfileView({
           </StatRow>
 
           <div style={{ marginTop: 24 }}>
-            <WatchButton slug={profile.slug} name={profile.name} />
+            <WatchButton slug={profile.slug} name={profile.name} wikidataId={profile.wikidataId} />
           </div>
 
           <div style={{ marginTop: 20, maxWidth: 360 }}>

@@ -9,9 +9,14 @@ import { useWatchlist, toggleWatch, isWatched } from "./watchlist-store";
 export default function WatchButton({
   slug,
   name,
+  wikidataId,
 }: {
   slug: string;
   name: string;
+  /** Recorded on the watch entry when starting a new watch, so Watch
+   * Intelligence has the truer stable id alongside the slug. Optional —
+   * watching still works for any resolved profile without one. */
+  wikidataId?: string;
 }) {
   const watching = isWatched(useWatchlist(), slug);
   return (
@@ -19,7 +24,7 @@ export default function WatchButton({
       type="button"
       className="watch-toggle"
       aria-pressed={watching}
-      onClick={() => toggleWatch(slug, name)}
+      onClick={() => toggleWatch(slug, name, wikidataId)}
     >
       {watching ? `Watching ${name}` : `Watch ${name}`}
     </button>
