@@ -6,8 +6,10 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:crititrack/core/utils/research.dart';
+import 'package:crititrack/features/research/presentation/providers/report_providers.dart';
 import 'package:crititrack/features/research/presentation/providers/research_providers.dart';
 
 class ResearchWorkspaceScreen extends ConsumerStatefulWidget {
@@ -47,6 +49,16 @@ class _ResearchWorkspaceScreenState extends ConsumerState<ResearchWorkspaceScree
       appBar: AppBar(
         title: Text(workspace.title),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.description_outlined),
+            tooltip: 'Generate report',
+            onPressed: () async {
+              final report = await ref
+                  .read(reportsForWorkspaceProvider(workspace.workspaceId).notifier)
+                  .create(title: '${workspace.title} — Report', entityIds: workspace.entityIds);
+              if (context.mounted) context.push('/reports/${report.reportId}');
+            },
+          ),
           PopupMenuButton<ItemSort>(
             icon: const Icon(Icons.sort),
             tooltip: 'Sort',

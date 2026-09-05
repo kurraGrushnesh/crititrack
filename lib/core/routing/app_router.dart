@@ -22,6 +22,7 @@ import '../../features/browse/presentation/screens/browse_screen.dart';
 import '../../features/browse/presentation/screens/category_detail_screen.dart';
 import '../../features/research/presentation/screens/research_workspaces_screen.dart';
 import '../../features/research/presentation/screens/research_workspace_screen.dart';
+import '../../features/research/presentation/screens/report_screen.dart';
 import '../widgets/main_shell.dart';
 
 /// Named route constants to avoid magic strings.
@@ -139,6 +140,11 @@ final GoRouter appRouter = GoRouter(
           builder: (context, state) => ResearchWorkspaceScreen(workspaceId: state.pathParameters['id']!),
         ),
       ],
+    ),
+    GoRoute(
+      path: '/reports/:id',
+      name: 'report',
+      builder: (context, state) => ReportScreen(reportId: state.pathParameters['id']!),
     ),
     GoRoute(
       path: '/error',

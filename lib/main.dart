@@ -16,6 +16,7 @@ import 'features/alerts/data/alert_preferences_store.dart';
 import 'features/alerts/data/push_service.dart';
 import 'features/watchlist/data/watchlist_repository.dart';
 import 'features/research/data/research_repository.dart';
+import 'features/research/data/report_repository.dart';
 import 'firebase_options.dart';
 
 /// reCAPTCHA Enterprise site key for App Check on the web.
@@ -111,6 +112,10 @@ Future<void> main() async {
   await Hive.openBox<dynamic>(researchWorkspacesBoxName);
   await Hive.openBox<dynamic>(researchItemsBoxName);
   await Hive.openBox<dynamic>(researchActivityBoxName);
+  // Professional Research Reports, generated from a workspace.
+  await Hive.openBox<dynamic>(reportsBoxName);
+  await Hive.openBox<dynamic>(reportSectionsBoxName);
+  await Hive.openBox<dynamic>(reportCitationsBoxName);
 
   runApp(const ProviderScope(child: CritiTrackApp()));
 }

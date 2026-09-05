@@ -1,11 +1,12 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import PillNav from "@/components/PillNav";
 import SiteFooter from "@/components/SiteFooter";
 import Button from "@/components/Button";
 import { useWorkspace } from "@/lib/use-research";
+import { useReports } from "@/lib/use-report";
 import { overviewCounts, evidenceQualitySummary, type ResearchItemType, type FindingStatus } from "@/lib/research";
 import { relativeTime } from "@/lib/time";
 
@@ -130,7 +131,9 @@ function ItemCard({
 
 function WorkspaceInner() {
   const params = useSearchParams();
+  const router = useRouter();
   const id = params.get("id");
+  const { create: createReport } = useReports(id ?? undefined);
   const {
     state,
     rename,
@@ -176,6 +179,16 @@ function WorkspaceInner() {
         <p className="rw-updated">
           {items.length} item{items.length === 1 ? "" : "s"} · updated {relativeTime(workspace.updatedAt)}
         </p>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={async () => {
+            const report = await createReport(workspace);
+            router.push(`/research/report?id=${report.reportId}`);
+          }}
+        >
+          Generate report
+        </Button>
       </div>
 
       <div className="rw-overview">

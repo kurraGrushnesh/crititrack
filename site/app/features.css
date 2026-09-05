@@ -2155,3 +2155,375 @@
   margin: 4px 0;
   color: var(--text-soft);
 }
+
+/* ── Research Workspace (Step 19) ────────────────────────────────────── */
+
+.rw-create-form {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 20px;
+}
+.rw-create-form input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border, var(--text-muted));
+  background: var(--surface);
+  color: var(--text);
+}
+.rw-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+.rw-card {
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border, var(--text-muted));
+  background: var(--elevated, var(--surface));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rw-card.is-archived {
+  opacity: 0.6;
+}
+.rw-card-title {
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: var(--text);
+  text-decoration: none;
+}
+.rw-card-title:hover {
+  text-decoration: underline;
+}
+.rw-card-desc,
+.rw-card-meta {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  margin: 0;
+}
+.rw-card-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+}
+.rw-card-actions button {
+  font-size: 0.78rem;
+  background: none;
+  border: none;
+  color: var(--brand-strong);
+  cursor: pointer;
+  padding: 0;
+}
+.rw-danger {
+  color: var(--error, #c0392b) !important;
+}
+
+.rw-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.rw-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.rw-header h1 {
+  margin: 0;
+  cursor: text;
+}
+.rw-updated {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0;
+  flex: 1 0 100%;
+}
+.rw-overview,
+.rw-quality {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+.rw-controls {
+  display: flex;
+  gap: 10px;
+}
+.rw-controls input[type="search"] {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border, var(--text-muted));
+  background: var(--surface);
+  color: var(--text);
+}
+.rw-controls select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border, var(--text-muted));
+  background: var(--surface);
+  color: var(--text);
+}
+.rw-items {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.rw-item {
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border, var(--text-muted));
+  background: var(--elevated, var(--surface));
+  border-left-width: 4px;
+}
+.rw-status-included {
+  border-left-color: var(--good);
+}
+.rw-status-excluded {
+  border-left-color: var(--text-muted);
+}
+.rw-status-needs_review {
+  border-left-color: var(--brand-strong);
+}
+.rw-item-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.rw-item-type {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.rw-item-title {
+  flex: 1;
+  font-weight: 600;
+}
+.rw-item-summary,
+.rw-item-meta {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  margin: 6px 0 0;
+}
+.rw-item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  align-items: center;
+}
+.rw-tag {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--brand-strong) 14%, transparent);
+  color: var(--brand-strong);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.rw-tag button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.9em;
+  line-height: 1;
+}
+.rw-tag-input {
+  font-size: 0.75rem;
+  border: none;
+  border-bottom: 1px dashed var(--text-muted);
+  background: none;
+  color: var(--text);
+  width: 70px;
+}
+.rw-item-note {
+  margin-top: 8px;
+  font-size: 0.85rem;
+}
+.rw-note-label {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.rw-note-text {
+  cursor: text;
+  color: var(--text-soft);
+}
+.rw-note-add {
+  background: none;
+  border: none;
+  color: var(--brand-strong);
+  cursor: pointer;
+  font-size: 0.82rem;
+  padding: 0;
+}
+.rw-item-note textarea {
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--border, var(--text-muted));
+  background: var(--surface);
+  color: var(--text);
+  padding: 6px 8px;
+}
+.rw-item-note-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.rw-item-remove {
+  margin-top: 8px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ── "Save to research" quick action ─────────────────────────────────── */
+
+.str-wrap {
+  position: relative;
+  display: inline-block;
+  margin-top: 8px;
+}
+.str-trigger {
+  font-size: 0.78rem;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border, var(--text-muted));
+  background: var(--surface);
+  color: var(--brand-strong);
+  cursor: pointer;
+}
+.str-saved {
+  font-size: 0.78rem;
+  color: var(--good);
+}
+.str-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  background: var(--elevated, var(--surface));
+  border: 1px solid var(--border, var(--text-muted));
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+.str-menu-item {
+  text-align: left;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  font-size: 0.82rem;
+  color: var(--text);
+  cursor: pointer;
+}
+.str-menu-item:hover {
+  background: color-mix(in srgb, var(--brand-strong) 8%, transparent);
+}
+.str-menu-new {
+  color: var(--brand-strong);
+  border-top: 1px solid var(--border, var(--text-muted));
+}
+.str-menu-empty {
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* ── Professional Research Reports (Step 20) ─────────────────────────── */
+
+.rr-report {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.rr-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.rr-header h1 {
+  margin: 0;
+  cursor: text;
+}
+.rr-warning {
+  font-size: 0.82rem;
+  color: var(--brand-strong);
+  margin: 0;
+}
+.rr-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+.rr-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.rr-section {
+  padding-top: 6px;
+  border-top: 1px solid var(--border, var(--text-muted));
+}
+.rr-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rr-section-head h2 {
+  font-size: 1.05rem;
+  margin: 0 0 8px;
+}
+.rr-toggle {
+  font-size: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.rr-block {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+.rr-block-limitation {
+  color: var(--text-soft);
+  font-style: italic;
+}
+.rr-block-userNote {
+  color: var(--text-soft);
+  border-left: 2px solid var(--brand-strong);
+  padding-left: 10px;
+}
+.rr-block-label {
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+.rr-cite {
+  color: var(--brand-strong);
+  text-decoration: none;
+  font-size: 0.82em;
+}
+.rr-cite:hover {
+  text-decoration: underline;
+}
