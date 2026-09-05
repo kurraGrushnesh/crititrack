@@ -115,7 +115,11 @@ const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", true);
 app.use(corsMiddleware);
-app.options("*", corsMiddleware);
+// No separate app.options("*", ...) preflight route: the `cors` package
+// already intercepts and answers every OPTIONS request inside the
+// app.use() above (preflightContinue defaults to false, so it ends the
+// response itself), and a bare "*" path is no longer valid route syntax
+// under Express 5's path-to-regexp.
 
 // A disallowed Origin makes the cors middleware call back with an Error,
 // which Express would otherwise render as a 500. The request is not a
