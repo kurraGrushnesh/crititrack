@@ -20,4 +20,15 @@ class CelebrityRepository {
   Future<Result<Celebrity>> forceRefresh(String name) async {
     return const Error(ServerFailure(message: 'Repository not initialized.'));
   }
+
+  /// The last snapshot this repository has on record for [name], without
+  /// triggering a fresh fetch — the real "previous state" Change
+  /// Detection (`core/utils/changes.dart`) compares against. Null when
+  /// there is no prior snapshot (a repository that keeps no history, or
+  /// a name never seen before).
+  ///
+  /// Default implementation returns null; only a repository backed by a
+  /// persistent store (see [FirestoreCelebrityRepository]) can answer
+  /// this meaningfully.
+  Future<Celebrity?> previousSnapshot(String name) async => null;
 }

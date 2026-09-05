@@ -38,8 +38,11 @@ import { useCelebrity } from "@/lib/use-celebrity";
 import { buildEvidenceItems } from "@/lib/evidence";
 import { buildClaimMatrix } from "@/lib/claims";
 import { buildCoverageReport, summaryDimensions } from "@/lib/coverage";
+import { detectChanges } from "@/lib/changes";
 import DataCoverageCard from "@/components/DataCoverageCard";
 import DataCoverageDetail from "@/components/DataCoverageDetail";
+import RecentChangesCard from "@/components/RecentChangesCard";
+import ChangeHistory from "@/components/ChangeHistory";
 import type { RealProfile, ProfileCandidate } from "@/lib/api";
 
 /** The current profile expressed as a chooser card (the "best guess"). */
@@ -85,10 +88,16 @@ function SearchPrompt() {
 function ProfileView({
   profile,
   cachedAt,
+  previousProfile,
 }: {
   profile: RealProfile;
   cachedAt?: number;
+  previousProfile?: RealProfile | null;
 }) {
+  const changes = useMemo(
+    () => (previousProfile ? detectChanges(previousProfile, profile, profile.fetchedAt) : []),
+    [previousProfile, profile],
+  );
   const index = useMemo(
     () => computeControversyIndex(profile.controversies),
     [profile.controversies],
@@ -192,6 +201,10 @@ function ProfileView({
 
           <div style={{ marginTop: 20, maxWidth: 360 }}>
             <DataCoverageCard dimensions={summaryDimensions(coverageReport)} />
+          </div>
+
+          <div style={{ marginTop: 12, maxWidth: 360 }}>
+            <RecentChangesCard changes={changes} />
           </div>
         </div>
 
@@ -366,6 +379,23 @@ function ProfileView({
           />
         </section>
       </Reveal>
+
+      <Reveal>
+        <hr className="divider-rule" />
+        <section className="min-section" id="change-history">
+          <div className="head">
+            <h2>Change history</h2>
+          </div>
+          <p className="sub" style={{ marginBottom: 24 }}>
+            What changed since the last time this browser saw {profile.name}
+            &rsquo;s profile — compared against your own device&rsquo;s last
+            copy, not a server-wide history. Attention and sentiment moves
+            are shown separately from controversy, and are never treated as
+            proof of anything.
+          </p>
+          <ChangeHistory changes={changes} />
+        </section>
+      </Reveal>
     </main>
   );
 }
@@ -412,7 +442,11 @@ function FigureInner() {
       )}
 
       {state.status === "ready" && !needsChoice && (
-        <ProfileView profile={state.profile} cachedAt={state.cachedAt} />
+        <ProfileView
+          profile={state.profile}
+          cachedAt={state.cachedAt}
+          previousProfile={state.previousProfile ?? null}
+        />
       )}
 
       {state.status === "not-found" && (

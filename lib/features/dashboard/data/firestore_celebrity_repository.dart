@@ -64,6 +64,16 @@ class FirestoreCelebrityRepository extends CelebrityRepository {
     return fresh;
   }
 
+  /// The last document the scheduled refresher wrote for [name] — read
+  /// the same way [getCelebrity] reads its cache, but never triggers a
+  /// live fetch itself. This app's live proxy calls do not write back to
+  /// Firestore (only the scheduled backend job does), so this stays the
+  /// same document across a session regardless of how many times
+  /// [getCelebrity] is also called — it is a real "last known state",
+  /// not a race with the read above.
+  @override
+  Future<Celebrity?> previousSnapshot(String name) => _read(toSlug(name));
+
   /// Always goes to the network — pull-to-refresh means "ignore caches".
   /// The function writes the result back to Firestore as a side effect.
   @override

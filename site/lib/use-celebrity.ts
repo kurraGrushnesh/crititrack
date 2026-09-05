@@ -11,7 +11,7 @@ import { readCachedProfile, writeCachedProfile } from "./profile-cache";
  * one request between them.
  */
 const cache = new Map<string, RealProfile>();
-const inflight = new Map<string, Promise<RealProfile>>();
+const inflight = new Map<string, Promise<LoadResult>>();
 
 const TTL_MS = 10 * 60 * 1000;
 const stamped = new Map<string, number>();
@@ -27,15 +27,24 @@ export function primeProfile(name: string, profile: RealProfile): void {
   stamped.set(key(name), Date.now());
 }
 
+/** A fresh fetch, plus whatever this browser had locally cached for the
+ * same slug just before it was overwritten — the real "previous
+ * snapshot" Change Detection (`lib/changes.ts`) compares against. Null
+ * when this is the first time this device has ever seen the profile. */
+export interface LoadResult {
+  profile: RealProfile;
+  previousProfile: RealProfile | null;
+}
+
 async function load(
   name: string,
   qid: string | undefined,
   signal: AbortSignal,
-): Promise<RealProfile> {
+): Promise<LoadResult> {
   const k = key(name, qid);
   const age = Date.now() - (stamped.get(k) ?? 0);
   const hit = cache.get(k);
-  if (hit && age < TTL_MS) return hit;
+  if (hit && age < TTL_MS) return { profile: hit, previousProfile: null };
 
   const existing = inflight.get(k);
   if (existing) return existing;
@@ -44,9 +53,13 @@ async function load(
     .then((profile) => {
       cache.set(k, profile);
       stamped.set(k, Date.now());
-      // Persist for offline / next-visit fallback.
+      // Read what was there before this fetch overwrites it — this is
+      // the only "previous snapshot" CritiTrack has (see changes.ts's
+      // documented limitation: no backend snapshot store), so it must
+      // be captured before writeCachedProfile clobbers it below.
+      const previousProfile = profile.slug ? (readCachedProfile(profile.slug)?.profile ?? null) : null;
       if (profile.slug) writeCachedProfile(profile);
-      return profile;
+      return { profile, previousProfile };
     })
     .finally(() => {
       inflight.delete(k);
@@ -58,7 +71,7 @@ async function load(
 export type CelebrityState =
   | { status: "idle" }
   | { status: "loading" }
-  | { status: "ready"; profile: RealProfile; cachedAt?: number }
+  | { status: "ready"; profile: RealProfile; cachedAt?: number; previousProfile?: RealProfile | null }
   | { status: "not-found"; message: string }
   | { status: "error"; message: string; code: string; canRetry: boolean };
 
@@ -107,7 +120,7 @@ export function useCelebrity(
     };
 
     load(trimmed, pinned, ctrl.signal)
-      .then((profile) => {
+      .then(({ profile, previousProfile }) => {
         if (!profile.name) {
           settle({
             status: "not-found",
@@ -115,7 +128,7 @@ export function useCelebrity(
           });
           return;
         }
-        settle({ status: "ready", profile });
+        settle({ status: "ready", profile, previousProfile });
       })
       .catch((e: unknown) => {
         if ((e as Error).name === "AbortError") return;

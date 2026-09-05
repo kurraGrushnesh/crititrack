@@ -58,6 +58,20 @@ final dashboardProvider = FutureProvider.family<Celebrity, String>((
   };
 });
 
+/// The last snapshot the repository has on record for this slug — the
+/// real "previous state" Change Detection compares the current
+/// [dashboardProvider] result against. Null on a repository with no
+/// history for this name, or the first time this slug has ever been
+/// seen. Watched independently of [dashboardProvider] so a change in
+/// one does not force-refetch the other.
+final previousSnapshotProvider = FutureProvider.family<Celebrity?, String>((
+  ref,
+  slug,
+) async {
+  final repo = ref.watch(celebrityRepositoryProvider);
+  return repo.previousSnapshot(fromSlug(slug));
+});
+
 /// Force-refresh action — always bypasses cache, calls APIs fresh.
 final refreshDashboardProvider = FutureProvider.family<Celebrity, String>((
   ref,

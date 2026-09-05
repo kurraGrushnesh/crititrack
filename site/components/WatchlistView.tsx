@@ -78,13 +78,13 @@ export default function WatchlistView() {
           const demo = demoProfileBySlug(e.slug);
           const href = demo
             ? `/profile/${e.slug}`
-            : `/figure/?q=${encodeURIComponent(e.name)}`;
+            : `/figure/?q=${encodeURIComponent(e.name)}#change-history`;
           return (
             <div key={e.slug} className="watch-card">
               <Link href={href} className="person-card">
                 <span className="pc-name">{e.name}</span>
                 <span className="pc-desc">
-                  {demo ? `${demo.profession} · illustrative` : "Live profile"}
+                  {demo ? `${demo.profession} · illustrative` : "Live profile · view changes"}
                 </span>
               </Link>
 

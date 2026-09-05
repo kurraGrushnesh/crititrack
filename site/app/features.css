@@ -1637,6 +1637,134 @@
   font-weight: 600;
 }
 
+/* ── Change Detection (Step 15) ─────────────────────────────────── */
+
+.rc-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rc-card-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.rc-card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rc-card-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+.rc-card-text {
+  color: var(--text-soft);
+}
+.rc-card-link {
+  align-self: flex-start;
+  font-size: 0.8rem;
+  color: var(--brand-strong);
+  text-decoration: none;
+  margin-top: 2px;
+}
+.rc-card-link:hover {
+  text-decoration: underline;
+}
+
+.rc-history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rc-change {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.rc-change-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+.rc-change-title {
+  flex: 1;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+.rc-severity {
+  font-size: 0.66rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.rc-severity.is-major {
+  color: var(--bad);
+  background: color-mix(in srgb, var(--bad) 16%, transparent);
+}
+.rc-severity.is-significant {
+  color: var(--mid);
+  background: color-mix(in srgb, var(--mid) 18%, transparent);
+}
+.rc-severity.is-minor {
+  color: var(--brand-strong);
+  background: color-mix(in srgb, var(--brand-strong) 14%, transparent);
+}
+.rc-severity.is-info {
+  color: var(--text-muted);
+  background: var(--elevated, var(--surface));
+}
+.rc-change.is-major {
+  border-color: color-mix(in srgb, var(--bad) 35%, var(--border));
+}
+.rc-change-body {
+  padding: 0 12px 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rc-before-after {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  margin: 0;
+}
+.rc-summary {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  margin: 0;
+}
+.rc-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
 /* ── Data Coverage & Confidence Center ──────────────────────────── */
 
 .dc-card {
