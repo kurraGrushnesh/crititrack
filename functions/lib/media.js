@@ -21,7 +21,11 @@ async function fetchNews(apiKey, name) {
   url.searchParams.set("apiKey", apiKey);
 
   try {
-    const res = await fetchWithTimeout(url);
+    // Explicit timeout (was the 20s default): this call runs inside the
+    // same Promise.all as GDELT (12s) and Reddit (10s), so leaving it at
+    // the default let one hung NewsAPI request dominate the wall-clock
+    // time of the whole parallel block far more than any other source.
+    const res = await fetchWithTimeout(url, {}, 10000);
     if (!res.ok) {
       logger.warn(`NewsAPI HTTP ${res.status}`);
       return [];
@@ -60,7 +64,9 @@ async function fetchVideos(apiKey, name) {
   url.searchParams.set("key", apiKey);
 
   try {
-    const res = await fetchWithTimeout(url);
+    // Same reasoning as fetchNews above — bounded to match the other
+    // providers in the shared Promise.all rather than the 20s default.
+    const res = await fetchWithTimeout(url, {}, 10000);
     if (!res.ok) {
       logger.warn(`YouTube HTTP ${res.status}`);
       return [];

@@ -15,6 +15,7 @@
 const logger = require("./logger");
 
 const {assembleCelebrity, ApiError} = require("./assemble");
+const {coalesce} = require("./inflight");
 const {validateName, toSlug, ValidationError} = require("./validate");
 const {validateCorrection, CorrectionError} = require("./correction");
 const {resolvePerson, resolveByQid} = require("./entity");
@@ -64,6 +65,16 @@ function messaging() {
  * `?fresh=1` forces a rebuild.
  */
 const CACHE_MAX_AGE_MS = 6 * 60 * 60 * 1000;
+
+/**
+ * Concurrent `getCelebrity` requests for the same not-yet-cached
+ * canonical slug (e.g. two tabs opened at once, or a client retry that
+ * overlaps the original) share one `assembleCelebrity` run instead of
+ * each paying for their own Groq/News/YouTube pipeline. Keyed by the
+ * *resolved* slug, never the raw query string, so it can never merge
+ * two different people who happen to type the same or similar name.
+ */
+const inflightAssemblies = new Map();
 
 /**
  * Serves one assembled celebrity payload and caches it.
@@ -141,11 +152,23 @@ async function handleGetCelebrity(keys, req, res) {
       }
     }
 
-    const payload = await assembleCelebrity(
-        keys,
-        canonicalName,
+    // Coalesced rather than a bare call: if another request for this
+    // same resolved person is already assembling (a second tab, a
+    // client retry), share its result instead of running the whole
+    // pipeline twice. The shared object is never mutated directly below
+    // — two concurrent callers can have different `query` strings (e.g.
+    // "Jane Doe" vs "jane doe") pointing at the same resolved entity,
+    // and mutating the shared payload would let one caller's request
+    // fields leak into the other's response.
+    const shared = await coalesce(
+        inflightAssemblies,
         canonicalSlug,
+        () => assembleCelebrity(keys, canonicalName, canonicalSlug),
     );
+    const payload = {
+      ...shared,
+      sentiment: shared.sentiment ? {...shared.sentiment} : shared.sentiment,
+    };
     payload.entity = entity;
     payload.verified = entity !== null;
     payload.query = name;

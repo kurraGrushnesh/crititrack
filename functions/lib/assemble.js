@@ -116,13 +116,33 @@ async function assembleCelebrity(keys, name, slug) {
   const allHeadlines = scorable.map((m) => m.title);
   const sourceLabels = scorable.map((m) => m.type);
 
+  // ── Groq round-trips, run concurrently (perf) ────────────────────
+  // `analyzeSentiment`, `scoreItemsBatch` and the two
+  // `analyzeSourceSentiment` calls each read only `allHeadlines`/
+  // `newsHeadlines`/`ytTitles`, computed above — none depends on
+  // another's result. They used to run one after another (three
+  // sequential Groq round-trips added to every uncached request); now
+  // they share one wait. Each already degrades to a safe default on its
+  // own failure (see groq.js), so failures here cannot reject the
+  // batch — the `.then(ok, err)` wrapping below only exists because
+  // `analyzeSentiment` throws instead of degrading internally.
+  const [sentimentResult, llmScores, scoreNews, scoreYoutube] = await Promise.all([
+    (allHeadlines.length ?
+      analyzeSentiment(keys.groq, name, allHeadlines, sourceLabels) :
+      Promise.resolve(defaultSentiment("No media coverage found for sentiment analysis."))
+    ).then((v) => ({ok: true, value: v}), (e) => ({ok: false, error: e})),
+    allHeadlines.length > 0 ?
+      scoreItemsBatch(keys.groq, allHeadlines) :
+      Promise.resolve([]),
+    analyzeSourceSentiment(keys.groq, name, newsHeadlines, "news"),
+    analyzeSourceSentiment(keys.groq, name, ytTitles, "YouTube"),
+  ]);
+
   let sentiment;
-  try {
-    sentiment = allHeadlines.length ?
-      await analyzeSentiment(keys.groq, name, allHeadlines, sourceLabels) :
-      defaultSentiment("No media coverage found for sentiment analysis.");
-  } catch (e) {
-    logger.warn(`sentiment failed for ${slug}: ${e.message}`);
+  if (sentimentResult.ok) {
+    sentiment = sentimentResult.value;
+  } else {
+    logger.warn(`sentiment failed for ${slug}: ${sentimentResult.error.message}`);
     sentiment = defaultSentiment("Sentiment analysis is temporarily unavailable.");
   }
 
@@ -132,9 +152,6 @@ async function assembleCelebrity(keys, name, slug) {
   // How much they disagree becomes the confidence band — a single-method
   // score has nothing to disagree with, so it can only assert.
   if (allHeadlines.length > 0) {
-    const [llmScores] = await Promise.all([
-      scoreItemsBatch(keys.groq, allHeadlines),
-    ]);
     const lexScores = lexicon.scoreAll(allHeadlines);
     // The third method. Free, deterministic, and independent of
     // both: it measures reputational direction rather than general
@@ -213,11 +230,8 @@ async function assembleCelebrity(keys, name, slug) {
     evidence: linkEvidence(sentiment.evidence, media),
   };
 
-  // ── Per-source decomposition (best effort) ──────────────────────
-  const [scoreNews, scoreYoutube] = await Promise.all([
-    analyzeSourceSentiment(keys.groq, name, newsHeadlines, "news"),
-    analyzeSourceSentiment(keys.groq, name, ytTitles, "YouTube"),
-  ]);
+  // scoreNews/scoreYoutube (per-source decomposition, best effort) were
+  // already fetched concurrently with the sentiment/ensemble calls above.
 
   // ── Corroboration gate (SEC-04) ─────────────────────────────────
   // A serious allegation nothing we retrieved mentions is dropped rather
