@@ -40,10 +40,12 @@ import { buildClaimMatrix } from "@/lib/claims";
 import { buildCoverageReport, summaryDimensions } from "@/lib/coverage";
 import { detectChanges } from "@/lib/changes";
 import { buildTimeline } from "@/lib/timeline";
+import { buildHistoricalSnapshots, buildHistoricalOverview } from "@/lib/historical";
 import DataCoverageCard from "@/components/DataCoverageCard";
 import DataCoverageDetail from "@/components/DataCoverageDetail";
 import RecentChangesCard from "@/components/RecentChangesCard";
 import ChangeHistory from "@/components/ChangeHistory";
+import HistoricalIntelligence from "@/components/HistoricalIntelligence";
 import type { RealProfile, ProfileCandidate } from "@/lib/api";
 
 /** The current profile expressed as a chooser card (the "best guess"). */
@@ -123,6 +125,19 @@ function ProfileView({
   const coverageReport = useMemo(
     () => buildCoverageReport({ profile, evidenceItems, claims }),
     [profile, evidenceItems, claims],
+  );
+
+  // Step 18: Historical Intelligence — a reconstructed composite view
+  // over time, built only from data the other sections already show
+  // (measured sentiment snapshots, the CritiScore reconstruction, the
+  // career timeline, Change Detection). See lib/historical.ts.
+  const historicalSnapshots = useMemo(
+    () => buildHistoricalSnapshots(profile, claims),
+    [profile, claims],
+  );
+  const historicalOverview = useMemo(
+    () => buildHistoricalOverview({ profile, claims, changeEvents: changes }),
+    [profile, claims, changes],
   );
   // Step 16: fold Change Detection's own findings (CritiScore moves,
   // claim status changes, coverage/availability shifts, profile edits)
@@ -398,6 +413,22 @@ function ProfileView({
             report={coverageReport}
             freshness={[{ label: "Profile", value: `Updated ${relativeTime(profile.fetchedAt)}` }]}
           />
+        </section>
+      </Reveal>
+
+      <Reveal>
+        <hr className="divider-rule" />
+        <section className="min-section" id="historical-intelligence">
+          <div className="head">
+            <h2>Historical intelligence</h2>
+          </div>
+          <p className="sub" style={{ marginBottom: 24 }}>
+            What has happened to {profile.name} over time — a reconstructed
+            composite over the CritiScore history, measured sentiment, career
+            record, and detected changes shown elsewhere on this page, not a
+            longer version of the Timeline below.
+          </p>
+          <HistoricalIntelligence overview={historicalOverview} snapshots={historicalSnapshots} />
         </section>
       </Reveal>
 

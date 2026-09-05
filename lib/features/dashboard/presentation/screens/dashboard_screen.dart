@@ -30,6 +30,7 @@ import 'package:crititrack/features/controversy/presentation/widgets/controversy
 import 'package:crititrack/features/dashboard/presentation/widgets/biography_card.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/career_section.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/data_coverage_card.dart';
+import 'package:crititrack/features/dashboard/presentation/widgets/historical_intelligence_card.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/recent_changes_card.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/disambiguation_bar.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/evidence_section.dart';
@@ -196,6 +197,14 @@ class _DashboardContent extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: RecentChangesCard(celebrity: celebrity),
+          ),
+        ),
+
+        // ── Historical Intelligence ──────────────────────────────
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: HistoricalIntelligenceCard(celebrity: celebrity),
           ),
         ),
 

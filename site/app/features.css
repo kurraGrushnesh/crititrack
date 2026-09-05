@@ -2073,3 +2073,85 @@
   font-style: italic;
   margin: 0;
 }
+
+/* ── Historical Intelligence (Step 18) ──────────────────────────────── */
+
+.hi-root {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.hi-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.hi-coverage h4,
+.hi-turning-points h4,
+.hi-compare h4 {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+}
+.hi-ranges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.hi-spark {
+  width: 100%;
+  height: 60px;
+  color: var(--brand-strong);
+}
+.hi-spark polyline {
+  stroke: currentColor;
+}
+.hi-tp-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hi-tp-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.85rem;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--elevated, var(--surface));
+}
+.hi-tp-date {
+  font-weight: 700;
+  color: var(--text-soft);
+  min-width: 44px;
+}
+.hi-tp-kind {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--brand-strong);
+}
+.hi-tp-title {
+  flex: 1;
+  min-width: 160px;
+  color: var(--text);
+}
+.hi-tp-empty {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.hi-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 0.85rem;
+}
+.hi-compare-grid p {
+  margin: 4px 0;
+  color: var(--text-soft);
+}

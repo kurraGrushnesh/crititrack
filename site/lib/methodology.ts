@@ -32,6 +32,7 @@ import { EVIDENCE_METHODOLOGY_VERSION } from "./evidence";
 import { METHODOLOGY_VERSION as CLAIMS_METHODOLOGY_VERSION } from "./claims";
 import { COVERAGE_VERSION } from "./coverage";
 import { TIMELINE_METHODOLOGY_VERSION } from "./timeline";
+import { HISTORICAL_METHODOLOGY_VERSION } from "./historical";
 
 export type MethodologySystem =
   | "entityResolution"
@@ -40,7 +41,8 @@ export type MethodologySystem =
   | "critiscore"
   | "sentiment"
   | "timeline"
-  | "coverage";
+  | "coverage"
+  | "historical";
 
 export interface SystemVersion {
   system: MethodologySystem;
@@ -65,6 +67,7 @@ export const SYSTEM_VERSIONS: readonly SystemVersion[] = [
   { system: "sentiment", label: "Public Sentiment", version: SENTIMENT_METHODOLOGY_VERSION },
   { system: "timeline", label: "Timeline", version: TIMELINE_METHODOLOGY_VERSION },
   { system: "coverage", label: "Data Coverage", version: COVERAGE_VERSION },
+  { system: "historical", label: "Historical Intelligence", version: HISTORICAL_METHODOLOGY_VERSION },
 ];
 
 export function systemVersion(system: MethodologySystem): string {
@@ -268,6 +271,17 @@ export const METHODOLOGY_SECTIONS: readonly MethodologySection[] = [
     paragraphs: [
       "Coverage measures how much usable data CritiTrack actually has for a person, one dimension at a time (identity, career, news, evidence, sentiment, and more) — high, medium, low, insufficient, or unavailable. It is never a single combined score, and it is never derived from popularity.",
       "A low-coverage dimension means a real gap in what was retrieved — not a negative finding about the person. A person with genuinely no documented controversies reads 'no supported controversy records are currently available', never 'no controversies exist' or 'clean record'.",
+    ],
+  },
+  {
+    id: "historical-intelligence",
+    title: "Historical Intelligence",
+    system: "historical",
+    paragraphs: [
+      "Historical Intelligence answers what has happened to a person over time by reassembling data every other system already computes — measured daily sentiment snapshots, the CritiScore reconstruction, the dated career timeline, and Change Detection's own log — into one composite view. It never recomputes or re-weights any of them.",
+      "CritiTrack does not yet run a backend-authoritative snapshot store, so a historical point is anchored to a real measured sentiment date and overlaid with each other system's own real granularity — a yearly CritiScore reconstruction, a dated career role, a dated controversy count. Where a dimension has no real anchor at that point, it is shown as a gap, never interpolated or guessed.",
+      "'Major turning points' are a merge of existing signals — a sharp year-over-year CritiScore reconstruction move, a dated career transition, a MAJOR or SIGNIFICANT Change Detection event — sorted by date. There is no separate 'turning point score': every point traces back to a number or event shown elsewhere on the profile.",
+      "A provider outage or a quiet news day is never read as an absence of history: historical coverage is judged only by how much real dated history has already accumulated, using the same coverage vocabulary (high/medium/low/insufficient/unavailable) as the Data Coverage Center.",
     ],
   },
   {
