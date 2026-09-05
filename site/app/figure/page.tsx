@@ -37,6 +37,9 @@ import { relativeTime } from "@/lib/time";
 import { useCelebrity } from "@/lib/use-celebrity";
 import { buildEvidenceItems } from "@/lib/evidence";
 import { buildClaimMatrix } from "@/lib/claims";
+import { buildCoverageReport, summaryDimensions } from "@/lib/coverage";
+import DataCoverageCard from "@/components/DataCoverageCard";
+import DataCoverageDetail from "@/components/DataCoverageDetail";
 import type { RealProfile, ProfileCandidate } from "@/lib/api";
 
 /** The current profile expressed as a chooser card (the "best guess"). */
@@ -106,6 +109,10 @@ function ProfileView({
   const claims = useMemo(
     () => buildClaimMatrix(profile.controversies, evidenceItems, profile.wikidataId ?? null),
     [profile.controversies, evidenceItems, profile.wikidataId],
+  );
+  const coverageReport = useMemo(
+    () => buildCoverageReport({ profile, evidenceItems, claims }),
+    [profile, evidenceItems, claims],
   );
 
   // Deep links: after the profile renders, jump to the section,
@@ -181,6 +188,10 @@ function ProfileView({
 
           <div style={{ marginTop: 24 }}>
             <WatchButton slug={profile.slug} name={profile.name} />
+          </div>
+
+          <div style={{ marginTop: 20, maxWidth: 360 }}>
+            <DataCoverageCard dimensions={summaryDimensions(coverageReport)} />
           </div>
         </div>
 
@@ -332,6 +343,26 @@ function ProfileView({
             controversies={profile.controversies}
             career={profile.career.timeline}
             sentimentEvidence={profile.evidence}
+          />
+        </section>
+      </Reveal>
+
+      <Reveal>
+        <hr className="divider-rule" />
+        <section className="min-section" id="data-coverage">
+          <div className="head">
+            <h2>Data coverage</h2>
+          </div>
+          <p className="sub" style={{ marginBottom: 24 }}>
+            How much usable data CritiTrack actually has about {profile.name},
+            dimension by dimension. This measures data availability, not
+            reputation — a low-coverage dimension is a gap in what has been
+            retrieved, never a negative finding, and it is kept separate
+            from CritiScore, sentiment, and popularity.
+          </p>
+          <DataCoverageDetail
+            report={coverageReport}
+            freshness={[{ label: "Profile", value: `Updated ${relativeTime(profile.fetchedAt)}` }]}
           />
         </section>
       </Reveal>

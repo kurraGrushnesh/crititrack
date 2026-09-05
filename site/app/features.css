@@ -1568,3 +1568,191 @@
 .cv-evidence-link:hover {
   text-decoration: underline;
 }
+
+/* ── Data Coverage & Confidence Center ──────────────────────────── */
+
+.dc-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dc-card-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.dc-card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dc-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.82rem;
+}
+.dc-card-label {
+  color: var(--text-soft);
+}
+.dc-card-link {
+  align-self: flex-start;
+  font-size: 0.8rem;
+  color: var(--brand-strong);
+  text-decoration: none;
+  margin-top: 2px;
+}
+.dc-card-link:hover {
+  text-decoration: underline;
+}
+
+.dc-pill {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.dc-pill.is-high {
+  color: var(--good);
+  background: color-mix(in srgb, var(--good) 16%, transparent);
+}
+.dc-pill.is-medium {
+  color: var(--brand-strong);
+  background: color-mix(in srgb, var(--brand-strong) 14%, transparent);
+}
+.dc-pill.is-low {
+  color: var(--mid);
+  background: color-mix(in srgb, var(--mid) 18%, transparent);
+}
+.dc-pill.is-insufficient,
+.dc-pill.is-unavailable {
+  color: var(--text-muted);
+  background: var(--elevated, var(--surface));
+}
+
+.dc-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.dc-dims {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dc-dim {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.dc-dim-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+.dc-dim-label {
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+.dc-dim-body {
+  padding: 0 12px 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dc-dim-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.dc-reasons {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.dc-timerange {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+.dc-gap {
+  color: var(--mid);
+}
+
+.dc-sources h4,
+.dc-freshness h4,
+.dc-limitations h4 {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin: 0 0 8px;
+}
+.dc-source-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 0.85rem;
+}
+.dc-source-list li.is-available {
+  color: var(--text);
+}
+.dc-source-list li.is-unavailable {
+  color: var(--text-muted);
+}
+.dc-source-note {
+  font-size: 0.78rem;
+}
+.dc-freshness ul,
+.dc-limitations ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dc-fresh-label {
+  font-weight: 600;
+  color: var(--text);
+}
+.dc-footnote {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 0;
+}
