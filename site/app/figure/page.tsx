@@ -41,11 +41,13 @@ import { buildCoverageReport, summaryDimensions } from "@/lib/coverage";
 import { detectChanges } from "@/lib/changes";
 import { buildTimeline } from "@/lib/timeline";
 import { buildHistoricalSnapshots, buildHistoricalOverview } from "@/lib/historical";
+import { buildRelationships } from "@/lib/relationships";
 import DataCoverageCard from "@/components/DataCoverageCard";
 import DataCoverageDetail from "@/components/DataCoverageDetail";
 import RecentChangesCard from "@/components/RecentChangesCard";
 import ChangeHistory from "@/components/ChangeHistory";
 import HistoricalIntelligence from "@/components/HistoricalIntelligence";
+import RelationshipsSection from "@/components/RelationshipsSection";
 import ResearchThisButton from "@/components/ResearchThisButton";
 import type { RealProfile, ProfileCandidate } from "@/lib/api";
 
@@ -126,6 +128,21 @@ function ProfileView({
   const coverageReport = useMemo(
     () => buildCoverageReport({ profile, evidenceItems, claims }),
     [profile, evidenceItems, claims],
+  );
+
+  // Step 22: Entity Relationship Intelligence — documented relationships
+  // only, from structured Wikidata claims and dated career rows; never
+  // inferred from co-occurrence. See lib/relationships.ts.
+  const relationships = useMemo(
+    () =>
+      buildRelationships({
+        subjectEntityId: profile.wikidataId ?? profile.slug,
+        subjectName: profile.name,
+        wikidataRelationships: profile.relationships,
+        career: profile.career.timeline,
+        evidenceItems,
+      }),
+    [profile.wikidataId, profile.slug, profile.name, profile.relationships, profile.career.timeline, evidenceItems],
   );
 
   // Step 18: Historical Intelligence — a reconstructed composite view
@@ -273,6 +290,21 @@ function ProfileView({
       <ProfessionalIdentity identity={profile.professional} />
 
       <CareerSection career={profile.career} />
+
+      <Reveal>
+        <hr className="divider-rule" />
+        <section className="min-section" id="relationships">
+          <div className="head">
+            <h2>Relationships</h2>
+          </div>
+          <p className="sub" style={{ marginBottom: 24 }}>
+            How {profile.name} is connected to other people and organizations
+            according to structured records — Wikidata claims and dated career
+            entries. Never inferred from name, profession, or a shared article.
+          </p>
+          <RelationshipsSection relationships={relationships} entityId={profile.wikidataId ?? null} />
+        </section>
+      </Reveal>
 
       {(profile.summary || profile.notableWorks.length > 0) && (
         <div className="min-section" id="summary" style={{ paddingTop: 8 }}>

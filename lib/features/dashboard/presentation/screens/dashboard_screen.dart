@@ -34,6 +34,7 @@ import 'package:crititrack/features/dashboard/presentation/widgets/historical_in
 import 'package:crititrack/features/dashboard/presentation/widgets/recent_changes_card.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/disambiguation_bar.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/evidence_section.dart';
+import 'package:crititrack/features/dashboard/presentation/widgets/relationships_section.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/figure_timeline_section.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/editorial_header.dart';
 import 'package:crititrack/features/dashboard/presentation/widgets/media_feed_section.dart';
@@ -284,6 +285,8 @@ class _DashboardContent extends ConsumerWidget {
               child: CareerSection(facts: celebrity.facts),
             ),
           ),
+          const SliverToBoxAdapter(child: SizedBox(height: 20)),
+          SliverToBoxAdapter(child: RelationshipsSection(celebrity: celebrity)),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),

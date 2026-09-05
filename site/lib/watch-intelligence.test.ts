@@ -194,6 +194,7 @@ describe("buildWatchOverview", () => {
         insights: { start: null, current: null, transitions: [], leadershipRoles: [], founder: false, progression: [] },
         available: false,
       },
+      relationships: [],
       resolution: "high",
       candidates: [],
       ...overrides,

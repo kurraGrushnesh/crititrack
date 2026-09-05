@@ -12,6 +12,7 @@ import 'package:crititrack/core/utils/claims.dart';
 import 'package:crititrack/core/utils/controversy_index.dart';
 import 'package:crititrack/core/utils/coverage.dart';
 import 'package:crititrack/core/utils/historical.dart';
+import 'package:crititrack/core/utils/relationships.dart';
 
 const String kCompareMethodologyVersion = 'compare-1';
 
@@ -135,6 +136,7 @@ class EntityComparisonContext {
     this.coverageReport,
     this.historicalOverview,
     this.attentionSummary,
+    this.relationships = const [],
   });
 
   final String entityId;
@@ -157,6 +159,7 @@ class EntityComparisonContext {
   final CoverageReport? coverageReport;
   final HistoricalOverview? historicalOverview;
   final ComparisonAttentionSummary? attentionSummary;
+  final List<EntityRelationship> relationships;
 }
 
 // ── Rows ─────────────────────────────────────────────────────────────

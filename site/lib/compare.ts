@@ -27,6 +27,7 @@ import type { CoverageReport } from "./coverage";
 import type { HistoricalOverview, HistoricalSnapshot, HistoricalTimeRange, TurningPoint } from "./historical";
 import type { ScoreBand, IndexHistoryPoint } from "./controversy-index";
 import type { SentimentBand } from "./sentiment";
+import type { EntityRelationship } from "./relationships";
 
 export const COMPARE_METHODOLOGY_VERSION = "compare-1";
 
@@ -135,6 +136,10 @@ export interface EntityComparisonContext {
   meaningfulNewsCount: number;
   coverageReport: CoverageReport | null;
   historicalOverview: HistoricalOverview | null;
+  /** Documented relationships for this entity (Step 22) — used only for
+   * the "direct relationship" and "shared organization" rows in a
+   * comparison, never to score or rank. */
+  relationships: EntityRelationship[];
 }
 
 // ── Rows ─────────────────────────────────────────────────────────────

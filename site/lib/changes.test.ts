@@ -103,6 +103,7 @@ function profile(overrides: Partial<RealProfile> = {}): RealProfile {
     accounts: [],
     professional: EMPTY_PROFESSIONAL,
     career: career(),
+    relationships: [],
     resolution: "high",
     candidates: [],
     ...overrides,

@@ -2654,3 +2654,119 @@
   font-size: 0.85rem;
   color: var(--text-soft);
 }
+
+/* ── Entity Relationship Intelligence (Step 22) ──────────────────────── */
+
+.rel-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.rel-coverage {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  margin: 0;
+}
+.rel-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.rel-controls input[type="search"],
+.rel-controls select {
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border, var(--text-muted));
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+.rel-controls input[type="search"] {
+  flex: 1;
+  min-width: 160px;
+}
+.rel-group h4 {
+  font-size: 0.9rem;
+  margin: 12px 0 6px;
+  color: var(--text-muted);
+}
+.rel-card {
+  border: 1px solid var(--border, var(--text-muted));
+  border-left-width: 4px;
+  border-radius: 8px;
+  background: var(--elevated, var(--surface));
+  margin-bottom: 8px;
+}
+.rel-conf-high {
+  border-left-color: var(--good);
+}
+.rel-conf-medium {
+  border-left-color: var(--brand-strong);
+}
+.rel-conf-low {
+  border-left-color: var(--mid);
+}
+.rel-card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  flex-wrap: wrap;
+}
+.rel-type {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--brand-strong);
+}
+.rel-object {
+  flex: 1;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 120px;
+}
+.rel-status {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.rel-card-body {
+  padding: 0 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rel-flow {
+  font-size: 0.9rem;
+  margin: 0;
+  color: var(--text-soft);
+}
+.rel-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+.rel-sources {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  margin: 0;
+}
+.rel-shared {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+.rel-shared strong {
+  color: var(--text);
+}

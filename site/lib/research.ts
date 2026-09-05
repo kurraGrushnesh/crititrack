@@ -127,6 +127,7 @@ export type ResearchItemType =
   | "TIMELINE_EVENT"
   | "CHANGE_EVENT"
   | "HISTORICAL_EVENT"
+  | "RELATIONSHIP"
   | "SOURCE"
   | "NOTE";
 

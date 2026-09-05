@@ -16,6 +16,7 @@ import { buildClaimMatrix } from "./claims";
 import { buildCoverageReport } from "./coverage";
 import { buildHistoricalOverview } from "./historical";
 import { computeControversyIndex, scoreBand } from "./controversy-index";
+import { buildRelationships } from "./relationships";
 import { sentimentBand } from "./sentiment";
 import { buildTimeline } from "./timeline";
 import {
@@ -100,6 +101,13 @@ export function buildEntityContext(entityId: string, profile: RealProfile): Enti
     meaningfulNewsCount: timeline.filter((e) => e.kind === "news").length,
     coverageReport,
     historicalOverview,
+    relationships: buildRelationships({
+      subjectEntityId: entityId,
+      subjectName: profile.name,
+      wikidataRelationships: profile.relationships,
+      career: profile.career.timeline,
+      evidenceItems,
+    }),
   };
 }
 

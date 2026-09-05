@@ -7,6 +7,7 @@ import SiteFooter from "@/components/SiteFooter";
 import SaveToResearchButton from "@/components/SaveToResearchButton";
 import { useCompare } from "@/lib/use-compare";
 import { keyDifferences, turningPointsFor, type ComparisonDataMode, type ComparisonTopic } from "@/lib/compare";
+import { directRelationshipsBetween, sharedConnections, relationshipTypeLabel } from "@/lib/relationships";
 import { HISTORICAL_RANGE_LABEL, type HistoricalTimeRange } from "@/lib/historical";
 
 const TOPIC_FILTERS: { key: ComparisonTopic; label: string }[] = [
@@ -54,6 +55,8 @@ function CompareInner() {
 
   const diffs = keyDifferences(sections, 5);
   const [pointsA, pointsB] = turningPointsFor(contextA, contextB);
+  const directRels = directRelationshipsBetween(contextA.relationships, contextB.entityId, contextB.entityName);
+  const shared = sharedConnections(contextA.relationships, contextB.relationships);
 
   return (
     <div className="cmp-view">
@@ -88,6 +91,30 @@ function CompareInner() {
             </p>
           </div>
         ))}
+      </div>
+
+      <div className="cmp-summary">
+        <h3>Relationship</h3>
+        {directRels.length > 0 ? (
+          <ul>
+            {directRels.map((r) => (
+              <li key={r.relationshipId}>
+                {contextA.entityName} — {relationshipTypeLabel(r.relationshipType)} — {contextB.entityName}
+                {" · "}
+                {r.confidence.toLowerCase()} confidence
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="rel-shared">No documented direct relationship found in the available data.</p>
+        )}
+        {shared.length > 0 && (
+          <p className="rel-shared">
+            <strong>Shared organization{shared.length === 1 ? "" : "s"}:</strong>{" "}
+            {shared.map((s) => `${s.organizationName} (${relationshipTypeLabel(s.aType)} / ${relationshipTypeLabel(s.bType)})`).join("; ")}. This is a
+            shared affiliation, not a direct relationship.
+          </p>
+        )}
       </div>
 
       {diffs.length > 0 && (

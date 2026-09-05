@@ -172,6 +172,7 @@ enum ResearchItemType {
   timelineEvent,
   changeEvent,
   historicalEvent,
+  relationship,
   source,
   note,
 }
@@ -186,6 +187,7 @@ extension ResearchItemTypeLabel on ResearchItemType {
     ResearchItemType.timelineEvent => 'Timeline event',
     ResearchItemType.changeEvent => 'Change event',
     ResearchItemType.historicalEvent => 'Historical event',
+    ResearchItemType.relationship => 'Relationship',
     ResearchItemType.source => 'Source',
     ResearchItemType.note => 'Note',
   };

@@ -44,6 +44,16 @@ export interface TrendPoint {
   score: number;
   mentions: number;
 }
+export interface RawRelationship {
+  type: string;
+  category: string;
+  direction: string;
+  targetId: string;
+  targetLabel: string;
+  start: number | null;
+  end: number | null;
+  sourceUrl: string | null;
+}
 export interface MediaLink {
   id: string;
   title: string;
@@ -210,6 +220,11 @@ export interface RealProfile {
   accounts: ProfileAccount[];
   professional: ProfessionalIdentity;
   career: CareerIntelligence;
+  /** Structured Wikidata relationship rows (Step 22) — spouse, family,
+   * membership, ownership. Career-derived relationships (employer,
+   * position) are NOT here; they come from `career`. Empty on a payload
+   * assembled before relationship extraction shipped. */
+  relationships: RawRelationship[];
 
   /**
    * How sure the backend is that this is the person the searcher meant.
@@ -407,6 +422,18 @@ function mapProfile(j: Json): RealProfile {
       deceased: Boolean(str(obj(entity.facts).deathDate)),
     }),
     career,
+    relationships: list(obj(entity.facts).relationships)
+      .map((r) => ({
+        type: str(r.type, "UNKNOWN_DOCUMENTED"),
+        category: str(r.category, "OTHER"),
+        direction: str(r.direction, "UNKNOWN"),
+        targetId: str(r.targetId),
+        targetLabel: str(r.targetLabel),
+        start: num(r.start),
+        end: num(r.end),
+        sourceUrl: str(r.sourceUrl) || null,
+      }))
+      .filter((r) => r.targetId && r.targetLabel),
     resolution: resolutionBand(str(entity.confidence)),
     candidates: list(entity.candidates)
       .map((c) => ({

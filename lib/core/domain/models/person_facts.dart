@@ -26,6 +26,7 @@ class PersonFacts extends Equatable {
     this.notableWorks = const [],
     this.career = const [],
     this.organizations = const [],
+    this.relationships = const [],
     this.links = const {},
   });
 
@@ -57,6 +58,12 @@ class PersonFacts extends Equatable {
 
   /// The organisations a career touched, most-recent first.
   final List<String> organizations;
+
+  /// Structured Wikidata relationship rows (Step 22) — spouse, family,
+  /// membership, ownership. Career-derived relationships (employer,
+  /// position) are NOT here; they come from [career]. Empty on a payload
+  /// assembled before relationship extraction shipped.
+  final List<RawRelationship> relationships;
 
   /// Primary sources: the subject's own site and accounts, plus IMDb.
   /// Keys are `imdb`, `x`, `instagram`, `website`.
@@ -133,6 +140,7 @@ class PersonFacts extends Equatable {
       notableWorks: _asStrings(map['notableWorks']),
       career: CareerEntry.listFrom(map['career']),
       organizations: _asStrings(map['organizations']),
+      relationships: RawRelationship.listFrom(map['relationships']),
       links: _asLinks(map['links']),
     );
   }
@@ -149,8 +157,59 @@ class PersonFacts extends Equatable {
     notableWorks.join(','),
     career,
     organizations.join(','),
+    relationships.length,
     links.toString(),
   ];
+}
+
+/// A structured Wikidata relationship row (Step 22). `direction` is from
+/// the subject toward the target: OUTGOING, INCOMING, BIDIRECTIONAL, or
+/// UNKNOWN. Dates are years, when the claim carries P580/P582.
+class RawRelationship extends Equatable {
+  const RawRelationship({
+    required this.type,
+    required this.category,
+    required this.direction,
+    required this.targetId,
+    required this.targetLabel,
+    this.start,
+    this.end,
+    this.sourceUrl,
+  });
+
+  final String type;
+  final String category;
+  final String direction;
+  final String targetId;
+  final String targetLabel;
+  final int? start;
+  final int? end;
+  final String? sourceUrl;
+
+  static List<RawRelationship> listFrom(Object? raw) {
+    if (raw is! List) return const [];
+    final out = <RawRelationship>[];
+    for (final entry in raw) {
+      if (entry is! Map) continue;
+      final targetId = _trimOrNull(entry['targetId']);
+      final targetLabel = _trimOrNull(entry['targetLabel']);
+      if (targetId == null || targetLabel == null) continue;
+      out.add(RawRelationship(
+        type: _trimOrNull(entry['type']) ?? 'UNKNOWN_DOCUMENTED',
+        category: _trimOrNull(entry['category']) ?? 'OTHER',
+        direction: _trimOrNull(entry['direction']) ?? 'UNKNOWN',
+        targetId: targetId,
+        targetLabel: targetLabel,
+        start: _asYear(entry['start']),
+        end: _asYear(entry['end']),
+        sourceUrl: _httpOrNull(entry['sourceUrl']),
+      ));
+    }
+    return out;
+  }
+
+  @override
+  List<Object?> get props => [type, targetId, start, end];
 }
 
 /// One dated step in a career, from Wikidata "position held" (P39) or

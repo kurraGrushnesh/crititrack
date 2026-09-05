@@ -13,6 +13,7 @@ import 'package:crititrack/core/utils/compare.dart';
 import 'package:crititrack/core/utils/controversy_index.dart';
 import 'package:crititrack/core/utils/coverage.dart';
 import 'package:crititrack/core/utils/evidence.dart';
+import 'package:crititrack/core/utils/relationships.dart';
 import 'package:crititrack/core/utils/helpers.dart';
 import 'package:crititrack/core/utils/historical.dart';
 import 'package:crititrack/features/research/data/compare_repository.dart';
@@ -137,5 +138,12 @@ EntityComparisonContext buildEntityContextFromCelebrity(Celebrity celebrity) {
     coverageReport: coverageReport,
     historicalOverview: historicalOverview,
     attentionSummary: null,
+    relationships: buildRelationships(
+      subjectEntityId: celebrity.wikidataId ?? celebrity.slug,
+      subjectName: celebrity.name,
+      wikidataRelationships: celebrity.facts.relationships,
+      career: celebrity.facts.career,
+      evidenceItems: evidenceItems,
+    ),
   );
 }

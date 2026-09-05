@@ -72,6 +72,37 @@ const PROPS = {
   employer: "P108",
 };
 
+/**
+ * Structured Wikidata relationship properties (Step 22 — Entity
+ * Relationship Intelligence). Each is a claim that names another entity
+ * the subject is documented as connected to, with a controlled
+ * relationship type and a direction relative to the subject. These come
+ * in the same `wbgetentities` call as everything above — no extra
+ * fetch. Career relationships (employer/position) are NOT here: they
+ * are already derived from `career` on the client.
+ *
+ * `direction` is from the subject (this profile) toward the target:
+ *   OUTGOING       — subject → target (e.g. "member of", "owns")
+ *   INCOMING       — target → subject (e.g. target "is parent of" subject)
+ *   BIDIRECTIONAL  — symmetric (spouse, sibling)
+ */
+const RELATIONSHIP_PROPS = {
+  P26: {type: "SPOUSE", category: "PERSONAL", direction: "BIDIRECTIONAL"},
+  P451: {type: "FAMILY", category: "PERSONAL", direction: "BIDIRECTIONAL"},
+  P22: {type: "PARENT", category: "PERSONAL", direction: "INCOMING"},
+  P25: {type: "PARENT", category: "PERSONAL", direction: "INCOMING"},
+  P40: {type: "CHILD", category: "PERSONAL", direction: "OUTGOING"},
+  P3373: {type: "SIBLING", category: "PERSONAL", direction: "BIDIRECTIONAL"},
+  P1038: {type: "FAMILY", category: "PERSONAL", direction: "UNKNOWN"},
+  P463: {type: "MEMBER_OF", category: "ORGANIZATIONAL", direction: "OUTGOING"},
+  P1830: {type: "OWNS", category: "BUSINESS", direction: "OUTGOING"},
+};
+
+/** How many structured relationships to keep per property. A public
+ * figure with 40 "member of" claims is real but past this it is noise
+ * on a profile. */
+const MAX_RELATIONSHIPS_PER_PROP = 8;
+
 /** Qualifier: start date of a dated claim. */
 const START_TIME = "P580";
 /** Qualifier: end date of a dated claim. */
@@ -451,6 +482,8 @@ module.exports = {
   sitelinkCount,
   extractFacts,
   careerEntries,
+  relationshipClaims,
+  RELATIONSHIP_PROPS,
   buildCareer,
   isHuman,
   HUMAN,
@@ -490,8 +523,43 @@ function extractFacts(entity) {
     birthPlaceId: idClaims(entity, PROPS.birthPlace)[0] || null,
     fieldOfWorkIds: idClaims(entity, PROPS.fieldOfWork).slice(0, 6),
     career: careerEntries(entity),
+    relationships: relationshipClaims(entity),
     links: externalLinks(entity),
   };
+}
+
+/**
+ * Structured relationship rows from the properties in
+ * {@link RELATIONSHIP_PROPS}. Pure and label-free — returns qids and
+ * years; {@link resolveFactLabels} turns the target qids into words.
+ *
+ * A relationship is only emitted when its target is an item id: a
+ * dangling or novalue snak is dropped, never guessed at. Deprecated
+ * claims are excluded (Wikidata's own "this was wrong" marker).
+ *
+ * @param {object} entity
+ * @return {Array<{type: string, category: string, direction: string,
+ *   targetId: string, start: number|null, end: number|null}>}
+ */
+function relationshipClaims(entity) {
+  const claims = (entity && entity.claims) || {};
+  const out = [];
+  for (const [prop, meta] of Object.entries(RELATIONSHIP_PROPS)) {
+    const rows = (claims[prop] || []).filter((c) => !isDeprecated(c));
+    for (const c of rows.slice(0, MAX_RELATIONSHIPS_PER_PROP)) {
+      const targetId = mainId(c);
+      if (!targetId) continue;
+      out.push({
+        type: meta.type,
+        category: meta.category,
+        direction: meta.direction,
+        targetId,
+        start: qualifierYear(c, START_TIME),
+        end: qualifierYear(c, END_TIME),
+      });
+    }
+  }
+  return out;
 }
 
 /** First entity-id value of a claim qualifier, or null. */
@@ -701,6 +769,7 @@ async function resolveFactLabels(facts, qid) {
   const careerIds = (facts.career || []).flatMap(
       (e) => [e.roleId, e.orgId, e.locationId].filter(Boolean),
   );
+  const relationshipIds = (facts.relationships || []).map((r) => r.targetId);
   const ids = [
     ...facts.citizenshipIds,
     ...facts.occupationIds,
@@ -710,6 +779,7 @@ async function resolveFactLabels(facts, qid) {
     ...(facts.birthPlaceId ? [facts.birthPlaceId] : []),
     ...(facts.fieldOfWorkIds || []),
     ...careerIds,
+    ...relationshipIds,
   ];
 
   let labels = {};
@@ -747,6 +817,23 @@ async function resolveFactLabels(facts, qid) {
         .filter(Boolean),
     career: buildCareer(facts.career || [], labels, qid),
     organizations: majorOrganizations(facts.career || [], labels),
+    // Structured relationships, target qids resolved to names. A row
+    // whose target has no resolvable label is dropped — a relationship
+    // to "Q30" is worse than no line at all, same rule as every other
+    // fact list here. `sourceUrl` points at the subject's own Wikidata
+    // page, which is where the claim is recorded.
+    relationships: (facts.relationships || [])
+        .map((r) => ({
+          type: r.type,
+          category: r.category,
+          direction: r.direction,
+          targetId: r.targetId,
+          targetLabel: labels[r.targetId] || "",
+          start: r.start,
+          end: r.end,
+          sourceUrl: qid ? `https://www.wikidata.org/wiki/${qid}` : null,
+        }))
+        .filter((r) => r.targetLabel),
     links: facts.links,
   };
 }

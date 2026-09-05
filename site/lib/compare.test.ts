@@ -74,6 +74,7 @@ function entity(overrides: Partial<EntityComparisonContext> & { entityId: string
     meaningfulNewsCount: 0,
     coverageReport: null,
     historicalOverview: null,
+    relationships: [],
     ...overrides,
   };
 }

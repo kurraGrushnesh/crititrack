@@ -9,6 +9,7 @@ const {
   resolutionConfidence,
   sitelinkCount,
   careerEntries,
+  relationshipClaims,
   buildCareer,
   PROPS,
   HUMAN,
@@ -468,4 +469,62 @@ test("similar names alone never trigger ambiguity", () => {
       resolutionConfidence("Ronaldo", best, [best, nazario]),
       "high",
   );
+});
+
+// ── relationshipClaims (Step 22) ──────────────────────────────────────
+
+/** A dated, entity-valued claim with optional P580/P582 qualifiers. */
+function relClaim(id, {start, end, rank} = {}) {
+  const claim = {mainsnak: {datavalue: {value: {id}}}};
+  if (rank) claim.rank = rank;
+  const quals = {};
+  if (start) quals.P580 = [{datavalue: {value: {time: `+${start}-01-01T00:00:00Z`}}}];
+  if (end) quals.P582 = [{datavalue: {value: {time: `+${end}-01-01T00:00:00Z`}}}];
+  if (Object.keys(quals).length) claim.qualifiers = quals;
+  return claim;
+}
+
+test("relationshipClaims extracts structured Wikidata relations with type, category and direction", () => {
+  const rels = relationshipClaims({
+    claims: {
+      P26: [relClaim("Q100", {start: 2015})],
+      P40: [relClaim("Q200")],
+      P463: [relClaim("Q300", {start: 2019, end: 2023})],
+      P1830: [relClaim("Q400")],
+    },
+  });
+  const spouse = rels.find((r) => r.type === "SPOUSE");
+  assert.equal(spouse.targetId, "Q100");
+  assert.equal(spouse.direction, "BIDIRECTIONAL");
+  assert.equal(spouse.start, 2015);
+
+  const child = rels.find((r) => r.type === "CHILD");
+  assert.equal(child.direction, "OUTGOING");
+
+  const member = rels.find((r) => r.type === "MEMBER_OF");
+  assert.equal(member.category, "ORGANIZATIONAL");
+  assert.equal(member.end, 2023);
+
+  assert.ok(rels.some((r) => r.type === "OWNS" && r.category === "BUSINESS"));
+});
+
+test("relationshipClaims drops deprecated claims and snaks with no target id", () => {
+  const rels = relationshipClaims({
+    claims: {
+      P26: [relClaim("Q1", {rank: "deprecated"})],
+      P40: [{mainsnak: {snaktype: "novalue"}}],
+      P463: [relClaim("Q9")],
+    },
+  });
+  assert.equal(rels.length, 1);
+  assert.equal(rels[0].targetId, "Q9");
+});
+
+test("relationshipClaims never invents a relationship from an entity with no relation properties", () => {
+  assert.deepEqual(relationshipClaims({claims: {[PROPS.occupation]: ids(["Q33999"])}}), []);
+  assert.deepEqual(relationshipClaims({}), []);
+});
+
+test("extractFacts exposes an empty relationships array on a bare entity", () => {
+  assert.deepEqual(extractFacts({}).relationships, []);
 });

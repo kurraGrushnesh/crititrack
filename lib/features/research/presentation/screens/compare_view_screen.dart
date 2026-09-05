@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:crititrack/core/utils/compare.dart';
 import 'package:crititrack/core/utils/helpers.dart';
 import 'package:crititrack/core/utils/historical.dart';
+import 'package:crititrack/core/utils/relationships.dart';
 import 'package:crititrack/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:crititrack/features/research/presentation/providers/compare_providers.dart';
 
@@ -47,6 +48,8 @@ class CompareViewScreen extends ConsumerWidget {
             );
             final diffs = keyDifferences(sections);
             final points = turningPointsFor(contextA, contextB);
+            final directRels = directRelationshipsBetween(contextA.relationships, contextB.entityId, contextB.entityName);
+            final shared = sharedConnections(contextA.relationships, contextB.relationships);
 
             return ListView(
               padding: const EdgeInsets.all(16),
@@ -58,6 +61,31 @@ class CompareViewScreen extends ConsumerWidget {
                     Expanded(child: _EntityCard(context: contextB)),
                   ],
                 ),
+                const SizedBox(height: 16),
+                const Text('Relationship', style: TextStyle(fontWeight: FontWeight.bold)),
+                if (directRels.isNotEmpty)
+                  for (final r in directRels)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        '${contextA.entityName} — ${relationshipTypeLabel(r.relationshipType)} — ${contextB.entityName} · ${r.confidence.name} confidence',
+                      ),
+                    )
+                else
+                  const Padding(
+                    padding: EdgeInsets.only(top: 4),
+                    child: Text('No documented direct relationship found in the available data.'),
+                  ),
+                if (shared.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      'Shared organization${shared.length == 1 ? "" : "s"}: '
+                      '${shared.map((s) => "${s.organizationName} (${relationshipTypeLabel(s.aType)} / ${relationshipTypeLabel(s.bType)})").join("; ")}. '
+                      'This is a shared affiliation, not a direct relationship.',
+                      style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 12),
+                    ),
+                  ),
                 if (diffs.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   const Text('Key differences', style: TextStyle(fontWeight: FontWeight.bold)),
