@@ -20,6 +20,8 @@ import '../../features/sentiment/presentation/screens/compare_screen.dart';
 import '../../features/alerts/presentation/screens/alert_settings_screen.dart';
 import '../../features/browse/presentation/screens/browse_screen.dart';
 import '../../features/browse/presentation/screens/category_detail_screen.dart';
+import '../../features/research/presentation/screens/research_workspaces_screen.dart';
+import '../../features/research/presentation/screens/research_workspace_screen.dart';
 import '../widgets/main_shell.dart';
 
 /// Named route constants to avoid magic strings.
@@ -31,6 +33,7 @@ abstract final class AppRoutes {
   static const String dashboard = '/dashboard/:slug';
   static const String mediaWebView = '/dashboard/:slug/media';
   static const String alerts = '/alerts';
+  static const String research = '/research';
   static const String error = '/error';
 }
 
@@ -124,6 +127,18 @@ final GoRouter appRouter = GoRouter(
       path: '/alerts',
       name: 'alerts',
       builder: (context, state) => const AlertSettingsScreen(),
+    ),
+    GoRoute(
+      path: '/research',
+      name: 'research',
+      builder: (context, state) => const ResearchWorkspacesScreen(),
+      routes: [
+        GoRoute(
+          path: ':id',
+          name: 'researchWorkspace',
+          builder: (context, state) => ResearchWorkspaceScreen(workspaceId: state.pathParameters['id']!),
+        ),
+      ],
     ),
     GoRoute(
       path: '/error',

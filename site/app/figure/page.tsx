@@ -46,6 +46,7 @@ import DataCoverageDetail from "@/components/DataCoverageDetail";
 import RecentChangesCard from "@/components/RecentChangesCard";
 import ChangeHistory from "@/components/ChangeHistory";
 import HistoricalIntelligence from "@/components/HistoricalIntelligence";
+import ResearchThisButton from "@/components/ResearchThisButton";
 import type { RealProfile, ProfileCandidate } from "@/lib/api";
 
 /** The current profile expressed as a chooser card (the "best guess"). */
@@ -230,8 +231,14 @@ function ProfileView({
             />
           </StatRow>
 
-          <div style={{ marginTop: 24 }}>
+          <div style={{ marginTop: 24, display: "flex", gap: 12, flexWrap: "wrap" }}>
             <WatchButton slug={profile.slug} name={profile.name} wikidataId={profile.wikidataId} />
+            <ResearchThisButton
+              slug={profile.slug}
+              name={profile.name}
+              wikidataId={profile.wikidataId}
+              profession={profile.profession}
+            />
           </div>
 
           <div style={{ marginTop: 20, maxWidth: 360 }}>
@@ -356,7 +363,7 @@ function ProfileView({
               {[...kept]
                 .sort((a, b) => b.severity - a.severity)
                 .map((c, i) => (
-                  <ControversyRecord key={i} item={c} claims={claims} />
+                  <ControversyRecord key={i} item={c} claims={claims} entityId={profile.wikidataId ?? null} />
                 ))}
             </>
           )}
@@ -392,6 +399,7 @@ function ProfileView({
             controversies={profile.controversies}
             career={profile.career.timeline}
             sentimentEvidence={profile.evidence}
+            entityId={profile.wikidataId ?? null}
           />
         </section>
       </Reveal>

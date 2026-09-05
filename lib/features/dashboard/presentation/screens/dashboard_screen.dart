@@ -40,6 +40,8 @@ import 'package:crititrack/features/dashboard/presentation/widgets/media_feed_se
 import 'package:crititrack/features/dashboard/presentation/widgets/sentiment_section.dart';
 import 'package:crititrack/features/watchlist/domain/watched_figure.dart';
 import 'package:crititrack/features/watchlist/presentation/providers/watchlist_providers.dart';
+import 'package:crititrack/core/utils/research.dart';
+import 'package:crititrack/features/research/presentation/providers/research_providers.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key, required this.slug});
@@ -163,6 +165,7 @@ class _DashboardContent extends ConsumerWidget {
               ),
             ),
             _WatchButton(celebrity: celebrity),
+            _ResearchButton(celebrity: celebrity),
             _ExportButton(celebrity: celebrity),
             const ThemeToggle(compact: true),
             const SizedBox(width: 4),
@@ -333,6 +336,7 @@ class _DashboardContent extends ConsumerWidget {
               controversies: celebrity.biography.controversies,
               career: celebrity.facts.career,
               sentimentEvidence: celebrity.sentimentData.evidence,
+              entityId: celebrity.wikidataId ?? celebrity.slug,
             ),
           ),
         ),
@@ -616,6 +620,39 @@ class _WatchButton extends ConsumerWidget {
               duration: const Duration(seconds: 2),
             ),
           );
+      },
+    );
+  }
+}
+
+/// "Research this person" (Step 19): creates a new workspace pre-seeded
+/// with this resolved entity and opens it — the one-tap path for
+/// starting an investigation from a profile.
+class _ResearchButton extends ConsumerWidget {
+  const _ResearchButton({required this.celebrity});
+
+  final Celebrity celebrity;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return IconButton(
+      icon: const Icon(Icons.travel_explore_outlined),
+      tooltip: 'Research ${celebrity.name}',
+      onPressed: () async {
+        final workspace = await ref
+            .read(researchWorkspacesProvider.notifier)
+            .create(entityNames: [celebrity.name]);
+        final entityId = celebrity.wikidataId ?? celebrity.slug;
+        await ref.read(researchWorkspacesProvider.notifier).saveItem(
+              workspace.workspaceId,
+              type: ResearchItemType.entity,
+              entityId: entityId,
+              title: celebrity.name,
+              summary: celebrity.biography.profession,
+              referenceId: entityId,
+            );
+        if (!context.mounted) return;
+        GoRouter.of(context).push('/research/${workspace.workspaceId}');
       },
     );
   }

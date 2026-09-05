@@ -15,6 +15,7 @@ import 'core/theme/theme_controller.dart';
 import 'features/alerts/data/alert_preferences_store.dart';
 import 'features/alerts/data/push_service.dart';
 import 'features/watchlist/data/watchlist_repository.dart';
+import 'features/research/data/research_repository.dart';
 import 'firebase_options.dart';
 
 /// reCAPTCHA Enterprise site key for App Check on the web.
@@ -106,6 +107,10 @@ Future<void> main() async {
   await Hive.openBox<dynamic>(watchlistBoxName);
   // Alert preferences and this install's push identity.
   await Hive.openBox<dynamic>(alertPrefsBoxName);
+  // Research Workspaces: local-first, same as the watchlist above.
+  await Hive.openBox<dynamic>(researchWorkspacesBoxName);
+  await Hive.openBox<dynamic>(researchItemsBoxName);
+  await Hive.openBox<dynamic>(researchActivityBoxName);
 
   runApp(const ProviderScope(child: CritiTrackApp()));
 }

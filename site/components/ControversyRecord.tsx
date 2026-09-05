@@ -1,8 +1,10 @@
 import type { Controversy } from "@/lib/controversy";
 import type { Claim } from "@/lib/claims";
+import { titleSlug } from "@/lib/claims";
 import { controversyAnchor } from "@/lib/deep-link";
 import SourceLink from "./SourceLink";
 import ClaimsMatrix from "./ClaimsMatrix";
+import SaveToResearchButton from "./SaveToResearchButton";
 
 const STATUS_LABEL: Record<Controversy["status"], string> = {
   ongoing: "Ongoing",
@@ -19,9 +21,11 @@ const STATUS_LABEL: Record<Controversy["status"], string> = {
 export default function ControversyRecord({
   item,
   claims,
+  entityId,
 }: {
   item: Controversy;
   claims?: Claim[];
+  entityId?: string | null;
 }) {
   return (
     <article className="record" id={controversyAnchor(item.title)}>
@@ -53,7 +57,22 @@ export default function ControversyRecord({
       <p className="record-evidence-link">
         <a href="#evidence-explorer">View evidence →</a>
       </p>
-      {claims && <ClaimsMatrix controversyTitle={item.title} claims={claims} />}
+      <SaveToResearchButton
+        item={{
+          type: "CONTROVERSY",
+          entityId: entityId ?? null,
+          title: item.title,
+          summary: item.summary,
+          referenceId: titleSlug(item.title),
+          metadata: {
+            severity: item.severity,
+            status: item.status,
+            year: item.year ?? null,
+            category: item.category,
+          },
+        }}
+      />
+      {claims && <ClaimsMatrix controversyTitle={item.title} claims={claims} entityId={entityId} />}
     </article>
   );
 }

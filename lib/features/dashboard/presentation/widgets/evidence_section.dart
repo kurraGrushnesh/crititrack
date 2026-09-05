@@ -17,6 +17,8 @@ import 'package:crititrack/core/domain/models/person_facts.dart';
 import 'package:crititrack/core/domain/models/sentiment_data.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
 import 'package:crititrack/core/utils/evidence.dart';
+import 'package:crititrack/core/utils/research.dart';
+import 'package:crititrack/features/research/presentation/widgets/save_to_research_button.dart';
 
 class EvidenceSection extends StatelessWidget {
   const EvidenceSection({
@@ -25,12 +27,17 @@ class EvidenceSection extends StatelessWidget {
     required this.controversies,
     required this.career,
     required this.sentimentEvidence,
+    this.entityId,
   });
 
   final List<MediaItem> media;
   final List<Controversy> controversies;
   final List<CareerEntry> career;
   final List<SentimentEvidence> sentimentEvidence;
+
+  /// The profile this evidence belongs to — passed through to "Save to
+  /// research" so a saved item keeps its entity.
+  final String? entityId;
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +92,7 @@ class EvidenceSection extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => showEvidenceExplorerSheet(context, items),
+                onPressed: () => showEvidenceExplorerSheet(context, items, entityId),
                 icon: const Icon(Icons.search_rounded, size: 18),
                 label: Text(
                   'Browse ${items.length} evidence item${items.length == 1 ? "" : "s"}',
@@ -102,8 +109,9 @@ class EvidenceSection extends StatelessWidget {
 /// quick peek) with filters, search, and the full evidence list.
 Future<void> showEvidenceExplorerSheet(
   BuildContext context,
-  List<EvidenceItem> items,
-) {
+  List<EvidenceItem> items, [
+  String? entityId,
+]) {
   final palette = context.palette;
   return showModalBottomSheet<void>(
     context: context,
@@ -111,13 +119,14 @@ Future<void> showEvidenceExplorerSheet(
     useSafeArea: true,
     showDragHandle: true,
     backgroundColor: palette.card,
-    builder: (context) => _EvidenceExplorerSheet(items: items),
+    builder: (context) => _EvidenceExplorerSheet(items: items, entityId: entityId),
   );
 }
 
 class _EvidenceExplorerSheet extends StatefulWidget {
-  const _EvidenceExplorerSheet({required this.items});
+  const _EvidenceExplorerSheet({required this.items, this.entityId});
   final List<EvidenceItem> items;
+  final String? entityId;
 
   @override
   State<_EvidenceExplorerSheet> createState() => _EvidenceExplorerSheetState();
@@ -246,7 +255,7 @@ class _EvidenceExplorerSheetState extends State<_EvidenceExplorerSheet> {
                             itemCount: filtered.length,
                             itemBuilder:
                                 (context, i) =>
-                                    _EvidenceCard(item: filtered[i]),
+                                    _EvidenceCard(item: filtered[i], entityId: widget.entityId),
                           ),
                 ),
               ],
@@ -308,8 +317,9 @@ Color _strengthColor(EvidenceStrength s) => switch (s) {
 };
 
 class _EvidenceCard extends StatelessWidget {
-  const _EvidenceCard({required this.item});
+  const _EvidenceCard({required this.item, this.entityId});
   final EvidenceItem item;
+  final String? entityId;
 
   Future<void> _open(BuildContext context) async {
     final uri = item.sourceUrl != null ? Uri.tryParse(item.sourceUrl!) : null;
@@ -420,6 +430,21 @@ class _EvidenceCard extends StatelessWidget {
                 color: palette.textMuted,
               ),
             ),
+          const SizedBox(height: 8),
+          SaveToResearchButton(
+            type: ResearchItemType.evidence,
+            entityId: entityId,
+            title: e.title,
+            summary: e.strengthReason,
+            referenceId: e.evidenceId,
+            metadata: {
+              'confidence': e.evidenceStrength.name,
+              'sourceType': e.sourceType.name,
+              'sourceName': e.sourceName,
+              'sourceUrl': e.sourceUrl,
+              'publicationDate': e.publicationDate,
+            },
+          ),
         ],
       ),
     );

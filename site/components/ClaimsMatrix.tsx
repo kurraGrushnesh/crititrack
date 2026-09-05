@@ -10,6 +10,7 @@ import {
   type Claim,
   type ClaimFilter,
 } from "@/lib/claims";
+import SaveToResearchButton from "./SaveToResearchButton";
 
 /**
  * The Claim Verification Matrix for one controversy record: the discrete
@@ -54,7 +55,7 @@ function evidenceCount(c: Claim): number {
   ]).size;
 }
 
-function ClaimCard({ claim }: { claim: Claim }) {
+function ClaimCard({ claim, entityId }: { claim: Claim; entityId?: string | null }) {
   const [open, setOpen] = useState(false);
   const n = evidenceCount(claim);
   return (
@@ -108,6 +109,21 @@ function ClaimCard({ claim }: { claim: Claim }) {
           <a href="#evidence-explorer" className="cv-evidence-link">
             View evidence →
           </a>
+          <SaveToResearchButton
+            item={{
+              type: "CLAIM",
+              entityId: entityId ?? null,
+              title: claim.claimText,
+              summary: claim.statusReason,
+              referenceId: claim.claimId,
+              metadata: {
+                status: claim.status,
+                confidence: claim.confidence,
+                corroborated: claim.status === "supported" || claim.status === "resolved_authoritative",
+                evidenceCount: n,
+              },
+            }}
+          />
         </div>
       )}
     </div>
@@ -117,9 +133,11 @@ function ClaimCard({ claim }: { claim: Claim }) {
 export default function ClaimsMatrix({
   controversyTitle,
   claims,
+  entityId,
 }: {
   controversyTitle: string;
   claims: Claim[];
+  entityId?: string | null;
 }) {
   const [filter, setFilter] = useState<ClaimFilter>("all");
   const all = claimsForControversy(claims, controversyTitle);
@@ -146,7 +164,7 @@ export default function ClaimsMatrix({
       {shown.length === 0 ? (
         <p className="cv-empty">No claims match this filter.</p>
       ) : (
-        shown.map((c) => <ClaimCard key={c.claimId} claim={c} />)
+        shown.map((c) => <ClaimCard key={c.claimId} claim={c} entityId={entityId} />)
       )}
       <p className="dc-footnote" style={{ marginTop: 8 }}>
         Claim verification methodology v{METHODOLOGY_VERSION}.{" "}

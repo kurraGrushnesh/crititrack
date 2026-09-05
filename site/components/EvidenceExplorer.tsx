@@ -13,6 +13,7 @@ import {
 import type { MediaLink, EvidenceFragment } from "@/lib/api";
 import type { Controversy } from "@/lib/controversy";
 import type { CareerEntry } from "@/lib/career";
+import SaveToResearchButton from "./SaveToResearchButton";
 
 /**
  * Evidence & Source Explorer — every source this profile's record is
@@ -46,11 +47,15 @@ export default function EvidenceExplorer({
   controversies,
   career,
   sentimentEvidence,
+  entityId,
 }: {
   media: MediaLink[];
   controversies: Controversy[];
   career: CareerEntry[];
   sentimentEvidence: EvidenceFragment[];
+  /** The profile this evidence belongs to — passed through to "Save to
+   * research" so a saved item keeps its entity. */
+  entityId?: string | null;
 }) {
   const items = useMemo(
     () => buildEvidenceItems({ media, controversies, career, sentimentEvidence }),
@@ -161,7 +166,7 @@ export default function EvidenceExplorer({
       ) : (
         <ul className="ev-cards">
           {filtered.map((e) => (
-            <EvidenceCard key={e.evidenceId} item={e} />
+            <EvidenceCard key={e.evidenceId} item={e} entityId={entityId} />
           ))}
         </ul>
       )}
@@ -173,7 +178,13 @@ export default function EvidenceExplorer({
   );
 }
 
-function EvidenceCard({ item: e }: { item: EvidenceItem }) {
+function EvidenceCard({
+  item: e,
+  entityId,
+}: {
+  item: EvidenceItem;
+  entityId?: string | null;
+}) {
   return (
     <li className="ev-card">
       <div className="ev-card-top">
@@ -207,6 +218,22 @@ function EvidenceCard({ item: e }: { item: EvidenceItem }) {
       ) : (
         <span className="ev-open is-disabled">No direct link on file</span>
       )}
+      <SaveToResearchButton
+        item={{
+          type: "EVIDENCE",
+          entityId: entityId ?? null,
+          title: e.title,
+          summary: e.strengthReason,
+          referenceId: e.evidenceId,
+          metadata: {
+            confidence: e.evidenceStrength,
+            sourceType: e.sourceType,
+            sourceName: e.sourceName,
+            sourceUrl: e.sourceUrl,
+            publicationDate: e.publicationDate,
+          },
+        }}
+      />
     </li>
   );
 }

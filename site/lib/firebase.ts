@@ -77,3 +77,22 @@ export async function getAuthedHeaders(): Promise<Record<string, string>> {
     "X-Firebase-AppCheck": acToken,
   };
 }
+
+/**
+ * The signed-in uid, for direct Firestore access (Research Workspaces —
+ * see `research-store.ts`). Same anonymous sign-in as
+ * `getAuthedHeaders()`; there is no separate account system, so this
+ * uid is scoped to one browser profile, not a portable identity.
+ */
+export async function ensureSignedInUid(): Promise<string> {
+  ensureInit();
+  const user = auth!.currentUser ?? (await signInAnonymously(auth!)).user;
+  return user.uid;
+}
+
+/** The initialised Firebase app, for SDKs (Firestore) that take it
+ * directly. Initialises on first call, same as every export here. */
+export function getFirebaseApp(): FirebaseApp {
+  ensureInit();
+  return app!;
+}
