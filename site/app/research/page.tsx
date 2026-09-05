@@ -28,9 +28,14 @@ export default function ResearchListPage() {
           </p>
         </div>
 
-        <Button variant="primary" size="sm" onClick={() => setCreating((v) => !v)}>
-          + New workspace
-        </Button>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <Button variant="primary" size="sm" onClick={() => setCreating((v) => !v)}>
+            + New workspace
+          </Button>
+          <Button variant="ghost" size="sm" href="/research/compare">
+            Compare entities
+          </Button>
+        </div>
 
         {creating && (
           <form

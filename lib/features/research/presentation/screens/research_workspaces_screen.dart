@@ -55,7 +55,16 @@ class _ResearchWorkspacesScreenState extends ConsumerState<ResearchWorkspacesScr
     final workspaces = ref.watch(researchWorkspacesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Research Workspace')),
+      appBar: AppBar(
+        title: const Text('Research Workspace'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.compare_arrows),
+            tooltip: 'Compare entities',
+            onPressed: () => context.push('/advanced-compare'),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _createWorkspace,
         tooltip: 'New workspace',

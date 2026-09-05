@@ -23,6 +23,8 @@ import '../../features/browse/presentation/screens/category_detail_screen.dart';
 import '../../features/research/presentation/screens/research_workspaces_screen.dart';
 import '../../features/research/presentation/screens/research_workspace_screen.dart';
 import '../../features/research/presentation/screens/report_screen.dart';
+import '../../features/research/presentation/screens/compare_create_screen.dart';
+import '../../features/research/presentation/screens/compare_view_screen.dart';
 import '../widgets/main_shell.dart';
 
 /// Named route constants to avoid magic strings.
@@ -145,6 +147,21 @@ final GoRouter appRouter = GoRouter(
       path: '/reports/:id',
       name: 'report',
       builder: (context, state) => ReportScreen(reportId: state.pathParameters['id']!),
+    ),
+    // Note: '/compare' is already the sentiment-correlation tab above
+    // (features/sentiment/.../compare_screen.dart) — Advanced Compare is
+    // a distinct, broader feature (CritiScore/career/controversies/
+    // claims/coverage, not just a sentiment overlay), so it lives under
+    // its own path rather than colliding with or replacing that screen.
+    GoRoute(
+      path: '/advanced-compare',
+      name: 'advancedCompareCreate',
+      builder: (context, state) => const CompareCreateScreen(),
+    ),
+    GoRoute(
+      path: '/advanced-compare/:id',
+      name: 'advancedCompareView',
+      builder: (context, state) => CompareViewScreen(comparisonId: state.pathParameters['id']!),
     ),
     GoRoute(
       path: '/error',

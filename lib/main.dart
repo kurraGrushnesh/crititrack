@@ -17,6 +17,7 @@ import 'features/alerts/data/push_service.dart';
 import 'features/watchlist/data/watchlist_repository.dart';
 import 'features/research/data/research_repository.dart';
 import 'features/research/data/report_repository.dart';
+import 'features/research/data/compare_repository.dart';
 import 'firebase_options.dart';
 
 /// reCAPTCHA Enterprise site key for App Check on the web.
@@ -116,6 +117,8 @@ Future<void> main() async {
   await Hive.openBox<dynamic>(reportsBoxName);
   await Hive.openBox<dynamic>(reportSectionsBoxName);
   await Hive.openBox<dynamic>(reportCitationsBoxName);
+  // Saved comparisons (Advanced Compare).
+  await Hive.openBox<dynamic>(comparisonsBoxName);
 
   runApp(const ProviderScope(child: CritiTrackApp()));
 }
