@@ -39,6 +39,7 @@ import { buildEvidenceItems } from "@/lib/evidence";
 import { buildClaimMatrix } from "@/lib/claims";
 import { buildCoverageReport, summaryDimensions } from "@/lib/coverage";
 import { detectChanges } from "@/lib/changes";
+import { buildTimeline } from "@/lib/timeline";
 import DataCoverageCard from "@/components/DataCoverageCard";
 import DataCoverageDetail from "@/components/DataCoverageDetail";
 import RecentChangesCard from "@/components/RecentChangesCard";
@@ -122,6 +123,25 @@ function ProfileView({
   const coverageReport = useMemo(
     () => buildCoverageReport({ profile, evidenceItems, claims }),
     [profile, evidenceItems, claims],
+  );
+  // Step 16: fold Change Detection's own findings (CritiScore moves,
+  // claim status changes, coverage/availability shifts, profile edits)
+  // into the same Intelligent Timeline, rather than a second one. A new
+  // controversy/career role/news cluster/sentiment shift is already on
+  // `profile.timeline` from the same underlying data, so only the change
+  // types with no other timeline representation are added here — see
+  // `changeDetectionEvents` in timeline.ts.
+  const enrichedTimeline = useMemo(
+    () =>
+      buildTimeline({
+        controversies: profile.controversies,
+        media: profile.media,
+        career: profile.career.timeline,
+        attentionSeries: profile.attention?.series ?? [],
+        trend: profile.trend,
+        changeEvents: changes,
+      }),
+    [profile.controversies, profile.media, profile.career.timeline, profile.attention, profile.trend, changes],
   );
 
   // Deep links: after the profile renders, jump to the section,
@@ -268,7 +288,7 @@ function ProfileView({
         </section>
       </Reveal>
 
-      {profile.timeline.length > 0 && (
+      {enrichedTimeline.length > 0 && (
         <Reveal>
           <hr className="divider-rule" />
           <section className="min-section" id="timeline">
@@ -277,11 +297,12 @@ function ProfileView({
             </div>
             <p className="sub" style={{ marginBottom: 24 }}>
               Controversies, career and organisation changes, clustered news
-              coverage, attention spikes and sharp sentiment moves, on one
-              axis. An attention spike is unsigned — people looked, with no
+              coverage, attention spikes, sharp sentiment moves, and other
+              detected changes (CritiScore, claims, coverage), on one axis.
+              An attention spike is unsigned — people looked, with no
               direction implied.
             </p>
-            <FigureTimeline events={profile.timeline} />
+            <FigureTimeline events={enrichedTimeline} />
           </section>
         </Reveal>
       )}

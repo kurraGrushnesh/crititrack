@@ -23,6 +23,7 @@ import 'package:crititrack/core/export/celebrity_export.dart';
 import 'package:crititrack/features/share/data/card_renderer.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
 import 'package:crititrack/core/theme/theme_toggle.dart';
+import 'package:crititrack/core/utils/changes.dart';
 import 'package:crititrack/core/utils/helpers.dart';
 import 'package:crititrack/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:crititrack/features/controversy/presentation/widgets/controversy_section.dart';
@@ -75,13 +76,23 @@ class _DashboardContent extends ConsumerWidget {
     final isWide = screenWidth >= AppConstants.mobileBreakpoint;
     final palette = context.palette;
 
+    // Step 16: the same previous-snapshot comparison RecentChangesCard
+    // uses, so the timeline can fold in CritiScore/claim/coverage
+    // changes without a second detection pass. Absent (empty) until a
+    // previous snapshot exists — never fabricated in the meantime.
+    final previousAsync = ref.watch(previousSnapshotProvider(celebrity.slug));
+    final changes = previousAsync.maybeWhen(
+      data: (previous) => previous == null ? const <ChangeEvent>[] : detectChanges(previous, celebrity, celebrity.fetchedAt),
+      orElse: () => const <ChangeEvent>[],
+    );
+
     return Stack(
       children: [
         // A single warm glow bleeding down from the top-right, matching
         // the web hero. Static and behind everything, so it costs a
         // paint and nothing else.
         const Positioned.fill(child: _AmbientGlow()),
-        _dashboardScroll(context, isWide, palette),
+        _dashboardScroll(context, isWide, palette, changes),
       ],
     );
   }
@@ -90,6 +101,7 @@ class _DashboardContent extends ConsumerWidget {
     BuildContext context,
     bool isWide,
     AppPalette palette,
+    List<ChangeEvent> changes,
   ) {
     return CustomScrollView(
       slivers: [
@@ -300,6 +312,7 @@ class _DashboardContent extends ConsumerWidget {
               mediaItems: celebrity.mediaItems,
               career: celebrity.facts.career,
               trend: celebrity.sentimentData.trendData,
+              changeEvents: changes,
             ),
           ),
         ),

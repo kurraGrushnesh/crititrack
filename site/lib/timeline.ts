@@ -24,6 +24,7 @@ import { parseSafeUrl, displayHost } from "./safe-url";
 export const TIMELINE_METHODOLOGY_VERSION = "1.0";
 import type { CareerEntry } from "./career";
 import { LEADERSHIP } from "./career";
+import type { ChangeEvent } from "./changes";
 
 export type TimelineKind =
   | "controversy"
@@ -31,7 +32,8 @@ export type TimelineKind =
   | "sentiment-shift"
   | "news"
   | "career"
-  | "organization";
+  | "organization"
+  | "change";
 
 export type Importance = "high" | "medium" | "low";
 
@@ -318,7 +320,58 @@ const KIND_ORDER: Record<TimelineKind, number> = {
   news: 3,
   "attention-spike": 4,
   "sentiment-shift": 5,
+  change: 6,
 };
+
+/**
+ * Step 16: folds Change Detection's own findings into this same
+ * timeline, rather than building a second one. Only the change types
+ * this timeline has no independent way to derive are included — a new
+ * controversy, career role, organisation, news cluster or sentiment
+ * shift already becomes its own `controversy`/`career`/`organization`/
+ * `news`/`sentiment-shift` event above from the same underlying data,
+ * so re-adding it here would show the same real-world thing twice.
+ * CritiScore moves, claim status changes, coverage/availability shifts
+ * and profile-metadata edits have no other timeline representation, so
+ * those are the only ones folded in.
+ */
+const TIMELINE_CHANGE_TYPES: ReadonlySet<ChangeEvent["changeType"]> = new Set([
+  "CRITISCORE_CHANGE",
+  "CLAIM_CHANGE",
+  "SOURCE_COVERAGE_CHANGE",
+  "DATA_AVAILABILITY_CHANGE",
+  "PROFILE_CHANGE",
+]);
+
+function changeImportance(severity: ChangeEvent["severity"]): Importance {
+  if (severity === "MAJOR" || severity === "SIGNIFICANT") return "high";
+  if (severity === "MINOR") return "medium";
+  return "low";
+}
+
+function changeDetectionEvents(changes: ChangeEvent[]): TimelineEvent[] {
+  return changes
+    .filter((c) => TIMELINE_CHANGE_TYPES.has(c.changeType))
+    .map((c) => {
+      const date = c.effectiveDate ?? c.detectedAt.slice(0, 10);
+      return {
+        date,
+        approxDate: !c.effectiveDate,
+        kind: "change" as const,
+        title: c.title,
+        detail: c.summary,
+        severity: null,
+        change: null,
+        sourceCount: null,
+        sentimentImpact: null,
+        attentionImpact: null,
+        sources: [],
+        importance: changeImportance(c.severity),
+        importanceReason: `${c.confidence.toLowerCase()}-confidence change detection`,
+        relatedTitles: [],
+      };
+    });
+}
 
 /** Whether `dateIso` falls within the last `days` days of `now`. `days`
  * of `null` means "no limit" — always true. Takes `now` as a parameter
@@ -345,6 +398,10 @@ export function buildTimeline(input: {
   career: CareerEntry[];
   attentionSeries: AttentionPoint[];
   trend: TrendPoint[];
+  /** Step 16: this profile's detected changes, when available — folded
+   * in by {@link changeDetectionEvents}, which only includes the change
+   * types not already derivable above (see its own doc comment). */
+  changeEvents?: ChangeEvent[];
 }): TimelineEvent[] {
   const merged = [
     ...controversyEvents(input.controversies ?? []),
@@ -352,6 +409,7 @@ export function buildTimeline(input: {
     ...newsEvents(input.media ?? []),
     ...attentionSpikeEvents(input.attentionSeries ?? []),
     ...sentimentShiftEvents(input.trend ?? []),
+    ...changeDetectionEvents(input.changeEvents ?? []),
   ].sort((a, b) => {
     if (a.date !== b.date) return a.date < b.date ? 1 : -1;
     return (KIND_ORDER[a.kind] ?? 9) - (KIND_ORDER[b.kind] ?? 9);

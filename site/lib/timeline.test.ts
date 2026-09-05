@@ -275,3 +275,65 @@ describe("buildTimeline — merge order and relationships", () => {
     expect(buildTimeline(emptyInput)).toEqual([]);
   });
 });
+
+describe("buildTimeline — Step 16 Change Detection integration", () => {
+  const change = (over: Partial<import("./changes").ChangeEvent> = {}): import("./changes").ChangeEvent => ({
+    changeId: "c1",
+    entityId: "x",
+    changeType: "CRITISCORE_CHANGE",
+    severity: "MAJOR",
+    title: "CritiScore increased +13",
+    summary: "reason",
+    previousValue: "48",
+    currentValue: "61",
+    detectedAt: "2026-09-05T00:00:00Z",
+    effectiveDate: null,
+    evidenceIds: [],
+    relatedClaimIds: [],
+    methodologyVersion: "2.0",
+    confidence: "HIGH",
+    sourceCoverage: null,
+    ...over,
+  });
+
+  it("folds a CritiScore/claim/coverage/profile change in as its own 'change' event", () => {
+    const out = buildTimeline({ ...emptyInput, changeEvents: [change()] });
+    expect(out).toHaveLength(1);
+    expect(out[0].kind).toBe("change");
+    expect(out[0].title).toBe("CritiScore increased +13");
+    expect(out[0].importance).toBe("high");
+  });
+
+  it("never duplicates a controversy/career/news/sentiment change already derivable from the same data", () => {
+    const out = buildTimeline({
+      ...emptyInput,
+      controversies: [controversy({ year: 2026 })],
+      changeEvents: [
+        change({ changeType: "CONTROVERSY_CHANGE", title: "New supported controversy: Tax dispute" }),
+      ],
+    });
+    // Only the controversy's own timeline entry — the duplicate-shaped
+    // CONTROVERSY_CHANGE is not one of the folded-in types.
+    expect(out).toHaveLength(1);
+    expect(out[0].kind).toBe("controversy");
+  });
+
+  it("with no changeEvents supplied, behaves exactly as before Step 16", () => {
+    const out = buildTimeline({ ...emptyInput, controversies: [controversy({ year: 2026 })] });
+    expect(out).toHaveLength(1);
+    expect(out.every((e) => e.kind !== "change")).toBe(true);
+  });
+
+  it("uses the change's effectiveDate when known, else falls back to detectedAt", () => {
+    const withDate = buildTimeline({
+      ...emptyInput,
+      changeEvents: [change({ effectiveDate: "2020" })],
+    });
+    expect(withDate[0].date).toBe("2020");
+    expect(withDate[0].approxDate).toBe(false);
+
+    const withoutDate = buildTimeline({ ...emptyInput, changeEvents: [change({ effectiveDate: null })] });
+    expect(withoutDate[0].date).toBe("2026-09-05");
+    expect(withoutDate[0].approxDate).toBe(true);
+  });
+});

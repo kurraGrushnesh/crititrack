@@ -21,6 +21,7 @@ import 'package:crititrack/core/domain/models/controversy.dart';
 import 'package:crititrack/core/domain/models/media_item.dart';
 import 'package:crititrack/core/domain/models/person_facts.dart';
 import 'package:crititrack/core/domain/models/sentiment_data.dart';
+import 'package:crititrack/core/utils/changes.dart' show ChangeEvent, ChangeSeverity, ChangeType;
 
 enum TimelineKind {
   controversy,
@@ -29,6 +30,7 @@ enum TimelineKind {
   news,
   attentionSpike,
   sentimentShift,
+  change,
 }
 
 extension TimelineKindLabel on TimelineKind {
@@ -39,6 +41,7 @@ extension TimelineKindLabel on TimelineKind {
     TimelineKind.news => 'News',
     TimelineKind.attentionSpike => 'Attention',
     TimelineKind.sentimentShift => 'Sentiment',
+    TimelineKind.change => 'Change',
   };
 }
 
@@ -363,7 +366,47 @@ const Map<TimelineKind, int> _kindOrder = {
   TimelineKind.news: 3,
   TimelineKind.attentionSpike: 4,
   TimelineKind.sentimentShift: 5,
+  TimelineKind.change: 6,
 };
+
+/// Step 16: folds Change Detection's own findings into this same
+/// timeline rather than a second one. Only change types with no other
+/// timeline representation are included — a new controversy, career
+/// role, news cluster or sentiment shift already becomes its own event
+/// above from the same underlying data, so re-adding it here would show
+/// the same real-world thing twice.
+const Set<ChangeType> _timelineChangeTypes = {
+  ChangeType.critiscoreChange,
+  ChangeType.claimChange,
+  ChangeType.sourceCoverageChange,
+  ChangeType.dataAvailabilityChange,
+  ChangeType.profileChange,
+};
+
+Importance _changeImportance(ChangeSeverity severity) => switch (severity) {
+  ChangeSeverity.major || ChangeSeverity.significant => Importance.high,
+  ChangeSeverity.minor => Importance.medium,
+  ChangeSeverity.info => Importance.low,
+};
+
+List<TimelineEvent> _changeDetectionEvents(List<ChangeEvent> changes) {
+  return changes
+      .where((c) => _timelineChangeTypes.contains(c.changeType))
+      .map((c) {
+        final effective = c.effectiveDate != null ? DateTime.tryParse(c.effectiveDate!) : null;
+        final date = effective ?? c.detectedAt;
+        return TimelineEvent(
+          date: DateTime.utc(date.year, date.month, date.day),
+          approxDate: effective == null,
+          kind: TimelineKind.change,
+          title: c.title,
+          detail: c.summary,
+          importance: _changeImportance(c.severity),
+          importanceReason: '${c.confidence.name}-confidence change detection',
+        );
+      })
+      .toList();
+}
 
 /// The unified, most-recent-first Intelligence Timeline. Every input is
 /// data the profile already carries — no request happens here.
@@ -372,12 +415,14 @@ List<TimelineEvent> buildTimeline({
   required List<MediaItem> media,
   required List<CareerEntry> career,
   required List<SentimentSnapshot> trend,
+  List<ChangeEvent> changeEvents = const [],
 }) {
   final merged = [
     ..._controversyEvents(controversies),
     ..._careerEvents(career),
     ..._newsEvents(media),
     ...sentimentShiftEvents(trend),
+    ..._changeDetectionEvents(changeEvents),
   ]..sort((a, b) {
     final byDate = b.date.compareTo(a.date);
     if (byDate != 0) return byDate;

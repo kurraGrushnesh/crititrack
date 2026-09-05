@@ -63,6 +63,7 @@ class ChangeEvent {
     required this.methodologyVersion,
     required this.confidence,
     required this.sourceCoverage,
+    this.relatedEventId,
   });
 
   final String changeId;
@@ -77,6 +78,10 @@ class ChangeEvent {
   final String? effectiveDate;
   final List<String> evidenceIds;
   final List<String> relatedClaimIds;
+
+  /// Links this change to a specific timeline entry, when one exists —
+  /// reserved for a future pass; absent today, never fabricated.
+  final String? relatedEventId;
   final String methodologyVersion;
   final ChangeConfidence confidence;
   final String? sourceCoverage;
@@ -126,6 +131,63 @@ List<ChangeEvent> _careerChanges(
         methodologyVersion: kChangeMethodologyVersion,
         confidence: e.sourceUrl != null ? ChangeConfidence.high : ChangeConfidence.low,
         sourceCoverage: e.sourceUrl != null ? 'sourced' : 'unsourced',
+      ),
+    );
+  }
+  return out;
+}
+
+List<ChangeEvent> _organizationChanges(
+  String entityId,
+  DateTime detectedAt,
+  List<String> previous,
+  List<String> current,
+) {
+  final prevSet = previous.map((o) => o.toLowerCase()).toSet();
+  final currSet = current.map((o) => o.toLowerCase()).toSet();
+  final out = <ChangeEvent>[];
+
+  for (final org in current) {
+    if (prevSet.contains(org.toLowerCase())) continue;
+    out.add(
+      ChangeEvent(
+        changeId: _nextId(entityId, ChangeType.organizationChange),
+        entityId: entityId,
+        changeType: ChangeType.organizationChange,
+        severity: ChangeSeverity.minor,
+        title: 'New organization: $org',
+        summary: '$org appeared as a new organization in the sourced career record.',
+        previousValue: null,
+        currentValue: org,
+        detectedAt: detectedAt,
+        effectiveDate: null,
+        evidenceIds: const [],
+        relatedClaimIds: const [],
+        methodologyVersion: kChangeMethodologyVersion,
+        confidence: ChangeConfidence.medium,
+        sourceCoverage: null,
+      ),
+    );
+  }
+  for (final org in previous) {
+    if (currSet.contains(org.toLowerCase())) continue;
+    out.add(
+      ChangeEvent(
+        changeId: _nextId(entityId, ChangeType.organizationChange),
+        entityId: entityId,
+        changeType: ChangeType.organizationChange,
+        severity: ChangeSeverity.minor,
+        title: 'No longer listed at: $org',
+        summary: '$org no longer appears in the sourced career record.',
+        previousValue: org,
+        currentValue: null,
+        detectedAt: detectedAt,
+        effectiveDate: null,
+        evidenceIds: const [],
+        relatedClaimIds: const [],
+        methodologyVersion: kChangeMethodologyVersion,
+        confidence: ChangeConfidence.medium,
+        sourceCoverage: null,
       ),
     );
   }
@@ -676,8 +738,14 @@ const Map<ChangeSeverity, int> _severityRank = {
 /// same person. `detectedAt` should be the real fetch time of
 /// [current] — never `DateTime.now()` computed inside this function
 /// (kept an explicit parameter for purity/testing).
+///
+/// Returns nothing when either snapshot's resolution was ambiguous
+/// (candidates were offered rather than one person picked) — comparing
+/// across two possibly-different, ambiguously-resolved individuals
+/// would produce entirely fabricated "changes".
 List<ChangeEvent> detectChanges(Celebrity previous, Celebrity current, DateTime detectedAt) {
   if (previous.slug != current.slug) return const [];
+  if (previous.candidates.isNotEmpty || current.candidates.isNotEmpty) return const [];
   final entityId = current.slug;
 
   final prevEvidence = buildEvidenceItems(
@@ -695,6 +763,7 @@ List<ChangeEvent> detectChanges(Celebrity previous, Celebrity current, DateTime 
 
   final events = [
     ..._careerChanges(entityId, detectedAt, previous.facts.career, current.facts.career),
+    ..._organizationChanges(entityId, detectedAt, previous.facts.organizations, current.facts.organizations),
     ..._professionChange(entityId, detectedAt, previous.biography.profession, current.biography.profession),
     ..._controversyChanges(
       entityId,

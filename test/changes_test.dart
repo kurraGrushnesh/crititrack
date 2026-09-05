@@ -65,9 +65,11 @@ Celebrity celebrity({
   double sentimentScore = 50,
   int? sampleSize = 50,
   double? confidence = 0.8,
+  List<EntityCandidate> candidates = const [],
 }) => Celebrity(
   slug: 'jane-doe',
   name: 'Jane Doe',
+  candidates: candidates,
   biography: Biography(
     profession: profession,
     summary: summary,
@@ -332,6 +334,103 @@ void main() {
         final text = '${e.title} ${e.summary}'.toLowerCase();
         expect(text, isNot(matches(RegExp(r'follower|upvote|trending|view count'))));
       }
+    });
+  });
+
+  group('scenario 4: profession change', () {
+    test('a real profession change fires professionChange with the actual before/after', () {
+      final before = celebrity(profession: 'Software Engineer');
+      final after = celebrity(profession: 'Chief Technology Officer');
+      final events = detectChanges(before, after, after.fetchedAt);
+      final p = events.firstWhere((e) => e.changeType == ChangeType.professionChange);
+      expect(p.previousValue, 'Software Engineer');
+      expect(p.currentValue, 'Chief Technology Officer');
+      expect(p.confidence, ChangeConfidence.high);
+    });
+
+    test('case-only / whitespace-only profession differences are ignored', () {
+      final before = celebrity(profession: 'Executive');
+      final after = celebrity(profession: 'executive ');
+      expect(detectChanges(before, after, after.fetchedAt), isEmpty);
+    });
+  });
+
+  group('scenario 5: organization change', () {
+    test('joining a new organization fires its own organizationChange', () {
+      final before = celebrity(organizations: const ['Firm A']);
+      final after = celebrity(organizations: const ['Firm A', 'Firm B']);
+      final events = detectChanges(before, after, after.fetchedAt);
+      final o = events.firstWhere(
+        (e) => e.changeType == ChangeType.organizationChange && e.title.contains('New organization'),
+      );
+      expect(o.currentValue, 'Firm B');
+    });
+
+    test('leaving an organization fires its own organizationChange', () {
+      final before = celebrity(organizations: const ['Firm A', 'Firm B']);
+      final after = celebrity(organizations: const ['Firm A']);
+      final events = detectChanges(before, after, after.fetchedAt);
+      final o = events.firstWhere(
+        (e) => e.changeType == ChangeType.organizationChange && e.title.contains('No longer listed'),
+      );
+      expect(o.previousValue, 'Firm B');
+    });
+  });
+
+  group('scenario 15: profile metadata change', () {
+    test('a genuine summary rewrite fires profileChange', () {
+      final before = celebrity(summary: 'Jane Doe is a software engineer.');
+      final after = celebrity(summary: 'Jane Doe is now a company director.');
+      final events = detectChanges(before, after, after.fetchedAt);
+      expect(events.any((e) => e.changeType == ChangeType.profileChange), isTrue);
+    });
+  });
+
+  group('scenario 17: data coverage change (not an availability failure)', () {
+    test('news coverage improving reads as sourceCoverageChange, not dataAvailabilityChange', () {
+      final before = celebrity(media: [media(id: '1', source: 'OnlyOutlet')]);
+      final after = celebrity(
+        media: List.generate(60, (i) => media(id: '$i', source: 'Publisher ${i % 6}')),
+      );
+      final events = detectChanges(before, after, after.fetchedAt);
+      expect(
+        events.any((e) => e.changeType == ChangeType.sourceCoverageChange && e.title.startsWith('News')),
+        isTrue,
+      );
+      expect(
+        events.any((e) => e.changeType == ChangeType.dataAvailabilityChange && e.title.startsWith('News')),
+        isFalse,
+      );
+    });
+  });
+
+  group('scenario 22: ambiguous entity resolution never produces changes', () {
+    const someone = EntityCandidate(qid: 'Q2', label: 'Someone Else');
+
+    test('candidates offered on either snapshot suppresses the whole comparison', () {
+      final before = celebrity(controversies: const [], candidates: const [someone]);
+      final after = celebrity(controversies: [controversy()]);
+      expect(detectChanges(before, after, after.fetchedAt), isEmpty);
+    });
+
+    test('an unambiguous pair on both sides still produces real changes', () {
+      final before = celebrity(controversies: const []);
+      final after = celebrity(controversies: [controversy()]);
+      expect(detectChanges(before, after, after.fetchedAt), isNotEmpty);
+    });
+  });
+
+  group('scenario 24: repeated comparisons of the same pair are deterministic', () {
+    test('calling detectChanges twice on identical snapshots yields the same change types both times', () {
+      final before = celebrity(controversies: const []);
+      final after = celebrity(controversies: [controversy()]);
+      final first = detectChanges(before, after, after.fetchedAt).map((e) => e.changeType).toList()..sort(
+        (a, b) => a.index.compareTo(b.index),
+      );
+      final second = detectChanges(before, after, after.fetchedAt).map((e) => e.changeType).toList()..sort(
+        (a, b) => a.index.compareTo(b.index),
+      );
+      expect(second, first);
     });
   });
 }

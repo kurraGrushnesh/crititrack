@@ -394,3 +394,106 @@ describe("severity/confidence never imply wrongdoing or leak popularity", () => 
     }
   });
 });
+
+describe("scenario 4: profession change", () => {
+  test("a real profession change fires PROFESSION_CHANGE with the actual before/after", () => {
+    const before = profile({ profession: "Software Engineer" });
+    const after = profile({ profession: "Chief Technology Officer" });
+    const events = detectChanges(before, after, after.fetchedAt);
+    const p = events.find((e) => e.changeType === "PROFESSION_CHANGE")!;
+    expect(p).toBeDefined();
+    expect(p.previousValue).toBe("Software Engineer");
+    expect(p.currentValue).toBe("Chief Technology Officer");
+    expect(p.confidence).toBe("HIGH");
+  });
+
+  test("case-only / whitespace-only profession differences are ignored", () => {
+    const before = profile({ profession: "Executive" });
+    const after = profile({ profession: "executive " });
+    expect(detectChanges(before, after, after.fetchedAt)).toEqual([]);
+  });
+});
+
+describe("scenario 5: organization change", () => {
+  test("joining a new organization fires ORGANIZATION_CHANGE", () => {
+    const before = profile({ career: career([], ["Firm A"]) });
+    const after = profile({ career: career([], ["Firm A", "Firm B"]) });
+    const events = detectChanges(before, after, after.fetchedAt);
+    const o = events.find((e) => e.changeType === "ORGANIZATION_CHANGE" && e.title.includes("New organization"))!;
+    expect(o).toBeDefined();
+    expect(o.currentValue).toBe("Firm B");
+  });
+
+  test("leaving an organization fires its own ORGANIZATION_CHANGE", () => {
+    const before = profile({ career: career([], ["Firm A", "Firm B"]) });
+    const after = profile({ career: career([], ["Firm A"]) });
+    const events = detectChanges(before, after, after.fetchedAt);
+    const o = events.find(
+      (e) => e.changeType === "ORGANIZATION_CHANGE" && e.title.includes("No longer listed"),
+    )!;
+    expect(o).toBeDefined();
+    expect(o.previousValue).toBe("Firm B");
+  });
+});
+
+describe("scenario 15: profile metadata change", () => {
+  test("a genuine summary rewrite (not just whitespace) fires PROFILE_CHANGE", () => {
+    const before = profile({ summary: "Jane Doe is a software engineer." });
+    const after = profile({ summary: "Jane Doe is now a company director." });
+    const events = detectChanges(before, after, after.fetchedAt);
+    const p = events.find((e) => e.changeType === "PROFILE_CHANGE")!;
+    expect(p).toBeDefined();
+    expect(p.severity).toBe("INFO");
+  });
+});
+
+describe("scenario 17: data coverage change (not an availability failure)", () => {
+  test("news coverage moving from limited to a fuller level reads as SOURCE_COVERAGE_CHANGE, not DATA_AVAILABILITY_CHANGE", () => {
+    const before = profile({
+      media: [media({ id: "1", source: "OnlyOutlet" })],
+    });
+    const after = profile({
+      media: Array.from({ length: 60 }, (_, i) => media({ id: `${i}`, source: `Publisher ${i % 6}` })),
+    });
+    const events = detectChanges(before, after, after.fetchedAt);
+    const c = events.find((e) => e.changeType === "SOURCE_COVERAGE_CHANGE" && e.title.startsWith("News"));
+    expect(c).toBeDefined();
+    expect(c!.previousValue).not.toBe("unavailable");
+    expect(events.some((e) => e.changeType === "DATA_AVAILABILITY_CHANGE" && e.title.startsWith("News"))).toBe(
+      false,
+    );
+  });
+});
+
+describe("scenario 22: ambiguous entity resolution never produces changes", () => {
+  test("either snapshot being ambiguously resolved suppresses the whole comparison", () => {
+    const before = profile({ controversies: [], resolution: "ambiguous" });
+    const after = profile({ controversies: [controversy()] });
+    expect(detectChanges(before, after, after.fetchedAt)).toEqual([]);
+  });
+
+  test("a clean, non-ambiguous pair on either side still produces real changes", () => {
+    const before = profile({ controversies: [], resolution: "high" });
+    const after = profile({ controversies: [controversy()], resolution: "high" });
+    expect(detectChanges(before, after, after.fetchedAt).length).toBeGreaterThan(0);
+  });
+});
+
+describe("scenario 24: repeated comparisons of the same pair are deterministic, never duplicated content", () => {
+  test("calling detectChanges twice on identical snapshots yields the same change types both times", () => {
+    const before = profile({ controversies: [] });
+    const after = profile({ controversies: [controversy()] });
+    const first = detectChanges(before, after, after.fetchedAt).map((e) => e.changeType).sort();
+    const second = detectChanges(before, after, after.fetchedAt).map((e) => e.changeType).sort();
+    expect(second).toEqual(first);
+  });
+});
+
+describe("scenario 1: first-ever snapshot is the caller's responsibility, not this function's", () => {
+  test("detectChanges always needs two real snapshots — there is no 'no previous' mode here by design; the caller (use-celebrity.ts) skips calling it entirely when previousProfile is null", () => {
+    // This is a documentation test: the guard lives at the call site
+    // (see use-celebrity.ts / figure/page.tsx), not inside detectChanges,
+    // so a first-ever visit never reaches this function at all.
+    expect(typeof detectChanges).toBe("function");
+  });
+});

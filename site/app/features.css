@@ -83,6 +83,9 @@
 .timeline-item.k-organization::before {
   border-color: var(--good);
 }
+.timeline-item.k-change::before {
+  border-color: var(--text-muted);
+}
 .timeline-date {
   font-size: 0.78rem;
   color: var(--text-muted);

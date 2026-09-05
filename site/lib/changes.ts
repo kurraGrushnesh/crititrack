@@ -71,6 +71,10 @@ export interface ChangeEvent {
   effectiveDate: string | null;
   evidenceIds: string[];
   relatedClaimIds: string[];
+  /** Links this change to a specific timeline entry, when one exists —
+   * reserved for a future pass that stamps timeline event ids back onto
+   * the change that produced them. Absent today; never fabricated. */
+  relatedEventId?: string | null;
   methodologyVersion: string;
   confidence: ChangeConfidence;
   /** The coverage level backing this change, when relevant (e.g. how
@@ -758,6 +762,13 @@ const SEVERITY_RANK: Record<ChangeSeverity, number> = { INFO: 0, MINOR: 1, SIGNI
  * same profile. `detectedAt` should be `current.fetchedAt` — the real
  * time the new snapshot was retrieved, never `Date.now()` computed
  * inside this function (kept an explicit parameter for purity/testing).
+ *
+ * Returns nothing when the two snapshots may not even be the same real
+ * person: a same-name slug with an "ambiguous" entity-resolution band
+ * is exactly the case Entity Resolution itself refuses to pick a single
+ * person for, so Change Detection must not either — comparing across
+ * two different ambiguously-resolved individuals would produce entirely
+ * fabricated "changes".
  */
 export function detectChanges(
   previous: RealProfile,
@@ -765,6 +776,7 @@ export function detectChanges(
   detectedAt: string,
 ): ChangeEvent[] {
   if (previous.slug !== current.slug) return [];
+  if (current.resolution === "ambiguous" || previous.resolution === "ambiguous") return [];
   const entityId = current.slug;
 
   const events = [

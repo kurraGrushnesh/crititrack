@@ -22,6 +22,7 @@ const KIND_LABEL: Record<TimelineKind, string> = {
   news: "News",
   "attention-spike": "Attention",
   "sentiment-shift": "Sentiment",
+  change: "Change",
 };
 
 const FILTERS: { key: "all" | TimelineKind; label: string }[] = [
@@ -32,6 +33,7 @@ const FILTERS: { key: "all" | TimelineKind; label: string }[] = [
   { key: "news", label: "News" },
   { key: "attention-spike", label: "Attention" },
   { key: "sentiment-shift", label: "Sentiment" },
+  { key: "change", label: "Changes" },
 ];
 
 const RANGES: { key: "30" | "90" | "365" | "all"; label: string; days: number | null }[] = [

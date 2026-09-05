@@ -16,6 +16,7 @@ import 'package:crititrack/core/domain/models/media_item.dart';
 import 'package:crititrack/core/domain/models/person_facts.dart';
 import 'package:crititrack/core/domain/models/sentiment_data.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
+import 'package:crititrack/core/utils/changes.dart' show ChangeEvent;
 import 'package:crititrack/core/utils/timeline.dart';
 
 enum _Range {
@@ -36,12 +37,19 @@ class FigureTimelineSection extends StatefulWidget {
     required this.mediaItems,
     required this.career,
     required this.trend,
+    this.changeEvents = const [],
   });
 
   final List<Controversy> controversies;
   final List<MediaItem> mediaItems;
   final List<CareerEntry> career;
   final List<SentimentSnapshot> trend;
+
+  /// Step 16: this profile's detected changes, when available — folded
+  /// into the same timeline rather than a competing one. See
+  /// `timeline.dart`'s `_changeDetectionEvents` for which change types
+  /// are included (only those with no other timeline representation).
+  final List<ChangeEvent> changeEvents;
 
   @override
   State<FigureTimelineSection> createState() => _FigureTimelineSectionState();
@@ -61,6 +69,7 @@ class _FigureTimelineSectionState extends State<FigureTimelineSection> {
       media: widget.mediaItems,
       career: widget.career,
       trend: widget.trend,
+      changeEvents: widget.changeEvents,
     );
 
     return Container(
@@ -282,6 +291,7 @@ Color _dotColor(TimelineKind kind) => switch (kind) {
   TimelineKind.news => AppTheme.primary,
   TimelineKind.attentionSpike => AppTheme.accent,
   TimelineKind.sentimentShift => AppTheme.warning,
+  TimelineKind.change => Colors.grey,
 };
 
 String _displayDate(TimelineEvent e) {

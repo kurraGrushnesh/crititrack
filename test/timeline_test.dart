@@ -8,6 +8,7 @@ import 'package:crititrack/core/domain/models/controversy.dart';
 import 'package:crititrack/core/domain/models/media_item.dart';
 import 'package:crititrack/core/domain/models/person_facts.dart';
 import 'package:crititrack/core/domain/models/sentiment_data.dart';
+import 'package:crititrack/core/utils/changes.dart';
 import 'package:crititrack/core/utils/timeline.dart';
 
 Controversy controversy({
@@ -79,11 +80,36 @@ List<TimelineEvent> build({
   List<MediaItem> mediaItems = const [],
   List<CareerEntry> career = const [],
   List<SentimentSnapshot> trend = const [],
+  List<ChangeEvent> changeEvents = const [],
 }) => buildTimeline(
   controversies: controversies,
   media: mediaItems,
   career: career,
   trend: trend,
+  changeEvents: changeEvents,
+);
+
+ChangeEvent change({
+  ChangeType changeType = ChangeType.critiscoreChange,
+  ChangeSeverity severity = ChangeSeverity.major,
+  String title = 'CritiScore increased +13',
+  String? effectiveDate,
+}) => ChangeEvent(
+  changeId: 'c1',
+  entityId: 'x',
+  changeType: changeType,
+  severity: severity,
+  title: title,
+  summary: 'reason',
+  previousValue: '48',
+  currentValue: '61',
+  detectedAt: DateTime.utc(2026, 9, 5),
+  effectiveDate: effectiveDate,
+  evidenceIds: const [],
+  relatedClaimIds: const [],
+  methodologyVersion: '2.0',
+  confidence: ChangeConfidence.high,
+  sourceCoverage: null,
 );
 
 void main() {
@@ -295,6 +321,43 @@ void main() {
 
     test('is empty when there is nothing dated at all', () {
       expect(build(), isEmpty);
+    });
+  });
+
+  group('buildTimeline — Step 16 Change Detection integration', () {
+    test("folds a CritiScore/claim/coverage/profile change in as its own 'change' event", () {
+      final out = build(changeEvents: [change()]);
+      expect(out, hasLength(1));
+      expect(out.single.kind, TimelineKind.change);
+      expect(out.single.title, 'CritiScore increased +13');
+      expect(out.single.importance, Importance.high);
+    });
+
+    test('never duplicates a controversy/career/news/sentiment change already derivable from the same data', () {
+      final out = build(
+        controversies: [controversy(year: 2026)],
+        changeEvents: [
+          change(changeType: ChangeType.controversyChange, title: 'New supported controversy: Tax dispute'),
+        ],
+      );
+      expect(out, hasLength(1));
+      expect(out.single.kind, TimelineKind.controversy);
+    });
+
+    test('with no changeEvents supplied, behaves exactly as before Step 16', () {
+      final out = build(controversies: [controversy(year: 2026)]);
+      expect(out, hasLength(1));
+      expect(out.every((e) => e.kind != TimelineKind.change), isTrue);
+    });
+
+    test("uses the change's effectiveDate when known, else falls back to detectedAt", () {
+      final withDate = build(changeEvents: [change(effectiveDate: '2020-01-01')]);
+      expect(withDate.single.date, DateTime.utc(2020, 1, 1));
+      expect(withDate.single.approxDate, isFalse);
+
+      final withoutDate = build(changeEvents: [change(effectiveDate: null)]);
+      expect(withoutDate.single.date, DateTime.utc(2026, 9, 5));
+      expect(withoutDate.single.approxDate, isTrue);
     });
   });
 }
