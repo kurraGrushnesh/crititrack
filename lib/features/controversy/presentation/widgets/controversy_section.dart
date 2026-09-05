@@ -32,10 +32,17 @@ class ControversySection extends StatelessWidget {
     this.career = const [],
     this.sentimentEvidence = const [],
     this.entityId,
+    this.calculatedAt,
   });
 
   final List<Controversy> controversies;
   final String name;
+
+  /// When known, the profile's own fetch time — the real timestamp
+  /// "How this score was computed" stamps the result with. Optional so
+  /// existing call sites (and tests) that predate Step 14 keep working
+  /// without it; the sheet simply omits the audit line when absent.
+  final DateTime? calculatedAt;
 
   /// Optional — when supplied (alongside [career]/[sentimentEvidence]),
   /// the section builds the Claim Verification Matrix for each episode
@@ -105,7 +112,7 @@ class ControversySection extends StatelessWidget {
           const SizedBox(height: 16),
 
           // ── Controversy Index ───────────────────────────────────
-          _IndexPanel(index: index, controversies: controversies),
+          _IndexPanel(index: index, controversies: controversies, calculatedAt: calculatedAt),
           const SizedBox(height: 14),
 
           // ── Category breakdown ──────────────────────────────────
@@ -178,10 +185,11 @@ class ControversySection extends StatelessWidget {
 // ── Index panel ───────────────────────────────────────────────────
 
 class _IndexPanel extends StatelessWidget {
-  const _IndexPanel({required this.index, required this.controversies});
+  const _IndexPanel({required this.index, required this.controversies, this.calculatedAt});
 
   final ControversyIndex index;
   final List<Controversy> controversies;
+  final DateTime? calculatedAt;
 
   @override
   Widget build(BuildContext context) {
@@ -320,7 +328,7 @@ class _IndexPanel extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 10),
-          _MethodologyButton(controversies: controversies, index: index),
+          _MethodologyButton(controversies: controversies, index: index, calculatedAt: calculatedAt),
         ],
       ),
     );
@@ -344,10 +352,11 @@ String _confidenceLabel(ConfidenceLevel level) => switch (level) {
 /// web's "How this is calculated" link. A large enough tap target that
 /// it does not need a tiny disclosure affordance to find.
 class _MethodologyButton extends StatelessWidget {
-  const _MethodologyButton({required this.controversies, required this.index});
+  const _MethodologyButton({required this.controversies, required this.index, this.calculatedAt});
 
   final List<Controversy> controversies;
   final ControversyIndex index;
+  final DateTime? calculatedAt;
 
   @override
   Widget build(BuildContext context) {
@@ -359,6 +368,7 @@ class _MethodologyButton extends StatelessWidget {
             context,
             controversies: controversies,
             index: index,
+            calculatedAt: calculatedAt,
           ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 48),

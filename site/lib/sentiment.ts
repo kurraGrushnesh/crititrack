@@ -7,6 +7,16 @@
  * globe, the figure list, and every profile card agree.
  */
 
+/**
+ * First formally tracked per-system version of the sentiment ensemble
+ * the backend runs (general lexicon + reputation lexicon + batched
+ * language-model call, reach-weighted, with a disagreement-derived
+ * confidence band). Numbered "2.0" because it is genuinely the second
+ * generation of the method — v1 was a single-method score, documented
+ * as method v1 in `methodology-version.ts` — not an invented history.
+ */
+export const SENTIMENT_METHODOLOGY_VERSION = "2.0";
+
 export type SentimentBand = "positive" | "mixed" | "negative";
 
 export function sentimentBand(score: number): SentimentBand {

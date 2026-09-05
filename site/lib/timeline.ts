@@ -18,6 +18,10 @@
 import type { TrendPoint, MediaLink, AttentionPoint } from "./api";
 import type { Controversy } from "./controversy";
 import { parseSafeUrl, displayHost } from "./safe-url";
+
+/** First formally tracked version of the timeline assembly rules below
+ * (event sources, day-grouping threshold, importance signals). */
+export const TIMELINE_METHODOLOGY_VERSION = "1.0";
 import type { CareerEntry } from "./career";
 import { LEADERSHIP } from "./career";
 

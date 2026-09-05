@@ -238,7 +238,7 @@ function ProfileView({
           </div>
           <ControversyIndexGauge index={index} controversies={profile.controversies} />
           <IndexHistoryChart controversies={profile.controversies} />
-          <IndexExplanation controversies={profile.controversies} />
+          <IndexExplanation controversies={profile.controversies} fetchedAt={profile.fetchedAt} />
         </section>
       </Reveal>
 

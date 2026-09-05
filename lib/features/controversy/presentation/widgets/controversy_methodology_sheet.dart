@@ -14,6 +14,8 @@ import 'package:crititrack/core/domain/models/controversy.dart';
 import 'package:crititrack/core/security/safe_url.dart';
 import 'package:crititrack/core/theme/app_theme.dart';
 import 'package:crititrack/core/utils/controversy_index.dart';
+import 'package:crititrack/core/utils/helpers.dart' show cacheTimestamp;
+import 'package:crititrack/core/utils/methodology.dart';
 
 /// Opens the sheet: drag handle, drag-to-dismiss, scrollable, safe-area
 /// aware, explicit close button.
@@ -21,6 +23,7 @@ Future<void> showControversyMethodologySheet(
   BuildContext context, {
   required List<Controversy> controversies,
   required ControversyIndex index,
+  DateTime? calculatedAt,
 }) {
   final palette = context.palette;
   return showModalBottomSheet<void>(
@@ -30,22 +33,31 @@ Future<void> showControversyMethodologySheet(
     showDragHandle: true,
     backgroundColor: palette.card,
     builder:
-        (context) =>
-            _MethodologySheet(controversies: controversies, index: index),
+        (context) => _MethodologySheet(
+          controversies: controversies,
+          index: index,
+          calculatedAt: calculatedAt,
+        ),
   );
 }
 
 class _MethodologySheet extends StatelessWidget {
-  const _MethodologySheet({required this.controversies, required this.index});
+  const _MethodologySheet({
+    required this.controversies,
+    required this.index,
+    this.calculatedAt,
+  });
 
   final List<Controversy> controversies;
   final ControversyIndex index;
+  final DateTime? calculatedAt;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = context.palette;
     final explanation = explainControversyIndex(controversies);
+    final confidence = indexConfidence(controversies);
     final sourceCounts = {
       for (final c in controversies) c.title: c.sources.length,
     };
@@ -81,6 +93,17 @@ class _MethodologySheet extends StatelessWidget {
                   ),
                 ],
               ),
+              if (calculatedAt != null) ...[
+                Text(
+                  'Calculated ${cacheTimestamp(calculatedAt!)} · Method: '
+                  'CritiScore v$kCritiscoreMethodologyVersion'
+                  '${confidence != null ? " · Confidence: ${confidence.level.label}" : ""}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: palette.textMuted,
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
               Text(
                 'Total weight ${explanation.totalWeight.toStringAsFixed(2)} → '
                 '${explanation.score.toStringAsFixed(1)} / 100',

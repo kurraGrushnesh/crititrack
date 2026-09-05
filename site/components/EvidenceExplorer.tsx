@@ -5,6 +5,7 @@ import {
   buildEvidenceItems,
   conflictingControversies,
   SOURCE_TYPE_LABEL,
+  EVIDENCE_METHODOLOGY_VERSION,
   type EvidenceItem,
   type EvidenceCategory,
   type SourceType,
@@ -164,6 +165,10 @@ export default function EvidenceExplorer({
           ))}
         </ul>
       )}
+      <p className="dc-footnote" style={{ marginTop: 14 }}>
+        Evidence methodology v{EVIDENCE_METHODOLOGY_VERSION}.{" "}
+        <a href="/methodology#evidence">How this is calculated →</a>
+      </p>
     </div>
   );
 }

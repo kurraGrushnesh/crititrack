@@ -11,6 +11,8 @@ import {
   confidenceExplainer,
 } from "@/lib/sentiment";
 import { formatCompact, shortDate } from "@/lib/attention";
+import { buildSentimentAudit } from "@/lib/methodology";
+import AuditMeta from "./AuditMeta";
 
 type Tab = "split" | "trend" | "mentions";
 
@@ -215,6 +217,35 @@ export default function SentimentPanel({
           </a>
         </details>
       )}
+
+      <details className="senti-methodology">
+        <summary>Methodology</summary>
+        <div className="senti-methodology-body">
+          <AuditMeta meta={buildSentimentAudit(profile)} />
+          <ul>
+            <li>{profile.sampleSize ?? "No"} analyzed mention{profile.sampleSize === 1 ? "" : "s"}</li>
+            <li>
+              Method agreement:{" "}
+              {profile.methodAgreement != null
+                ? `${Math.round(profile.methodAgreement * 100)}% (Available)`
+                : "Not available"}
+            </li>
+            <li>
+              {profile.trend.length > 0
+                ? `${profile.trend.length}-day trend window`
+                : "No historical trend window recorded yet"}
+            </li>
+          </ul>
+          <p className="senti-methodology-note">
+            Sentiment measures the tone of analyzed coverage — it is not a
+            verdict on any claim. Negative sentiment is not proof of
+            wrongdoing; positive sentiment does not disprove an allegation.
+          </p>
+          <a href="/methodology#sentiment" className="senti-evidence-link">
+            Full sentiment methodology →
+          </a>
+        </div>
+      </details>
 
       {profile.explanation && (
         <div className="senti-analysis">

@@ -148,7 +148,8 @@ export default function DataCoverageDetail({
       <p className="dc-footnote">
         Coverage measures how much usable data exists — it is separate from
         CritiScore, from sentiment, and from popularity. Methodology{" "}
-        {report.coverageVersion}.
+        {report.coverageVersion}.{" "}
+        <a href="/methodology#data-coverage">How coverage is measured →</a>
       </p>
     </div>
   );

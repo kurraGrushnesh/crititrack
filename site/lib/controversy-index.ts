@@ -19,6 +19,17 @@
 import type { Controversy } from "./controversy";
 import { isOngoing } from "./controversy";
 
+/**
+ * The formal version of the CritiScore calculation below — bumped only
+ * when the formula, curve or a constant in this file changes. "2.0"
+ * marks the Step 9 "CritiScore 2.0" presentation/transparency upgrade;
+ * the underlying arithmetic (severity × recency × unresolved, then the
+ * diminishing-returns curve) is unchanged since it shipped, so this is
+ * the first formally tracked version rather than a claim of prior
+ * numbered releases.
+ */
+export const CRITISCORE_METHODOLOGY_VERSION = "2.0";
+
 export interface ControversyIndex {
   /** 0-100. */
   score: number;

@@ -218,6 +218,7 @@ class _DashboardContent extends ConsumerWidget {
                           media: celebrity.mediaItems,
                           career: celebrity.facts.career,
                           sentimentEvidence: celebrity.sentimentData.evidence,
+                          calculatedAt: celebrity.fetchedAt,
                         ),
                         const SizedBox(height: 16),
                         SentimentSection(
@@ -259,6 +260,7 @@ class _DashboardContent extends ConsumerWidget {
                 media: celebrity.mediaItems,
                 career: celebrity.facts.career,
                 sentimentEvidence: celebrity.sentimentData.evidence,
+                calculatedAt: celebrity.fetchedAt,
               ),
             ),
           ),

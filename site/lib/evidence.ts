@@ -19,6 +19,11 @@ import type { Controversy } from "./controversy";
 import type { CareerEntry } from "./career";
 import { parseSafeUrl, displayHost } from "./safe-url";
 
+/** First formally tracked version of the evidence normalisation and
+ * strength rules below (source typing, topic-overlap linking, dedup-
+ * aware independent-source counting, conflict flagging). */
+export const EVIDENCE_METHODOLOGY_VERSION = "1.0";
+
 export type SourceType =
   | "news"
   | "government"

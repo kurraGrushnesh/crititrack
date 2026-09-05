@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   CLAIM_STATUS_LABEL,
   CLAIM_TYPE_LABEL,
+  METHODOLOGY_VERSION,
   claimsForControversy,
   filterClaims,
   type Claim,
@@ -147,6 +148,10 @@ export default function ClaimsMatrix({
       ) : (
         shown.map((c) => <ClaimCard key={c.claimId} claim={c} />)
       )}
+      <p className="dc-footnote" style={{ marginTop: 8 }}>
+        Claim verification methodology v{METHODOLOGY_VERSION}.{" "}
+        <a href="/methodology#claims">How this is calculated →</a>
+      </p>
     </div>
   );
 }

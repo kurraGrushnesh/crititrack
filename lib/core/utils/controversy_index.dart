@@ -288,6 +288,14 @@ ScoreBandInfo scoreBandFor(double score) {
 
 enum ConfidenceLevel { high, medium, low }
 
+extension ConfidenceLevelLabel on ConfidenceLevel {
+  String get label => switch (this) {
+    ConfidenceLevel.high => 'High',
+    ConfidenceLevel.medium => 'Medium',
+    ConfidenceLevel.low => 'Low',
+  };
+}
+
 class IndexConfidence {
   const IndexConfidence({
     required this.level,

@@ -2,10 +2,9 @@
 
 import { useMemo } from "react";
 import type { Controversy } from "@/lib/controversy";
-import {
-  explainControversyIndex,
-  type IndexExplanationRow,
-} from "@/lib/controversy-index";
+import { type IndexExplanationRow } from "@/lib/controversy-index";
+import { buildScoreAudit } from "@/lib/methodology";
+import AuditMeta from "./AuditMeta";
 
 /**
  * A collapsible "why this number" panel for the Controversy Index — one
@@ -17,13 +16,16 @@ import {
  */
 export default function IndexExplanation({
   controversies,
+  fetchedAt,
 }: {
   controversies: Controversy[];
+  fetchedAt: string;
 }) {
-  const ex = useMemo(
-    () => explainControversyIndex(controversies),
-    [controversies],
+  const audit = useMemo(
+    () => buildScoreAudit({ fetchedAt }, controversies),
+    [controversies, fetchedAt],
   );
+  const ex = audit.explanation;
   const sourceCount = useMemo(
     () => new Map(controversies.map((c) => [c.title, c.sources.length])),
     [controversies],
@@ -35,6 +37,7 @@ export default function IndexExplanation({
     <details className="ix-explain">
       <summary>How this score was computed</summary>
       <div className="ix-explain-body">
+        <AuditMeta meta={audit} />
         <div className="ix-cards">
           {ex.rows.map((r, i) => (
             <EpisodeCard key={i} row={r} sources={sourceCount.get(r.title) ?? 0} />

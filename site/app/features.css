@@ -1569,6 +1569,74 @@
   text-decoration: underline;
 }
 
+/* ── Audit trail (Step 14) ───────────────────────────────────────── */
+
+.audit-meta {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.audit-sep {
+  opacity: 0.5;
+}
+
+.senti-methodology {
+  margin: 12px 16px 4px;
+}
+.senti-methodology summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--brand-strong);
+  font-size: 0.88rem;
+}
+.senti-methodology-body {
+  margin-top: 10px;
+  padding-left: 2px;
+}
+.senti-methodology-body ul {
+  margin: 8px 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.senti-methodology-note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 8px 0;
+}
+
+.version-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 0.88rem;
+}
+.version-table th,
+.version-table td {
+  text-align: left;
+  padding: 6px 12px 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.version-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.version-badge {
+  font-variant-numeric: tabular-nums;
+  color: var(--brand-strong);
+  font-weight: 600;
+}
+
 /* ── Data Coverage & Confidence Center ──────────────────────────── */
 
 .dc-card {
